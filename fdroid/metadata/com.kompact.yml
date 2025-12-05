@@ -7,16 +7,17 @@ SourceCode: https://github.com/<your-user>/Kompact
 IssueTracker: https://github.com/<your-user>/Kompact/issues
 Changelog: https://github.com/<your-user>/Kompact/releases
 Name: Kompact
-Summary: Offline compression for images and PDFs
+Summary: Offline compression for images
 Description: |-
-  Kompact compresses JPEG/PNG/WebP images and PDF documents directly on-device
-  using Kotlin + Jetpack Compose. It avoids proprietary services, works fully
-  offline, and exposes fine-grained controls for quality, maximum size, and DPI.
+  Kompact compresses JPEG/PNG/WebP images directly on-device using Kotlin +
+  Jetpack Compose. It avoids proprietary services, works fully offline, and
+  exposes fine-grained controls for quality, maximum size, and output format.
 
   - SAF picker with multi-selection
   - User-configurable quality presets
   - Detailed report for every processed file
   - Material You light/dark theme support
+  - Roadmap items for PDFs, audio, and video once the imaging pipeline is solid
 
 RepoType: git
 Repo: https://github.com/<your-user>/Kompact.git

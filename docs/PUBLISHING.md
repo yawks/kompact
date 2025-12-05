@@ -49,7 +49,7 @@ This guide walks through everything needed to ship Kompact on both F-Droid and t
    - Confirm the published SHA256 signature matches the build output.
 
 ## Recommended QA before every release
-- Run image (JPEG, PNG, WebP) and PDF compression flows on API levels 24, 29, and 35.
+- Run image compression flows (JPEG, PNG, WebP) on API levels 24, 29, and 35.
 - Verify SAF permissions with both internal and SD card sources.
 - Confirm the app works offline (airplane mode) and the Material 3 UI respects light/dark themes.
 - Execute `./gradlew test connectedDebugAndroidTest` on at least one device/emulator.
