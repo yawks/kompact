@@ -1,6 +1,6 @@
 # Kompact
 
-Kompact is an open-source Android app written in Kotlin with Jetpack Compose that compresses images (JPEG, PNG, WebP) quickly and transparently. The project is tailored for privacy-friendly distribution on F-Droid.
+Kompact is an open-source Android app written in Kotlin with Jetpack Compose that compresses images (JPEG, PNG, WebP) quickly and transparently. Official builds are produced and signed only by the maintainer to keep a single line of trust that still meets F-Droid and Google Play policies.
 
 ## Key Features
 - Multi-selection of images through the Storage Access Framework.
@@ -22,32 +22,14 @@ Kompact is an open-source Android app written in Kotlin with Jetpack Compose tha
 - JDK 21 (recommended) or JDK 17 configured through `JAVA_HOME`.
 - Android SDK 35, minSdk 24.
 
-### Local SDK configuration
-Create a `local.properties` file in the project root to point Gradle to your SDK installation:
-
-```
-sdk.dir=C:\Users\<you>\AppData\Local\Android\Sdk
-```
-
-Replace the path with the actual SDK location on your machine or set the `ANDROID_HOME` environment variable instead.
-
 ## Quick start
 ```bash
 # from the project root
-./gradlew tasks                    # optional sanity check
-./gradlew assembleDebug            # build the debug APK
-./gradlew connectedDebugAndroidTest  # run instrumented tests (device/emulator required)
+./gradlew assembleDebug
+./gradlew test
+./gradlew assembleRelease
 ```
-Install the generated APK (`app/build/outputs/apk/debug/app-debug.apk`) on a device or emulator.
-
-To prepare the F-Droid build run:
-
-```bash
-./gradlew assembleRelease   # produces app-release-unsigned.apk
-apksigner sign --ks <keystore> --out app-release.apk app/build/outputs/apk/release/app-release-unsigned.apk
-apksigner verify app-release.apk
-```
-Signing is kept separate so that F-Droid can reproduce and sign the APK with its own key.
+Artifacts must be signed with your own keys when testing private builds. Upstream signing material is never shared.
 
 ## Project structure
 - `app/src/main/java/com/kompact/data` contains the local repository and compression logic.
@@ -55,38 +37,18 @@ Signing is kept separate so that F-Droid can reproduce and sign the APK with its
 - `app/src/main/java/com/kompact/model` exposes shared domain models.
 - `app/src/main/java/com/kompact/util` keeps reusable helpers.
 
-## F-Droid distribution
-See `docs/PUBLISHING.md` for the full submission checklist targeting `fdroiddata`.
-- No proprietary or non-free dependencies (only AndroidX, Compose, Material Components, Kotlin).
-- `android.enableJetifier=false` plus the absence of closed-source binaries keeps builds reproducible.
-- Google Play Services and tracking/analytics SDKs are not used.
-- The release build stays unsigned so F-Droid can apply its own signature.
-- Minification is disabled for the `release` build type to lighten R8 and simplify APK diffs.
-- The project builds with `fdroid build` using the standard Gradle wrapper—no extra scripts required.
-- `android.suppressUnsupportedCompileSdk=35` is already set in `gradle.properties` to keep logs tidy.
-- A ready-to-copy metadata template lives at `fdroid/metadata/com.kompact.yml`.
+## Distribution policy
+- The codebase contains no proprietary services, so it remains eligible for F-Droid and other FLOSS catalogs.
+- Release builds stay unsigned inside the repository to let F-Droid reproduce them with its keys.
+- Google Play specific assets (screenshots, policy text, signing artifacts) are maintained privately; only the maintainer can push production builds.
+- For third-party forks, change the application ID and sign with independent keys to avoid name collisions.
 
-### F-Droid metadata requirements
-- Run `gradlew assembleRelease` without custom scripts.
-- Pull artifacts from `app/build/outputs/apk/release/`.
-- Declare the `AGPL-3.0-or-later` license and source `https://github.com/<your-user>/Kompact` (update once public).
-- Update `Repo`, `IssueTracker`, and `Changelog` inside `fdroid/metadata/com.kompact.yml` with real URLs before filing the `fdroiddata` merge request.
+`docs/PUBLISHING.md` tracks the internal release checklist shared with platform maintainers. It intentionally omits infrastructure secrets while documenting the minimal steps required for compliance reviews.
 
-## Google Play distribution
-Additional steps and checklists are spelled out in `docs/PUBLISHING.md`.
-- Produce the Android App Bundle with `./gradlew bundleRelease` (Play requirement) or via Android Studio's *Generate Signed Bundle/APK*.
-- Enable Play App Signing by uploading the AAB signed with your upload key; Google manages the distribution key.
-- Use a dedicated upload keystore and define `KS_PATH`, `KS_ALIAS`, `KS_PASS`, `KEY_PASS` environment variables before signing (never store them in git).
-- Fill the Store Listing with the same assets shared with F-Droid (short/long descriptions, 1080x1920 screenshots, 1024x500 feature graphic, adaptive icons).
-- Recommended attachments: `What's new` changelog, static privacy policy (no personal data collected), repository link.
-- Before production rollout, create at least one Internal test track to validate signing and SAF permissions.
-
-### Publication checklist
-- Align `versionCode`/`versionName` in `app/build.gradle.kts` for every release and create a matching `vX.Y.Z` tag.
-- Run `./gradlew clean assembleRelease` and `./gradlew bundleRelease` on the same machine used for signing.
-- Sign `app-release-unsigned.apk` only for Play (F-Droid requires the unsigned artifact) and keep the SHA256 fingerprints.
-- Update `fdroid/metadata/com.kompact.yml` and `fastlane/metadata` (if in use) with the latest changelog entries.
-- Publish source code and graphics under the same tag to guarantee reproducibility.
+## Release governance
+- Tags are created only by the maintainer after running the full QA pass.
+- Official packages are distributed exclusively through the maintainer-operated channels (Git tags, eventual F-Droid entry, Google Play listing).
+- Community contributions are welcome, but merging or publishing decisions always stay under upstream control to preserve a single trust source.
 
 ## License
 Kompact is distributed under the **GNU Affero General Public License v3.0 or later**. Refer to `LICENSE` for details and always include a link to the source when redistributing binaries or forks.

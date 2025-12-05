@@ -18,6 +18,7 @@ Description: |-
   - Detailed report for every processed file
   - Material You light/dark theme support
   - Roadmap items for PDFs, audio, and video once the imaging pipeline is solid
+  - Official releases are published solely by the upstream maintainer to preserve a single trusted key
 
 RepoType: git
 Repo: https://github.com/<your-user>/Kompact.git
