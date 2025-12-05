@@ -419,7 +419,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             preferencesRepository.defaultDestinationFolder.collect { uriString ->
                 _state.update { it.copy(defaultDestinationFolder = uriString) }
-                // Preseleziona la destination se non è impostata
+                // Preselect the destination if the user has not set one yet
                 if (uriString != null && _state.value.destinationFolder == null) {
                     _state.update { state -> state.copy(destinationFolder = Uri.parse(uriString)) }
                 }

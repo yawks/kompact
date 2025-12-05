@@ -1,57 +1,57 @@
 # Publishing Kompact
 
-Questa guida raccoglie i passaggi necessari per pubblicare Kompact sia su F-Droid sia sul Google Play Store, evidenziando differenze, prerequisiti e checklist di verifica.
+This guide walks through everything needed to ship Kompact on both F-Droid and the Google Play Store, highlighting differences, prerequisites, and validation checklists.
 
-## Prerequisiti comuni
-- Tutto il codice deve essere sotto licenza **GNU AGPL-3.0-or-later** (`LICENSE`).
-- Aggiorna `versionCode`/`versionName` in `app/build.gradle.kts` e crea un tag Git `vX.Y.Z` coerente.
-- Esegui `./gradlew clean assembleRelease` e `./gradlew bundleRelease` dalla stessa macchina per garantire build riproducibili.
-- Verifica che l'app non usi dipendenze proprietarie o servizi Google Play.
-- Prepara changelog, screenshot e asset grafici condivisi fra gli store.
+## Shared prerequisites
+- All code must be licensed under **GNU AGPL-3.0-or-later** (`LICENSE`).
+- Update `versionCode`/`versionName` in `app/build.gradle.kts` and create a matching Git tag `vX.Y.Z`.
+- Run `./gradlew clean assembleRelease` and `./gradlew bundleRelease` on the same machine to guarantee reproducible artifacts.
+- Ensure the app does not depend on proprietary libraries or Google Play Services components.
+- Prepare changelog entries, screenshots, and marketing assets that can be reused across stores.
 
-## Flusso F-Droid
-1. **Aggiorna i metadata**
-   - Modifica `fdroid/metadata/com.kompact.yml` con gli URL reali (`Repo`, `IssueTracker`, `Changelog`).
-   - Inserisci il nuovo `versionName`, `versionCode` e il tag/commit corrispondente.
-2. **Verifica locale**
-   - Installa `fdroidserver` e `fdroidcl`.
-   - Esegui `fdroid lint --metadata-path fdroid/metadata com.kompact` per validare il file.
-   - Esegui `fdroid build --server --metadata-path fdroid/metadata com.kompact` per assicurarti che `gradlew assembleRelease` funzioni senza firma.
-3. **Invio a fdroiddata**
-   - Forka `https://gitlab.com/fdroid/fdroiddata`.
-   - Copia `fdroid/metadata/com.kompact.yml` nel fork (stesso percorso) e apri una Merge Request.
-   - Includi nel MR: link al tag sorgente, SHA256 di `app-release-unsigned.apk`, log di `fdroid build` verde.
-4. **Aggiornamenti futuri**
-   - Incrementa `versionCode` e aggiorna `CurrentVersion*` nel metadata.
-   - F-Droid ricostruirà autonomamente l'APK, non serve firmarlo.
+## F-Droid flow
+1. **Refresh metadata**
+   - Edit `fdroid/metadata/com.kompact.yml` with the real URLs (`Repo`, `IssueTracker`, `Changelog`).
+   - Set the latest `versionName`, `versionCode`, and corresponding tag/commit.
+2. **Local verification**
+   - Install `fdroidserver` and `fdroidcl`.
+   - Run `fdroid lint --metadata-path fdroid/metadata com.kompact` to validate the file.
+   - Run `fdroid build --server --metadata-path fdroid/metadata com.kompact` to make sure `gradlew assembleRelease` succeeds without signing.
+3. **Submit to fdroiddata**
+   - Fork `https://gitlab.com/fdroid/fdroiddata`.
+   - Copy `fdroid/metadata/com.kompact.yml` into the fork (same path) and open a Merge Request.
+   - Include in the MR: source tag link, SHA256 of `app-release-unsigned.apk`, and a green `fdroid build` log.
+4. **Future updates**
+   - Bump `versionCode` and update the `CurrentVersion*` fields in the metadata.
+   - F-Droid rebuilds the APK automatically, so no signing step is necessary.
 
-## Flusso Google Play
-1. **Configura la chiave di upload**
-   - Genera un keystore dedicato (`keytool -genkeypair ...`).
-   - Esporta le variabili d'ambiente richieste dal Gradle script:
-     - `KS_PATH`: percorso assoluto del keystore
-     - `KS_PASS`: password del keystore
-     - `KS_ALIAS`: alias della chiave
-     - `KEY_PASS`: password della chiave
-2. **Compila e firma**
-   - `./gradlew clean assembleRelease bundleRelease`
-   - L'APK viene firmato automaticamente se tutte le variabili sono valorizzate; in caso contrario usa `./gradlew signingReport` per verificare.
-   - Carica l'`app-release.aab` su Play Console (obbligatorio). L'APK firmato rimane utile per test interni o distribuzioni dirette.
-3. **Play Console**
-   - Abilita Play App Signing (consigliato) e conserva il certificato di upload.
-   - Compila schede "Contenuti dell'app":
-     - **Sicurezza dei dati**: dichiara che l'app non raccoglie né condivide dati.
-     - **Classificazione contenuti**: produttività/utilità, nessun contenuto sensibile.
-     - **Privacy policy**: link al README o a una pagina statica che spieghi che non vengono raccolti dati personali.
-   - Crea un "Test interno" prima del rollout in produzione.
+## Google Play flow
+1. **Configure the upload key**
+   - Generate a dedicated keystore (`keytool -genkeypair ...`).
+   - Export the environment variables required by the Gradle script:
+     - `KS_PATH`: absolute keystore path
+     - `KS_PASS`: keystore password
+     - `KS_ALIAS`: key alias
+     - `KEY_PASS`: key password
+2. **Build and sign**
+   - Run `./gradlew clean assembleRelease bundleRelease`.
+   - The APK signs automatically if all variables are present; otherwise run `./gradlew signingReport` to inspect the config.
+   - Upload `app-release.aab` to Play Console (mandatory). Keep the signed APK for internal testing or direct sideloads.
+3. **Play Console setup**
+   - Enable Play App Signing (recommended) and back up the upload certificate.
+   - Fill in the "App content" sections:
+     - **Data safety**: state that the app does not collect or share data.
+     - **Content rating**: productivity/utility, no sensitive content.
+     - **Privacy policy**: link to the README or a static page explaining no personal data is collected.
+   - Create an Internal testing track before a production rollout.
 4. **Rollout**
-   - Allegare changelog (max 500 caratteri per lingua) con le novità principali.
-   - Verificare che la firma SHA256 pubblicata coincida con quella generata durante la build.
+   - Attach `What's new` text (max ~500 characters per locale) covering the main changes.
+   - Confirm the published SHA256 signature matches the build output.
 
-## QA consigliato prima di ogni release
-- Avviare un ciclo di compressione immagini (JPEG, PNG, WebP) e PDF su API 24, 29 e 35.
-- Verificare permessi SAF con sorgenti interni/SD.
-- Controllare che l'app funzioni offline (modalità aereo) e che la UI Material 3 rispetti chiaro/scuro.
-- Eseguire `./gradlew test connectedDebugAndroidTest` su almeno un dispositivo/emulatore.
+## Recommended QA before every release
+- Run image (JPEG, PNG, WebP) and PDF compression flows on API levels 24, 29, and 35.
+- Verify SAF permissions with both internal and SD card sources.
+- Confirm the app works offline (airplane mode) and the Material 3 UI respects light/dark themes.
+- Execute `./gradlew test connectedDebugAndroidTest` on at least one device/emulator.
 
-Seguire questa checklist riduce il tempo di revisione sia per F-Droid sia per Google Play e garantisce coerenza tra build autogenerate e pacchetti caricati manualmente.
+Following this checklist shortens review times for both F-Droid and Google Play while keeping manually uploaded builds in sync with reproducible ones.

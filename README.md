@@ -1,90 +1,90 @@
 # Kompact
 
-Kompact è un'app Android open-source scritta in Kotlin e Jetpack Compose che consente di comprimere immagini (JPEG, PNG, WebP) e documenti PDF in modo rapido e trasparente, pensata per una distribuzione privacy-friendly su F-Droid.
+Kompact is an open-source Android app written in Kotlin with Jetpack Compose that compresses images (JPEG, PNG, WebP) and PDF documents quickly and transparently. The project is tailored for privacy-friendly distribution on F-Droid.
 
-## Funzionalità principali
-- Selezione multipla di immagini o PDF tramite Storage Access Framework.
-- Parametri di compressione personalizzabili (qualità, dimensioni massime, formato di output, DPI PDF).
-- Risultati riepilogati con dimensioni originali/compresse e stato dell'operazione.
-- UI moderna con Material 3 e supporto chiaro/scuro.
-- Salvataggio automatico nella cartella Immagini di sistema (Pictures/Kompact) con possibilità di scegliere un'altra destinazione.
-- Anteprima affiancata original/output e controlli percentuale/dimensione sempre visibili e sincronizzati.
+## Key Features
+- Multi-selection of images or PDFs through the Storage Access Framework.
+- Fully configurable compression parameters (quality, max size, output format, PDF DPI).
+- Result cards summarize original vs compressed size and the status of each operation.
+- Modern Material 3 UI with light/dark support.
+- Automatic export to the Pictures/Kompact directory with the option to pick any other destination.
+- Side-by-side preview of source/output with synchronized quality and target size controls.
 
 ## Design
-- Palette FDroid-inspired con primario verde smeraldo (#1C8F62), secondario denim (#2F5978) e accento arancio (#B55300) per un look pulito ma innovativo.
-- Contrasti AA mantenuti fra testo/iconografia e sfondi chiaro/scuro per un'esperienza accessibile.
+- FDroid-inspired palette with emerald primary (#1C8F62), denim secondary (#2F5978), and orange accent (#B55300) for a clean, opinionated look.
+- AA contrast maintained between text/icons and both light/dark surfaces for accessible viewing.
 
-## Requisiti
-- Android Studio Ladybug o successiva.
+## Requirements
+- Android Studio Ladybug or newer.
 - Android Gradle Plugin 8.5+, Gradle 8.7.
-- JDK 21 (consigliato) o JDK 17 configurato tramite `JAVA_HOME`.
-- SDK Android 35, minSdk 24.
+- JDK 21 (recommended) or JDK 17 configured through `JAVA_HOME`.
+- Android SDK 35, minSdk 24.
 
-### Configurazione SDK locale
-Definisci il percorso dell'SDK creando un file `local.properties` nella root del progetto:
+### Local SDK configuration
+Create a `local.properties` file in the project root to point Gradle to your SDK installation:
 
 ```
-sdk.dir=C:\Users\<nome>\AppData\Local\Android\Sdk
+sdk.dir=C:\Users\<you>\AppData\Local\Android\Sdk
 ```
 
-Sostituisci il percorso con quello effettivo sul tuo sistema oppure imposta la variabile d'ambiente `ANDROID_HOME`.
+Replace the path with the actual SDK location on your machine or set the `ANDROID_HOME` environment variable instead.
 
-## Avvio rapido
+## Quick start
 ```bash
-# dalla cartella del progetto
-./gradlew tasks           # opzionale, verifica wrapper
-./gradlew assembleDebug   # compila l'app
-./gradlew connectedDebugAndroidTest  # esegue i test strumentali (richiede dispositivo/emulatore)
+# from the project root
+./gradlew tasks                    # optional sanity check
+./gradlew assembleDebug            # build the debug APK
+./gradlew connectedDebugAndroidTest  # run instrumented tests (device/emulator required)
 ```
-Installa l'APK risultante (`app/build/outputs/apk/debug/app-debug.apk`) su un dispositivo o emulatore Android.
+Install the generated APK (`app/build/outputs/apk/debug/app-debug.apk`) on a device or emulator.
 
-Per la build destinata a F-Droid esegui invece:
+To prepare the F-Droid build run:
 
 ```bash
-./gradlew assembleRelease   # genera app-release-unsigned.apk
+./gradlew assembleRelease   # produces app-release-unsigned.apk
 apksigner sign --ks <keystore> --out app-release.apk app/build/outputs/apk/release/app-release-unsigned.apk
 apksigner verify app-release.apk
 ```
-La fase di firma è separata così da permettere a F-Droid di riprodurre l'APK e firmarlo con la propria chiave.
+Signing is kept separate so that F-Droid can reproduce and sign the APK with its own key.
 
-## Struttura
-- `app/src/main/java/com/kompact/data` contiene il repository locale con la logica di compressione.
-- `app/src/main/java/com/kompact/ui` ospita ViewModel e composable principali.
-- `app/src/main/java/com/kompact/model` espone i modelli condivisi.
-- `app/src/main/java/com/kompact/util` racchiude helper riutilizzabili.
+## Project structure
+- `app/src/main/java/com/kompact/data` contains the local repository and compression logic.
+- `app/src/main/java/com/kompact/ui` hosts the ViewModel and main composables.
+- `app/src/main/java/com/kompact/model` exposes shared domain models.
+- `app/src/main/java/com/kompact/util` keeps reusable helpers.
 
-## Distribuzione F-Droid
-Consulta `docs/PUBLISHING.md` per la checklist completa di invio a `fdroiddata`.
-- Nessuna dipendenza proprietaria o non libera (solo librerie AndroidX, Compose, Material Components e Kotlin).
-- `android.enableJetifier=false` e assenza di binari chiusi garantiscono una catena di build riproducibile.
-- Non viene usato Google Play Services né SDK di tracking/analytics.
-- La build release rimane non firmata per consentire a F-Droid di applicare la propria firma.
-- Minification disattivata nel build type `release` per ridurre il carico di R8 e facilitare il diff degli APK.
-- Il progetto può essere compilato con `fdroid build` usando un metadata `build.gradle` standard senza patch aggiuntive.
-- Proprietà `android.suppressUnsupportedCompileSdk=35` già impostata in `gradle.properties` per mantenere l'output di build pulito.
-- È incluso un template `fdroid/metadata/com.kompact.yml` pronto da copiare nel repository metadata ufficiale.
+## F-Droid distribution
+See `docs/PUBLISHING.md` for the full submission checklist targeting `fdroiddata`.
+- No proprietary or non-free dependencies (only AndroidX, Compose, Material Components, Kotlin).
+- `android.enableJetifier=false` plus the absence of closed-source binaries keeps builds reproducible.
+- Google Play Services and tracking/analytics SDKs are not used.
+- The release build stays unsigned so F-Droid can apply its own signature.
+- Minification is disabled for the `release` build type to lighten R8 and simplify APK diffs.
+- The project builds with `fdroid build` using the standard Gradle wrapper—no extra scripts required.
+- `android.suppressUnsupportedCompileSdk=35` is already set in `gradle.properties` to keep logs tidy.
+- A ready-to-copy metadata template lives at `fdroid/metadata/com.kompact.yml`.
 
-### Requisiti per il metadata F-Droid
-- Usa `gradlew assembleRelease` senza ulteriori script.
-- Copia gli artefatti da `app/build/outputs/apk/release/`.
-- Indica licenza `AGPL-3.0-or-later` e sorgente `https://github.com/<tuo-utente>/Kompact` (aggiorna l'URL una volta pubblicato).
-- Aggiorna `Repo`, `IssueTracker` e `Changelog` nel file `fdroid/metadata/com.kompact.yml` con gli URL reali al momento dell'invio della merge request su `fdroiddata`.
+### F-Droid metadata requirements
+- Run `gradlew assembleRelease` without custom scripts.
+- Pull artifacts from `app/build/outputs/apk/release/`.
+- Declare the `AGPL-3.0-or-later` license and source `https://github.com/<your-user>/Kompact` (update once public).
+- Update `Repo`, `IssueTracker`, and `Changelog` inside `fdroid/metadata/com.kompact.yml` with real URLs before filing the `fdroiddata` merge request.
 
-## Distribuzione Google Play
-Passaggi dettagliati e checklist aggiuntive sono descritte in `docs/PUBLISHING.md`.
-- Genera l'Android App Bundle con `./gradlew bundleRelease` (richiesto da Google Play) oppure usa `Generate Signed Bundle/APK` da Android Studio.
-- Abilita Play App Signing caricando l'AAB firmato con la tua chiave di upload; Play gestirà la chiave di distribuzione.
-- Configura un keystore dedicato all'upload e definisci le variabili d'ambiente `KS_PATH`, `KS_ALIAS`, `KS_PASS`, `KEY_PASS` prima di firmare (non salvare i valori nel repository).
-- Compila la scheda Store Listing con le stesse informazioni fornite a F-Droid (descrizione breve/lunga, screenshot 1080x1920, grafica 1024x500, icone adaptive).
-- Allegati suggeriti: changelog in formato `What's new`, privacy policy statica (non sono raccolti dati personali) e link alla repository.
-- Prima di inviare in produzione crea almeno un Test interno per verificare la firma e i permessi SAF.
+## Google Play distribution
+Additional steps and checklists are spelled out in `docs/PUBLISHING.md`.
+- Produce the Android App Bundle with `./gradlew bundleRelease` (Play requirement) or via Android Studio's *Generate Signed Bundle/APK*.
+- Enable Play App Signing by uploading the AAB signed with your upload key; Google manages the distribution key.
+- Use a dedicated upload keystore and define `KS_PATH`, `KS_ALIAS`, `KS_PASS`, `KEY_PASS` environment variables before signing (never store them in git).
+- Fill the Store Listing with the same assets shared with F-Droid (short/long descriptions, 1080x1920 screenshots, 1024x500 feature graphic, adaptive icons).
+- Recommended attachments: `What's new` changelog, static privacy policy (no personal data collected), repository link.
+- Before production rollout, create at least one Internal test track to validate signing and SAF permissions.
 
-### Checklist di pubblicazione
-- Allinea `versionCode`/`versionName` in `app/build.gradle.kts` ad ogni release e crea un tag `vX.Y.Z`.
-- Esegui `./gradlew clean assembleRelease` e `./gradlew bundleRelease` dalla stessa macchina usata per firmare.
-- Firma `app-release-unsigned.apk` solo per Play (F-Droid richiede il pacchetto non firmato) e conserva SHA256 degli artefatti.
-- Aggiorna `fdroid/metadata/com.kompact.yml` e `fastlane/metadata` (se usato) con i nuovi changelog.
-- Pubblica il codice sorgente e gli asset grafici nello stesso tag per garantire riproducibilità.
+### Publication checklist
+- Align `versionCode`/`versionName` in `app/build.gradle.kts` for every release and create a matching `vX.Y.Z` tag.
+- Run `./gradlew clean assembleRelease` and `./gradlew bundleRelease` on the same machine used for signing.
+- Sign `app-release-unsigned.apk` only for Play (F-Droid requires the unsigned artifact) and keep the SHA256 fingerprints.
+- Update `fdroid/metadata/com.kompact.yml` and `fastlane/metadata` (if in use) with the latest changelog entries.
+- Publish source code and graphics under the same tag to guarantee reproducibility.
 
-## Licenza
-Kompact è distribuito sotto licenza **GNU Affero General Public License v3.0 o successive**. Consulta `LICENSE` per i dettagli e includi sempre un link alla sorgente quando redistribuisci eseguibili o fork.
+## License
+Kompact is distributed under the **GNU Affero General Public License v3.0 or later**. Refer to `LICENSE` for details and always include a link to the source when redistributing binaries or forks.
