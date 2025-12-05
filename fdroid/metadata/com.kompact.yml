@@ -1,0 +1,41 @@
+# Aggiorna i placeholder <your-user> con l'owner reale una volta pubblicata la repository.
+Categories:
+  - Multimedia
+  - Graphics
+License: AGPL-3.0-or-later
+SourceCode: https://github.com/<your-user>/Kompact
+IssueTracker: https://github.com/<your-user>/Kompact/issues
+Changelog: https://github.com/<your-user>/Kompact/releases
+Name: Kompact
+Summary: Compressione offline di immagini e PDF
+Description: |-
+  Kompact comprime immagini JPEG/PNG/WebP e documenti PDF direttamente sul
+  dispositivo utilizzando Kotlin + Jetpack Compose. Non richiede servizi
+  proprietari, funziona completamente offline e offre controlli precisi per
+  qualità, dimensioni massime e DPI.
+
+  - Selettore SAF con multi-selezione
+  - Preset di qualità configurabili dall'utente
+  - Report dettagliato per ogni file convertito
+  - Supporto tema Material You chiaro/scuro
+
+RepoType: git
+Repo: https://github.com/<your-user>/Kompact.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    gradle:
+      - yes
+    subdir: .
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+    rm:
+      - app/build/outputs/apk/debug
+    srclibs: []
+    timeout: 7200
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1

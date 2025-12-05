@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kompact</string>
+    <string name="permission_rationale">Kompact richiede accesso allo storage per comprimere i file locali.</string>
+</resources>
