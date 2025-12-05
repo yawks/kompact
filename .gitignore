@@ -7,8 +7,8 @@ captures
 .externalNativeBuild
 .cxx
 app/build
+.vscode/
 .android-sdk/
 .jdk/
-.vscode/
 hs_err_pid*.log
 replay_pid*.log
