@@ -1,6 +1,6 @@
 # Publishing Kompact
 
-This note captures the minimum information required to release Kompact while keeping ownership and signing strictly under maintainer control. Infrastructure specifics, certificates, and credentials remain private by design.
+This note captures the minimum information required to release Kompact while keeping ownership and signing under maintainer control. Everything below is what reviewers need to validate the process.
 
 ## Principles
 - The project is licensed under **GNU AGPL-3.0-or-later**. Every artifact maps to a signed Git tag owned by the maintainer.
@@ -15,8 +15,8 @@ This note captures the minimum information required to release Kompact while kee
 
 ## Google Play overview
 1. Build the release bundle (`./gradlew bundleRelease`) on the maintainer workstation.
-2. Sign the bundle with the private upload key (details withheld from the public repo) and upload it through the Play Console.
-3. Complete the required policy forms (Data Safety, Content Rating, Privacy). Text lives in the maintainer's vault so it can be updated without modifying this repository.
+2. Sign the bundle with the maintainer upload key and deliver it through the Play Console.
+3. Complete the required policy forms (Data Safety, Content Rating, Privacy) before rollout; the wording is maintained alongside the release assets so it stays consistent between stores.
 4. Roll out via staged tracks; only the maintainer account has access to the production listing.
 
 ## QA snapshot

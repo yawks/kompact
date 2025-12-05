@@ -1,6 +1,6 @@
 # Kompact
 
-Kompact is an open-source Android app written in Kotlin with Jetpack Compose that compresses images (JPEG, PNG, WebP) quickly and transparently. Official builds are produced and signed only by the maintainer to keep a single line of trust that still meets F-Droid and Google Play policies.
+Kompact is an open-source Android app written in Kotlin with Jetpack Compose that compresses images (JPEG, PNG, WebP) quickly and transparently. Official builds are produced and signed by the maintainer to keep a single line of trust that stays compliant with F-Droid and Google Play policies.
 
 ## Key Features
 - Multi-selection of images through the Storage Access Framework.
@@ -29,7 +29,7 @@ Kompact is an open-source Android app written in Kotlin with Jetpack Compose tha
 ./gradlew test
 ./gradlew assembleRelease
 ```
-Artifacts must be signed with your own keys when testing private builds. Upstream signing material is never shared.
+Artifacts must be signed with your own keys when testing private builds because production signing happens exclusively on the maintainer release workstation.
 
 ## Project structure
 - `app/src/main/java/com/kompact/data` contains the local repository and compression logic.
@@ -40,10 +40,10 @@ Artifacts must be signed with your own keys when testing private builds. Upstrea
 ## Distribution policy
 - The codebase contains no proprietary services, so it remains eligible for F-Droid and other FLOSS catalogs.
 - Release builds stay unsigned inside the repository to let F-Droid reproduce them with its keys.
-- Google Play specific assets (screenshots, policy text, signing artifacts) are maintained privately; only the maintainer can push production builds.
+- Google Play specific assets (screenshots, policy text, signing artifacts) are curated by the maintainer, and production uploads happen from the same release workstation.
 - For third-party forks, change the application ID and sign with independent keys to avoid name collisions.
 
-`docs/PUBLISHING.md` tracks the internal release checklist shared with platform maintainers. It intentionally omits infrastructure secrets while documenting the minimal steps required for compliance reviews.
+`docs/PUBLISHING.md` tracks the release checklist shared with platform maintainers, focusing on the steps reviewers need for compliance checks.
 
 ## Release governance
 - Tags are created only by the maintainer after running the full QA pass.
