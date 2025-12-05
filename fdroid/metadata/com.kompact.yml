@@ -1,11 +1,10 @@
-# Replace the <your-user> placeholders with the actual owner once the repository is public.
 Categories:
   - Multimedia
   - Graphics
 License: AGPL-3.0-or-later
-SourceCode: https://github.com/<your-user>/Kompact
-IssueTracker: https://github.com/<your-user>/Kompact/issues
-Changelog: https://github.com/<your-user>/Kompact/releases
+SourceCode: https://git.naxod.com/luca/Kompact
+IssueTracker: https://git.naxod.com/luca/Kompact/issues
+Changelog: https://git.naxod.com/luca/Kompact/releases
 Name: Kompact
 Summary: Offline compression for images
 Description: |-
@@ -21,7 +20,7 @@ Description: |-
   - Official releases are published solely by the upstream maintainer to preserve a single trusted key
 
 RepoType: git
-Repo: https://github.com/<your-user>/Kompact.git
+Repo: https://git.naxod.com/luca/Kompact.git
 
 Builds:
   - versionName: 1.0.0
