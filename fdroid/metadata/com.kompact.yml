@@ -1,12 +1,12 @@
 Categories:
-  - Multimedia
   - Graphics
+  - Multimedia
 License: AGPL-3.0-or-later
 SourceCode: https://git.naxod.com/luca/Kompact
 IssueTracker: https://git.naxod.com/luca/Kompact/issues
 Changelog: https://git.naxod.com/luca/Kompact/releases
 Name: Kompact
-Summary: Offline compression for images
+AutoName: Kompact
 Description: |-
   Kompact compresses JPEG/PNG/WebP images directly on-device using Kotlin +
   Jetpack Compose. It avoids proprietary services, works fully offline, and
@@ -25,17 +25,14 @@ Repo: https://git.naxod.com/luca/Kompact.git
 Builds:
   - versionName: 1.0.0
     versionCode: 1
-    commit: v1.0.0
+    commit: 8b0bb71047754fdfe72f546e244d079ace61f9be
+    timeout: 7200
+    subdir: .
     gradle:
       - yes
-    subdir: .
     output: app/build/outputs/apk/release/app-release-unsigned.apk
-    rm:
-      - app/build/outputs/apk/debug
-    srclibs: []
-    timeout: 7200
 
-AutoUpdateMode: Version v%v
+AutoUpdateMode: Version +v %v
 UpdateCheckMode: Tags
 CurrentVersion: 1.0.0
 CurrentVersionCode: 1
