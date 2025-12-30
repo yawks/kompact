@@ -16,3 +16,5 @@ replay_pid*.log
 fdroiddata/
 
 fdroiddata/
+
+keys/
