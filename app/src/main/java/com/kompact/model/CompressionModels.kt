@@ -4,6 +4,8 @@ import android.net.Uri
 
 enum class AppScreen { HOME, SETTINGS, ABOUT, DONATE }
 
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
 enum class CompressionType { IMAGE }
 
 enum class SourceCategory { NONE, IMAGE, DOCUMENT, MIXED, UNSUPPORTED }
@@ -146,6 +148,7 @@ data class CompressionUiState(
     val exifData: ExifData? = null,
     val originalExifData: ExifData? = null,
     val currentScreen: AppScreen = AppScreen.HOME,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val defaultDestinationFolder: String? = null,
     val isExifEditorVisible: Boolean = false,
     val isCropEditorVisible: Boolean = false,

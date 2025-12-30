@@ -65,6 +65,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Surface
@@ -101,6 +102,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.documentfile.provider.DocumentFile
 import coil.compose.AsyncImage
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.kompact.ui.theme.KompactTheme
 import com.kompact.util.asReadableBytes
 import com.kompact.util.parseBytes
@@ -117,6 +119,7 @@ import com.kompact.model.SourceCategory
 import com.kompact.model.CompressionResult
 import com.kompact.model.CropBounds
 import com.kompact.model.ImagePreviewPayload
+import com.kompact.model.ThemeMode
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalDrawerSheet
 import com.kompact.model.CompressionGoal
@@ -143,6 +146,7 @@ fun KompactScreen(
     onNavigateToHome: () -> Unit,
     onNavigateToAbout: () -> Unit,
     onNavigateToDonate: () -> Unit,
+    onThemeModeChange: (ThemeMode) -> Unit,
     onPickDefaultDestination: () -> Unit,
     onClearDefaultDestination: () -> Unit,
     modifier: Modifier = Modifier,
@@ -251,6 +255,8 @@ fun KompactScreen(
                 )
                 AppScreen.SETTINGS -> SettingsScreen(
                     defaultDestinationFolder = state.defaultDestinationFolder,
+                    themeMode = state.themeMode,
+                    onThemeModeChange = onThemeModeChange,
                     onPickDefaultDestination = onPickDefaultDestination,
                     onClearDefaultDestination = onClearDefaultDestination,
                     modifier = modifier.padding(innerPadding)
@@ -405,6 +411,8 @@ fun HomeScreen(
 @Composable
 fun SettingsScreen(
     defaultDestinationFolder: String?,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
     onPickDefaultDestination: () -> Unit,
     onClearDefaultDestination: () -> Unit,
     modifier: Modifier = Modifier,
@@ -433,6 +441,36 @@ fun SettingsScreen(
                         }
                         TextButton(onClick = onClearDefaultDestination, enabled = defaultDestinationFolder != null) {
                             Text("Reset default")
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            Card {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Theme", style = MaterialTheme.typography.titleMedium)
+
+                    fun labelFor(mode: ThemeMode): String = when (mode) {
+                        ThemeMode.SYSTEM -> "System"
+                        ThemeMode.LIGHT -> "Light"
+                        ThemeMode.DARK -> "Dark"
+                    }
+
+                    ThemeMode.entries.forEach { mode ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onThemeModeChange(mode) },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            RadioButton(
+                                selected = themeMode == mode,
+                                onClick = { onThemeModeChange(mode) }
+                            )
+                            Text(labelFor(mode), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
@@ -808,18 +846,33 @@ fun ImageConfigSection(
             }
         }
         Text("Quality", style = MaterialTheme.typography.titleSmall)
-        val percentage = when (config.goal) {
+        val configPercentage = when (config.goal) {
             CompressionGoal.PERCENTAGE -> config.percentage
             CompressionGoal.TARGET_SIZE -> if (config.targetSizeBytes == null) config.percentage else (config.targetSizeBytes.toFloat().div(referenceBytes).times(100)).roundToInt()
         }.coerceIn(0, 100)
+
+        var isDragging by remember { mutableStateOf(false) }
+        var sliderPercentage by remember { mutableIntStateOf(configPercentage) }
+        LaunchedEffect(configPercentage) {
+            if (!isDragging) {
+                sliderPercentage = configPercentage
+            }
+        }
+
+        val shownPercentage = if (isDragging) sliderPercentage else configPercentage
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Slider(
-                value = percentage.toFloat(),
+                value = shownPercentage.toFloat(),
                 onValueChange = { newValue ->
-                    val newPercentage = newValue.roundToInt().coerceIn(0, 100)
+                    isDragging = true
+                    sliderPercentage = newValue.roundToInt().coerceIn(0, 100)
+                },
+                onValueChangeFinished = {
+                    val newPercentage = sliderPercentage.coerceIn(0, 100)
+                    isDragging = false
                     if (newPercentage == 0) {
                         onConfigChange(config.copy(percentage = 0, targetSizeBytes = null))
                     } else {
@@ -837,9 +890,9 @@ fun ImageConfigSection(
                 modifier = Modifier.weight(1f)
             )
             OutlinedTextField(
-                value = if (percentage == 0) "" else percentage.toString(),
+                value = if (shownPercentage == 0) "" else shownPercentage.toString(),
                 onValueChange = { newValue ->
-                    val newPercentage = if (newValue.isBlank()) 0 else newValue.toIntOrNull()?.coerceIn(0, 100) ?: percentage
+                    val newPercentage = if (newValue.isBlank()) 0 else newValue.toIntOrNull()?.coerceIn(0, 100) ?: shownPercentage
                     if (newPercentage == 0) {
                         onConfigChange(config.copy(percentage = 0, targetSizeBytes = null))
                     } else {
@@ -861,22 +914,25 @@ fun ImageConfigSection(
             Text("Estimated total: ${totalEstimate.asReadableBytes()}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (defaultFileName != null) {
-            var fileNameDraft by remember(config.outputFileName, defaultFileName) {
+            // Keep a draft independent from preview recalculations; do not re-inject the default name once the user cleared it.
+            var fileNameDraft by rememberSaveable(defaultFileName) {
                 mutableStateOf(config.outputFileName ?: defaultFileName)
             }
-            
-            fun updateFileName(newValue: String) {
-                fileNameDraft = newValue
-                val trimmed = newValue.trim()
-                val normalized = trimmed.takeIf { it.isNotBlank() }
-                if (normalized != config.outputFileName) {
-                    onConfigChange(config.copy(outputFileName = normalized))
+
+            // If config explicitly carries a custom name, reflect it; otherwise leave the user draft untouched.
+            LaunchedEffect(config.outputFileName, defaultFileName) {
+                val desired = config.outputFileName
+                if (desired != null && desired != fileNameDraft) {
+                    fileNameDraft = desired
                 }
             }
 
+            val focusManager = LocalFocusManager.current
+
+            // Update local draft immediately, but debounce applying to the shared config
             OutlinedTextField(
                 value = fileNameDraft,
-                onValueChange = { updateFileName(it) },
+                onValueChange = { fileNameDraft = it },
                 label = { Text("Output filename") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
@@ -884,9 +940,27 @@ fun ImageConfigSection(
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(onDone = {
-                    // Already updated on change
+                    val trimmed = fileNameDraft.trim()
+                    val normalized = trimmed.takeIf { it.isNotBlank() }
+                    if (normalized != config.outputFileName) {
+                        onConfigChange(config.copy(outputFileName = normalized))
+                    }
+                    focusManager.clearFocus()
                 })
             )
+
+            // Debounce: apply changes after a short pause in typing to avoid expensive recompositions
+            LaunchedEffect(fileNameDraft) {
+                val current = fileNameDraft
+                kotlinx.coroutines.delay(350)
+                if (current == fileNameDraft) {
+                    val trimmed = current.trim()
+                    val normalized = trimmed.takeIf { it.isNotBlank() }
+                    if (normalized != config.outputFileName) {
+                        onConfigChange(config.copy(outputFileName = normalized))
+                    }
+                }
+            }
         }
     }
 }
@@ -1732,6 +1806,7 @@ private fun PreviewKompact() {
             onNavigateToHome = {},
             onNavigateToAbout = {},
             onNavigateToDonate = {},
+            onThemeModeChange = {},
             onPickDefaultDestination = {},
             onClearDefaultDestination = {},
         )
@@ -1770,33 +1845,56 @@ fun LivePreviewCard(
                     }
                 }
             }
-            when {
-                livePreview.isGenerating -> {
-                    Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                        Text("Generating preview...", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+            val hasPreviews = livePreview.kind == PreviewKind.IMAGE && livePreview.previews.isNotEmpty()
+            val showLoadingOnly = livePreview.isGenerating && !hasPreviews
+
+            Box {
+                when {
+                    hasPreviews -> {
+                        val totalOriginal = livePreview.previews.sumOf { it.originalBytes }
+                        val totalEstimated = livePreview.previews.sumOf { it.estimatedBytes }
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Total: ${totalOriginal.asReadableBytes()} → ${totalEstimated.asReadableBytes()}", style = MaterialTheme.typography.bodyMedium)
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 400.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(livePreview.previews.size) { index ->
+                                    val preview = livePreview.previews[index]
+                                    LivePreviewRow(
+                                        preview = preview,
+                                        onPreviewClick = { uri, label ->
+                                            zoomTarget = uri
+                                            zoomLabel = label
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    livePreview.errorMessage != null -> {
+                        Text(livePreview.errorMessage, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                    }
+                    showLoadingOnly -> {
+                        Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator()
+                                Text("Generating preview...", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+                            }
+                        }
                     }
                 }
-                livePreview.errorMessage != null -> {
-                    Text(livePreview.errorMessage, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-                }
-                livePreview.kind == PreviewKind.IMAGE && livePreview.previews.isNotEmpty() -> {
-                    val totalOriginal = livePreview.previews.sumOf { it.originalBytes }
-                    val totalEstimated = livePreview.previews.sumOf { it.estimatedBytes }
-                    Text("Total: ${totalOriginal.asReadableBytes()} → ${totalEstimated.asReadableBytes()}", style = MaterialTheme.typography.bodyMedium)
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 400.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+
+                if (livePreview.isGenerating && hasPreviews) {
+                    Box(
+                        Modifier
+                            .matchParentSize()
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)),
+                        contentAlignment = Alignment.Center
                     ) {
-                        items(livePreview.previews.size) { index ->
-                            val preview = livePreview.previews[index]
-                            LivePreviewRow(
-                                preview = preview,
-                                onPreviewClick = { uri, label ->
-                                    zoomTarget = uri
-                                    zoomLabel = label
-                                }
-                            )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                            Text("Updating preview...", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
                         }
                     }
                 }

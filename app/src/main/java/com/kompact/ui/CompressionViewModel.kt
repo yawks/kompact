@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.kompact.data.LocalCompressionRepository
 import com.kompact.data.UserPreferencesRepository
 import com.kompact.model.AppScreen
+import com.kompact.model.CompressionGoal
 import com.kompact.model.CompressionRequest
 import com.kompact.model.CompressionResult
 import com.kompact.model.CompressionType
@@ -16,11 +17,13 @@ import com.kompact.model.CompressionUiState
 import com.kompact.model.CropBounds
 import com.kompact.model.ExifData
 import com.kompact.model.ImageCompressionConfig
+import com.kompact.model.ImageOutputFormat
 import com.kompact.model.LivePreviewState
 import com.kompact.model.ImagePreviewPayload
 import com.kompact.model.PreviewKind
 import com.kompact.model.SelectedFileDescriptor
 import com.kompact.model.SourceCategory
+import com.kompact.model.ThemeMode
 import com.kompact.util.DefaultDestinationResolver
 import com.kompact.data.ImagePreviewGenerator
 import com.kompact.util.*
@@ -66,10 +69,16 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun updateImageConfig(config: ImageCompressionConfig) {
+        val previous = _state.value.imageConfig
+        val prevFingerprint = previous.previewFingerprint()
+        val nextFingerprint = config.previewFingerprint()
+
         _state.update {
             it.copy(imageConfig = config)
         }
-        if (_state.value.sourceCategory == SourceCategory.IMAGE) {
+
+        // Do not rerun preview for cosmetic-only changes like filename; refresh only when affecting compression.
+        if (_state.value.sourceCategory == SourceCategory.IMAGE && prevFingerprint != nextFingerprint) {
             scheduleLivePreview()
         }
     }
@@ -349,6 +358,24 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         previewGenerator.clear()
     }
 
+    private data class PreviewFingerprint(
+        val goal: CompressionGoal,
+        val percentage: Int,
+        val targetSizeBytes: Long?,
+        val format: ImageOutputFormat,
+        val exifData: ExifData?,
+        val cropBounds: CropBounds?,
+    )
+
+    private fun ImageCompressionConfig.previewFingerprint(): PreviewFingerprint = PreviewFingerprint(
+        goal = goal,
+        percentage = percentage,
+        targetSizeBytes = targetSizeBytes,
+        format = format,
+        exifData = exifData,
+        cropBounds = cropBounds,
+    )
+
     private fun classifySelection(files: List<SelectedFileDescriptor>): SelectionClassification {
         if (files.isEmpty()) {
             return SelectionClassification(SourceCategory.NONE, CompressionType.IMAGE, canProcess = true, message = null)
@@ -424,6 +451,18 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                     _state.update { state -> state.copy(destinationFolder = Uri.parse(uriString)) }
                 }
             }
+        }
+
+        viewModelScope.launch {
+            preferencesRepository.themeMode.collect { mode ->
+                _state.update { it.copy(themeMode = mode) }
+            }
+        }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch {
+            preferencesRepository.setThemeMode(mode)
         }
     }
 

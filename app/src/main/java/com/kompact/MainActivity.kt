@@ -29,8 +29,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            KompactTheme {
-                val state by viewModel.state.collectAsState()
+            val state by viewModel.state.collectAsState()
+            KompactTheme(themeMode = state.themeMode) {
                 val pickLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
                     if (uris.isNotEmpty()) {
                         viewModel.onUrisSelected(uris)
@@ -74,6 +74,7 @@ class MainActivity : ComponentActivity() {
                     onNavigateToHome = { viewModel.navigateToHome() },
                     onNavigateToAbout = { viewModel.navigateToAbout() },
                     onNavigateToDonate = { viewModel.navigateToDonate() },
+                    onThemeModeChange = { viewModel.setThemeMode(it) },
                     onPickDefaultDestination = { defaultDestinationLauncher.launch(null) },
                     onClearDefaultDestination = { viewModel.clearDefaultDestinationFolder() },
                 )

@@ -1,0 +1,1 @@
+Kompact keeps your image compression workflow on-device. Pick multiple files, choose quality/size, and export. Everything runs offline.
