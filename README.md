@@ -1,4 +1,4 @@
-<p><img src="https://naxod.com/assets/kompact/logo.png"></p>
+<p><img src="https://naxod.com/assets/kompact/logo.png" width="400"></p>
 
 # Kompact
 
