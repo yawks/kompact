@@ -1,4 +1,4 @@
-<p><img src="https://git.naxod.com/luca/Kompact/src/branch/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="200"></p>
+<p><img src="https://git.naxod.com/luca/Kompact/src/branch/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png"></p>
 
 # Kompact
 
