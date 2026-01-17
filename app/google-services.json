@@ -1,0 +1,78 @@
+{
+  "project_info": {
+    "project_number": "238136201434",
+    "project_id": "scan-b3651",
+    "storage_bucket": "scan-b3651.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:238136201434:android:3da168f71b3074079d55e3",
+        "android_client_info": {
+          "package_name": "com.elsod.scan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "238136201434-01ccfe3eadajd8ld29qrkdfq0hk9j3vb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elsod.scan",
+            "certificate_hash": "503d5079fedad178e29c75eb6b5393e1e9f6a941"
+          }
+        },
+        {
+          "client_id": "238136201434-2ml83l5qp4ssitdkj5g4r2ufdccmasdu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elsod.scan",
+            "certificate_hash": "be8f7c9d5b02fb0be4877fdb2ac41a04b2f3d406"
+          }
+        },
+        {
+          "client_id": "238136201434-97ing384aa70gkhrd4jp2p2lpbcso81l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elsod.scan",
+            "certificate_hash": "8fb4f8310777413bb820e866b36fda53e1863b86"
+          }
+        },
+        {
+          "client_id": "238136201434-pgtkq8j3f3j0sscgvbrtj1jtsl2oe3hb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elsod.scan",
+            "certificate_hash": "35be4c5f65129a9a933e3da59f43be8075fd4a33"
+          }
+        },
+        {
+          "client_id": "238136201434-lo3ck8oma8rksp09pbu2u4vm9oeqkff0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwnvtA3-Hw3YWJM7N3t1UzgJux8YXt5OI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "238136201434-lo3ck8oma8rksp09pbu2u4vm9oeqkff0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "238136201434-39r87l3up1sgg6ihbeaofe12uthvulkc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.elsod.elsod"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
