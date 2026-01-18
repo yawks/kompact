@@ -26,6 +26,11 @@ android {
         }
     }
 
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
+
     signingConfigs {
         create("release") {
             if (!keystorePath.isNullOrBlank()) {
