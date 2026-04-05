@@ -179,10 +179,26 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    fun toggleTextEditor() {
+        _state.update { state ->
+            val canText = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1
+            val nextVisible = if (canText) !state.isTextEditorVisible else false
+            state.copy(isTextEditorVisible = nextVisible)
+        }
+    }
+
     fun updateCropBounds(bounds: CropBounds?) {
         val normalized = bounds?.normalized()
         _state.update { current ->
             val updatedConfig = current.imageConfig.copy(cropBounds = normalized)
+            current.copy(imageConfig = updatedConfig)
+        }
+        scheduleLivePreview()
+    }
+
+    fun updateTextConfig(config: com.kompact.model.TextOverlayConfig?) {
+        _state.update { current ->
+            val updatedConfig = current.imageConfig.copy(textConfig = config)
             current.copy(imageConfig = updatedConfig)
         }
         scheduleLivePreview()

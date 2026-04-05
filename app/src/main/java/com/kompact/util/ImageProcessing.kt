@@ -346,3 +346,22 @@ internal fun Bitmap.applyCrop(bounds: CropBounds?): Bitmap {
     }
     return cropped
 }
+internal fun android.graphics.Bitmap.applyTextOverlay(config: com.kompact.model.TextOverlayConfig?): android.graphics.Bitmap {
+    if (config == null || config.text.isBlank()) return this
+
+    val workingBitmap = if (this.isMutable) this else this.copy(android.graphics.Bitmap.Config.ARGB_8888, true)
+    val canvas = android.graphics.Canvas(workingBitmap)
+    val paint = android.graphics.Paint().apply {
+        color = config.color.toInt()
+        textSize = config.size * config.scale
+        isAntiAlias = true
+        style = android.graphics.Paint.Style.FILL
+    }
+
+    val x = config.offsetX * workingBitmap.width
+    val y = config.offsetY * workingBitmap.height
+
+    canvas.drawText(config.text, x, y, paint)
+
+    return workingBitmap
+}

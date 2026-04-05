@@ -19,6 +19,7 @@ import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
 import com.kompact.util.DefaultDestinationResolver
 import com.kompact.util.applyCrop
+import com.kompact.util.applyTextOverlay
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
@@ -98,6 +99,7 @@ class LocalCompressionRepository(
             } else {
                 var bitmap = decodeBitmap(resolver, uri) ?: error("Invalid bitmap")
                 bitmap = bitmap.applyCrop(config.cropBounds)
+                bitmap = bitmap.applyTextOverlay(config.textConfig)
                 val targetBytes = resolveTargetBytes(config, originalSize)
                 val (compressedBytes, _) = encodeBitmapWithTarget(
                     bitmap = bitmap,

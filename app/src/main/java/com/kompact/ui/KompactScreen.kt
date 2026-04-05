@@ -75,6 +75,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.filled.Crop
+import androidx.compose.material.icons.filled.PhotoSizeSelectLarge
+import androidx.compose.material.icons.filled.RotateRight
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
@@ -141,6 +148,8 @@ fun KompactScreen(
     onExifDataChange: (com.kompact.model.ExifData?) -> Unit,
     onToggleExifEditor: () -> Unit,
     onToggleCropEditor: () -> Unit,
+    onToggleTextEditor: () -> Unit,
+    onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
     onCropBoundsChange: (com.kompact.model.CropBounds?) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToHome: () -> Unit,
@@ -250,6 +259,8 @@ fun KompactScreen(
                     onExifDataChange = onExifDataChange,
                     onToggleExifEditor = onToggleExifEditor,
                     onToggleCropEditor = onToggleCropEditor,
+                    onToggleTextEditor = onToggleTextEditor,
+                    onTextConfigChange = onTextConfigChange,
                     onCropBoundsChange = onCropBoundsChange,
                     modifier = modifier.padding(innerPadding)
                 )
@@ -281,6 +292,8 @@ fun HomeScreen(
     onExifDataChange: (ExifData?) -> Unit,
     onToggleExifEditor: () -> Unit,
     onToggleCropEditor: () -> Unit,
+    onToggleTextEditor: () -> Unit,
+    onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
     onCropBoundsChange: (CropBounds?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -349,6 +362,10 @@ fun HomeScreen(
                     isCropEditorVisible = state.isCropEditorVisible,
                     isCropApplied = cropApplied,
                     onCropClick = onToggleCropEditor,
+                    canText = singleImageSelected,
+                    isTextEditorVisible = state.isTextEditorVisible,
+                    isTextApplied = state.imageConfig.textConfig != null,
+                    onTextClick = onToggleTextEditor,
                 )
             }
         }
@@ -404,6 +421,15 @@ fun HomeScreen(
             cropBounds = state.imageConfig.cropBounds,
             onCropBoundsChange = onCropBoundsChange,
             onDismiss = onToggleCropEditor,
+        )
+    }
+
+    if (state.isTextEditorVisible && singleImageSelected) {
+        TextEditorDialog(
+            imageUri = state.selectedFiles.firstOrNull()?.uri,
+            textConfig = state.imageConfig.textConfig,
+            onTextConfigChange = onTextConfigChange,
+            onDismiss = onToggleTextEditor,
         )
     }
 }
@@ -1801,6 +1827,8 @@ private fun PreviewKompact() {
             onExifDataChange = { _ -> },
             onToggleExifEditor = {},
             onToggleCropEditor = {},
+            onToggleTextEditor = {},
+            onTextConfigChange = { _ -> },
             onCropBoundsChange = { _ -> },
             onNavigateToSettings = {},
             onNavigateToHome = {},
@@ -1820,6 +1848,10 @@ fun LivePreviewCard(
     isCropEditorVisible: Boolean,
     isCropApplied: Boolean,
     onCropClick: () -> Unit,
+    canText: Boolean = false,
+    isTextEditorVisible: Boolean = false,
+    isTextApplied: Boolean = false,
+    onTextClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var zoomTarget by remember { mutableStateOf<Uri?>(null) }
@@ -1827,23 +1859,29 @@ fun LivePreviewCard(
     Card(modifier) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Live Preview", style = MaterialTheme.typography.titleMedium)
+                Text("Live Preview", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(end = 8.dp))
                 if (canCrop) {
                     TextButton(onClick = onCropClick) {
-                        Icon(Icons.Default.Image, contentDescription = null)
+                        Icon(androidx.compose.material.icons.Icons.Default.Crop, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        val label = when {
-                            isCropEditorVisible -> "Close Crop"
-                            isCropApplied -> "Edit Crop"
-                            else -> "Crop"
-                        }
-                        Text(label)
+                        Text(when { isCropEditorVisible -> "Close Crop"; isCropApplied -> "Edit Crop"; else -> "Crop" })
                     }
                 }
+                if (canText) {
+                    TextButton(onClick = onTextClick) {
+                        Icon(androidx.compose.material.icons.Icons.Default.TextFields, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(when { isTextEditorVisible -> "Close Text"; isTextApplied -> "Edit Text"; else -> "Text" })
+                    }
+                }
+                // Placeholders per future features
+                IconButton(onClick = {}) { Icon(androidx.compose.material.icons.Icons.Default.PhotoSizeSelectLarge, contentDescription = "Resize") }
+                IconButton(onClick = {}) { Icon(androidx.compose.material.icons.Icons.Default.RotateRight, contentDescription = "Rotate") }
+                IconButton(onClick = {}) { Icon(androidx.compose.material.icons.Icons.Default.Palette, contentDescription = "Filters") }
             }
             val hasPreviews = livePreview.kind == PreviewKind.IMAGE && livePreview.previews.isNotEmpty()
             val showLoadingOnly = livePreview.isGenerating && !hasPreviews

@@ -69,6 +69,8 @@ class MainActivity : ComponentActivity() {
                     onExifDataChange = { viewModel.updateExifData(it) },
                     onToggleExifEditor = { viewModel.toggleExifEditor() },
                     onToggleCropEditor = { viewModel.toggleCropEditor() },
+                    onToggleTextEditor = { viewModel.toggleTextEditor() },
+                    onTextConfigChange = { viewModel.updateTextConfig(it) },
                     onCropBoundsChange = { viewModel.updateCropBounds(it) },
                     onNavigateToSettings = { viewModel.navigateToSettings() },
                     onNavigateToHome = { viewModel.navigateToHome() },

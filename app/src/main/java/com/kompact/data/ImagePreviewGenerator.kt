@@ -6,6 +6,7 @@ import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
 import com.kompact.model.ImagePreviewPayload
 import com.kompact.util.applyCrop
+import com.kompact.util.applyTextOverlay
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
@@ -27,6 +28,7 @@ class ImagePreviewGenerator(context: Context) {
     suspend fun generate(source: Uri, config: ImageCompressionConfig): ImagePreviewPayload = withContext(Dispatchers.IO) {
         var bitmap = decodeBitmap(resolver, source) ?: error("Preview not available")
         bitmap = bitmap.applyCrop(config.cropBounds)
+        bitmap = bitmap.applyTextOverlay(config.textConfig)
         val originalBytes = resolver.getFileSize(appContext, source)
         val extension = resolveImageExtension(appContext, resolver, source, config.format)
         val targetBytes = resolveTargetBytes(config, originalBytes)

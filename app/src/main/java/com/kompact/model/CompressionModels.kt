@@ -76,6 +76,11 @@ data class ImageCompressionConfig(
     val originalExifData: ExifData? = null,
     val outputFileName: String? = null,
     val cropBounds: CropBounds? = null,
+    val textConfig: TextOverlayConfig? = null,
+    // Placeholders for future features
+    val isResizeApplied: Boolean = false,
+    val isRotateApplied: Boolean = false,
+    val isFilterApplied: Boolean = false
 )
 
 data class CompressionResult(
@@ -152,4 +157,5 @@ data class CompressionUiState(
     val defaultDestinationFolder: String? = null,
     val isExifEditorVisible: Boolean = false,
     val isCropEditorVisible: Boolean = false,
+    val isTextEditorVisible: Boolean = false,
 )
