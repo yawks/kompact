@@ -552,11 +552,12 @@ fun SettingsScreen(
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Language", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
 
+                    val defaultLanguage = stringResource(R.string.default_text)
                     val locales = remember {
                         listOf(
-                            "" to "Default",
+                            "" to defaultLanguage,
                             "en" to "English",
                             "ca" to "Català",
                             "cs" to "Čeština",
@@ -594,7 +595,7 @@ fun SettingsScreen(
                     val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
                     val currentTags = currentLocales.toLanguageTags()
                     val currentLang = if (currentTags.isBlank()) "" else currentTags.split("-")[0]
-                    val selectedText = locales.find { it.first == currentLang }?.second ?: "Default"
+                    val selectedText = locales.find { it.first == currentLang }?.second ?: stringResource(R.string.default_text)
                     val isRtl = currentLang in listOf("ar", "fa")
                     val layoutDir = if (isRtl) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr
 
@@ -630,7 +631,7 @@ fun SettingsScreen(
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Default Dest", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.default_dest), style = MaterialTheme.typography.titleMedium)
                     Text(
                         text = defaultDestinationFolder?.let { getFolderDisplayName(Uri.parse(it)) } ?: defaultDownloadsLabel.ifBlank { "Default Dir" },
                         style = MaterialTheme.typography.bodyMedium
@@ -639,10 +640,10 @@ fun SettingsScreen(
                         Button(onClick = onPickDefaultDestination) {
                             Icon(Icons.Filled.Folder, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Dest Folder")
+                            Text(stringResource(R.string.dest_folder))
                         }
                         TextButton(onClick = onClearDefaultDestination, enabled = defaultDestinationFolder != null) {
-                            Text("Reset Default")
+                            Text(stringResource(R.string.reset_default))
                         }
                     }
                 }
@@ -652,7 +653,7 @@ fun SettingsScreen(
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Theme Title", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.theme_title), style = MaterialTheme.typography.titleMedium)
 
                     @Composable
                     fun labelFor(mode: ThemeMode): String = when (mode) {
@@ -691,13 +692,13 @@ fun AboutScreen(modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item { Text("About Title", style = MaterialTheme.typography.headlineMedium) }
+        item { Text(stringResource(R.string.about_title), style = MaterialTheme.typography.headlineMedium) }
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Mission", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.mission), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Kompact is an offline file compressor designed to run entirely on-device. Your files never leave your phone, ensuring complete privacy.",
+                        stringResource(R.string.kompact_is_an_offline_file_compressor_designed_to_run_entirely_on_device_your_files_never_leave_your_phone_ensuring_complete_privacy),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -706,9 +707,9 @@ fun AboutScreen(modifier: Modifier = Modifier) {
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Current Features", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.current_features), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "• Precision Compression: Target specific file sizes or quality percentages.\n" +
+                        stringResource(R.string.precision_compression_target_specific_file_sizes_or_quality_percentages_n) +
                         "• Format Conversion: Switch easily between JPG, PNG, WebP, and more.\n" +
                         "• Smart Editing: Crop images and manage EXIF metadata (view, edit, or strip) before processing.\n" +
                         "• Live Preview: Compare original vs. compressed results in real-time.",
@@ -720,9 +721,9 @@ fun AboutScreen(modifier: Modifier = Modifier) {
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Roadmap", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.roadmap), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "We are working to make Kompact the ultimate optimizer. Future updates will bring support for PDF documents, Audio tracks, and Video files.",
+                        stringResource(R.string.we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -731,14 +732,14 @@ fun AboutScreen(modifier: Modifier = Modifier) {
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Open Source", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.open_source), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "This project is open-source under the Apache 2.0 license. You can inspect the code, report issues, or contribute on our repository.",
+                        stringResource(R.string.this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     val uriHandler = LocalUriHandler.current
                     TextButton(onClick = { uriHandler.openUri("https://git.naxod.com/luca/Kompact") }) {
-                        Text("Visit Repository")
+                        Text(stringResource(R.string.visit_repository))
                     }
                 }
             }
@@ -756,13 +757,13 @@ fun DonateScreen(modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item { Text("Support Development", style = MaterialTheme.typography.headlineMedium) }
+        item { Text(stringResource(R.string.support_development), style = MaterialTheme.typography.headlineMedium) }
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("A Personal Note", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.a_personal_note), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "I built Kompact because I believe essential tools should be simple, private, and free of ads or tracking. I work on this in my spare time, driven by the idea of making a useful utility for everyone.",
+                        stringResource(R.string.i_built_kompact_because_i_believe_essential_tools_should_be_simple_private_and_free_of_ads_or_tracking_i_work_on_this_in_my_spare_time_driven_by_the_idea_of_making_a_useful_utility_for_everyone),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -771,9 +772,9 @@ fun DonateScreen(modifier: Modifier = Modifier) {
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Support", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.support), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "If Kompact has saved you space or time, please consider supporting its development. Your donation directly helps me dedicate more hours to adding features like PDF, Audio and Video support, and keeps the project independent and sustainable.",
+                        stringResource(R.string.if_kompact_has_saved_you_space_or_time_please_consider_supporting_its_development_your_donation_directly_helps_me_dedicate_more_hours_to_adding_features_like_pdf_audio_and_video_support_and_keeps_the_project_independent_and_sustainable),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Button(onClick = { uriHandler.openUri("https://liberapay.com/naxod/") }) {
@@ -809,7 +810,7 @@ fun SourceCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Files", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.files), style = MaterialTheme.typography.titleMedium)
                     Text(
                         text = helperText,
                         style = MaterialTheme.typography.bodySmall,
@@ -825,7 +826,7 @@ fun SourceCard(
                     onClick = onClearSelection,
                     enabled = files.isNotEmpty()
                 ) {
-                    Text("Clear all")
+                    Text(stringResource(R.string.clear_all))
                 }
             }
             if (errorMessage != null) {
@@ -892,7 +893,7 @@ private fun SourceEmptyState() {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
-        Text("Select images to compress", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.select_images_to_compress), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
     }
 }
 
@@ -928,11 +929,11 @@ fun PrimaryActionBar(
                 if (isProcessing) {
                     CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                     Spacer(Modifier.width(8.dp))
-                    Text("Working…")
+                    Text(stringResource(R.string.working))
                 } else {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Start")
+                    Text(stringResource(R.string.start))
                 }
             }
         }
@@ -965,7 +966,7 @@ fun OutputCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Output", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.output), style = MaterialTheme.typography.titleMedium)
                 if (exifEditingEnabled) {
                     TextButton(onClick = onToggleExifEditor) {
                         Icon(Icons.Default.Settings, contentDescription = null)
@@ -996,12 +997,12 @@ fun OutputCard(
                     Icon(Icons.Default.Folder, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Column {
-                        Text("Dest Folder", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(R.string.dest_folder), style = MaterialTheme.typography.labelSmall)
                         Text(destinationLabel, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 TextButton(onClick = onClearDestination, enabled = destinationFolder != null) {
-                    Text("Default")
+                    Text(stringResource(R.string.default_text))
                 }
             }
         }
@@ -1021,7 +1022,7 @@ fun ImageConfigSection(
     selectedFilesCount: Int,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Format", style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.format), style = MaterialTheme.typography.titleSmall)
         var expanded by remember { mutableStateOf(false) }
         val formatOptions = remember(originalFormat) {
             ImageOutputFormat.entries.filterNot { format ->
@@ -1048,7 +1049,7 @@ fun ImageConfigSection(
                 }
             }
         }
-        Text("Quality", style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.quality), style = MaterialTheme.typography.titleSmall)
         val configPercentage = when (config.goal) {
             CompressionGoal.PERCENTAGE -> config.percentage
             CompressionGoal.TARGET_SIZE -> if (config.targetSizeBytes == null) config.percentage else (config.targetSizeBytes.toFloat().div(referenceBytes).times(100)).roundToInt()
@@ -1136,7 +1137,7 @@ fun ImageConfigSection(
             OutlinedTextField(
                 value = fileNameDraft,
                 onValueChange = { fileNameDraft = it },
-                label = { Text("Output filename") },
+                label = { Text(stringResource(R.string.output_filename)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
@@ -1199,7 +1200,7 @@ fun ExifEditorDialog(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Edit EXIF metadata",
+                        text = stringResource(R.string.edit_exif_metadata),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f)
                     )
@@ -1208,126 +1209,126 @@ fun ExifEditorDialog(
                     }
                 }
                 Text(
-                    text = "Changes apply instantly to the selected image.",
+                    text = stringResource(R.string.changes_apply_instantly_to_the_selected_image),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Text("Basic Info", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.basic_info), style = MaterialTheme.typography.titleSmall)
                 OutlinedTextField(
                     value = currentExif.make ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(make = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("Make") },
+                    label = { Text(stringResource(R.string.make)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.model ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(model = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("Model") },
+                    label = { Text(stringResource(R.string.model)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.software ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(software = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("Software") },
+                    label = { Text(stringResource(R.string.software)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Text("Date and Time", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.date_and_time), style = MaterialTheme.typography.titleSmall)
                 OutlinedTextField(
                     value = currentExif.dateTime ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(dateTime = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("Date Time") },
+                    label = { Text(stringResource(R.string.date_time)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Text("Location", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.location), style = MaterialTheme.typography.titleSmall)
                 OutlinedTextField(
                     value = currentExif.latitude?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(latitude = it.toDoubleOrNull())) },
-                    label = { Text("Lat") },
+                    label = { Text(stringResource(R.string.lat)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.longitude?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(longitude = it.toDoubleOrNull())) },
-                    label = { Text("Lon") },
+                    label = { Text(stringResource(R.string.lon)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.altitude?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(altitude = it.toDoubleOrNull())) },
-                    label = { Text("Alt") },
+                    label = { Text(stringResource(R.string.alt)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Text("Camera Settings", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.camera_settings), style = MaterialTheme.typography.titleSmall)
                 OutlinedTextField(
                     value = currentExif.exposureTime ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(exposureTime = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("Exp Time") },
+                    label = { Text(stringResource(R.string.exp_time)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.fNumber ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(fNumber = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("F#") },
+                    label = { Text(stringResource(R.string.f)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.iso?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(iso = it.toIntOrNull())) },
-                    label = { Text("ISO") },
+                    label = { Text(stringResource(R.string.iso)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.focalLength ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(focalLength = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("Focal Len") },
+                    label = { Text(stringResource(R.string.focal_len)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.flash?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(flash = it.toIntOrNull())) },
-                    label = { Text("Flash") },
+                    label = { Text(stringResource(R.string.flash)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.whiteBalance?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(whiteBalance = it.toIntOrNull())) },
-                    label = { Text("WB") },
+                    label = { Text(stringResource(R.string.wb)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.orientation?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(orientation = it.toIntOrNull())) },
-                    label = { Text("Orientation") },
+                    label = { Text(stringResource(R.string.orientation)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Text("Metadata", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.metadata), style = MaterialTheme.typography.titleSmall)
                 OutlinedTextField(
                     value = currentExif.artist ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(artist = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("Artist") },
+                    label = { Text(stringResource(R.string.artist)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.copyright ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(copyright = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("Copyright") },
+                    label = { Text(stringResource(R.string.copyright)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.description ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(description = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("Description") },
+                    label = { Text(stringResource(R.string.description)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.userComment ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(userComment = it.takeIf { it.isNotBlank() })) },
-                    label = { Text("User Comment") },
+                    label = { Text(stringResource(R.string.user_comment)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -1338,15 +1339,15 @@ fun ExifEditorDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         OutlinedButton(onClick = { onExifDataChange(ExifData()) }) {
-                            Text("Remove metadata")
+                            Text(stringResource(R.string.remove_metadata))
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         TextButton(onClick = onDismiss) {
-                            Text("Done")
+                            Text(stringResource(R.string.done))
                         }
                     }
                     Button(onClick = { onExifDataChange(originalExifData) }, enabled = originalExifData != null, modifier = Modifier.fillMaxWidth()) {
-                        Text("Restore original")
+                        Text(stringResource(R.string.restore_original))
                     }
                 }
             }
@@ -1430,7 +1431,7 @@ fun CropEditorDialog(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Crop image",
+                        text = stringResource(R.string.crop_image),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f)
                     )
@@ -1439,7 +1440,7 @@ fun CropEditorDialog(
                     }
                 }
                 Text(
-                    text = "Drag the guides or use the sliders to define what stays before compression.",
+                    text = stringResource(R.string.drag_the_guides_or_use_the_sliders_to_define_what_stays_before_compression),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1713,7 +1714,7 @@ fun CropEditorDialog(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text("Vertical", style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
+                                Text(stringResource(R.string.vertical), style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
                                 VerticalRangeSlider(
                                     value = verticalRange,
                                     onValueChange = { range ->
@@ -1738,14 +1739,14 @@ fun CropEditorDialog(
                     }
                 } else {
                     Text(
-                        text = "Select an image to crop",
+                        text = stringResource(R.string.select_an_image_to_crop),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Horizontal", style = MaterialTheme.typography.titleSmall)
+                    Text(stringResource(R.string.horizontal), style = MaterialTheme.typography.titleSmall)
                     RangeSlider(
                         value = horizontalRange,
                         onValueChange = { range ->
@@ -1768,11 +1769,11 @@ fun CropEditorDialog(
                         horizontalRange = 0f..1f
                         verticalRange = 0f..1f
                     }) {
-                        Text("Reset")
+                        Text(stringResource(R.string.reset))
                     }
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                     Button(onClick = {
                         val normalized = currentBounds.normalized()
@@ -1780,7 +1781,7 @@ fun CropEditorDialog(
                         onCropBoundsChange(applied)
                         onDismiss()
                     }) {
-                        Text("Apply")
+                        Text(stringResource(R.string.apply))
                     }
                 }
             }
@@ -1863,7 +1864,7 @@ fun ResultsCard(results: List<CompressionResult>) {
 
     Card {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Results", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.results), style = MaterialTheme.typography.titleMedium)
             if (successfulResults.isNotEmpty()) {
                 Text("Total: ${totalOriginal.asReadableBytes()} → ${totalCompressed.asReadableBytes()}", style = MaterialTheme.typography.bodyMedium)
             }
@@ -1916,7 +1917,7 @@ fun ResultsCard(results: List<CompressionResult>) {
                         zoomTarget = null
                         zoomLabel = null
                     }, modifier = Modifier.align(Alignment.End)) {
-                        Text("Close")
+                        Text(stringResource(R.string.close))
                     }
                 }
             }
@@ -1943,7 +1944,7 @@ fun ResultRow(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 // Before
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Before", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.before), style = MaterialTheme.typography.bodySmall)
                     AsyncImage(
                         model = result.source,
                         contentDescription = null,
@@ -1957,7 +1958,7 @@ fun ResultRow(
                 }
                 // After
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("After", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.after), style = MaterialTheme.typography.bodySmall)
                     AsyncImage(
                         model = result.output,
                         contentDescription = null,
@@ -2058,7 +2059,7 @@ fun LivePreviewCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Live Preview", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.live_preview), style = MaterialTheme.typography.titleMedium)
                     TextButton(
                         onClick = onResetEditsClick,
                         colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
@@ -2067,11 +2068,11 @@ fun LivePreviewCard(
                     ) {
                         androidx.compose.material3.Icon(
                             imageVector = androidx.compose.material.icons.Icons.Default.Refresh,
-                            contentDescription = "Reset",
+                            contentDescription = stringResource(R.string.reset),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Reset")
+                        Text(stringResource(R.string.reset))
                     }
                 }
                 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -2098,7 +2099,7 @@ fun LivePreviewCard(
                             val label = when {
                                 isResizeEditorVisible -> "Close Resize"
                                 isResizeApplied -> "Edit Resize"
-                                else -> "Resize"
+                                else -> stringResource(R.string.resize)
                             }
                             Text(label)
                         }
@@ -2106,12 +2107,12 @@ fun LivePreviewCard(
                     TextButton(onClick = onRotateClick) {
                         Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.RotateRight, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Rotate")
+                        Text(stringResource(R.string.rotate))
                     }
                     TextButton(onClick = onColorFilterClick) {
                         Icon(androidx.compose.material.icons.Icons.Default.Palette, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Color Filter")
+                        Text(stringResource(R.string.color_filter))
                     }
                     if (canText) {
                         TextButton(onClick = onTextClick) {
@@ -2161,7 +2162,7 @@ fun LivePreviewCard(
                         Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 CircularProgressIndicator()
-                                Text("Generating preview...", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+                                Text(stringResource(R.string.generating_preview), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
                             }
                         }
                     }
@@ -2176,7 +2177,7 @@ fun LivePreviewCard(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator()
-                            Text("Updating preview...", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+                            Text(stringResource(R.string.updating_preview), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
                         }
                     }
                 }
@@ -2211,7 +2212,7 @@ fun LivePreviewCard(
                         zoomTarget = null
                         zoomLabel = null
                     }, modifier = Modifier.align(Alignment.End)) {
-                        Text("Close")
+                        Text(stringResource(R.string.close))
                     }
                 }
             }
@@ -2227,7 +2228,7 @@ fun LivePreviewRow(
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
         // Before
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Before", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.before), style = MaterialTheme.typography.bodySmall)
             AsyncImage(
                 model = preview.source,
                 contentDescription = null,
@@ -2242,8 +2243,9 @@ fun LivePreviewRow(
 
         // Cropped (Optional)
         if (preview.croppedPreviewUri != null) {
+            val strCropped = stringResource(R.string.cropped)
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Cropped", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.cropped), style = MaterialTheme.typography.bodySmall)
                 val context = androidx.compose.ui.platform.LocalContext.current
                 val croppedRequest = remember(preview) {
                     coil.request.ImageRequest.Builder(context)
@@ -2258,7 +2260,7 @@ fun LivePreviewRow(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(4.dp))
-                        .clickable { onPreviewClick(preview.croppedPreviewUri, "Cropped") },
+                        .clickable { onPreviewClick(preview.croppedPreviewUri, strCropped) },
                     contentScale = ContentScale.Crop
                 )
                 Text("-", style = MaterialTheme.typography.bodySmall)
@@ -2267,7 +2269,7 @@ fun LivePreviewRow(
 
         // After
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("After", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.after), style = MaterialTheme.typography.bodySmall)
             val context = androidx.compose.ui.platform.LocalContext.current
             val request = remember(preview) {
                 coil.request.ImageRequest.Builder(context)
@@ -2418,7 +2420,7 @@ fun ResizeEditorDialog(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                Text("Resize", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.resize), style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(16.dp))
 
                 Box(
@@ -2435,7 +2437,7 @@ fun ResizeEditorDialog(
                             contentScale = ContentScale.Fit
                         )
                     } else {
-                        Text("No preview available")
+                        Text(stringResource(R.string.no_preview_available))
                     }
                 }
 
@@ -2454,7 +2456,7 @@ fun ResizeEditorDialog(
                             OutlinedTextField(
                                 value = heightStr,
                                 onValueChange = { heightStr = it },
-                                label = { Text("Resize Height") },
+                                label = { Text(stringResource(R.string.resize_height)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier.weight(1f)
                             )
@@ -2462,12 +2464,12 @@ fun ResizeEditorDialog(
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = isPercentage, onCheckedChange = { isPercentage = it })
-                        Text("Resize Percentage")
+                        Text(stringResource(R.string.resize_percentage))
                     }
                     if (!isPercentage) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = maintainAspect, onCheckedChange = { maintainAspect = it })
-                            Text("Resize Keep Aspect")
+                            Text(stringResource(R.string.resize_keep_aspect))
                         }
                     }
                 }
@@ -2477,11 +2479,11 @@ fun ResizeEditorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
                     TextButton(onClick = {
                         onConfigChange(null)
                         onDismiss()
-                    }) { Text("Clear") }
+                    }) { Text(stringResource(R.string.clear)) }
                     Button(onClick = {
                         val w = widthStr.toIntOrNull() ?: 0
                         val h = heightStr.toIntOrNull() ?: 0
@@ -2489,7 +2491,7 @@ fun ResizeEditorDialog(
                             onConfigChange(com.kompact.model.ResizeConfig(w, h, maintainAspect, isPercentage))
                         }
                         onDismiss()
-                    }) { Text("Apply") }
+                    }) { Text(stringResource(R.string.apply)) }
                 }
             }
         }
@@ -2526,7 +2528,7 @@ fun FiltersEditorDialog(
                 modifier = Modifier.fillMaxSize().padding(16.dp)
             ) {
                 Text(
-                    text = "Action Color Filter",
+                    text = stringResource(R.string.action_color_filter),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -2556,7 +2558,7 @@ fun FiltersEditorDialog(
                             colorFilter = localColorConfig.toComposeColorFilter()
                         )
                     } else {
-                        Text("No preview available")
+                        Text(stringResource(R.string.no_preview_available))
                     }
                 }
 
@@ -2631,7 +2633,7 @@ fun FiltersEditorDialog(
                             }
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                text = if (item == "NONE") "Default" else if (item == "CUSTOM") "Color" else item.lowercase().replaceFirstChar { it.uppercase() },
+                                text = if (item == "NONE") stringResource(R.string.default_text) else if (item == "CUSTOM") "Color" else item.lowercase().replaceFirstChar { it.uppercase() },
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -2645,7 +2647,7 @@ fun FiltersEditorDialog(
 
                 if (selectedTab == "BACKGROUND") {
                     Text(
-                        text = "Background Type",
+                        text = stringResource(R.string.background_type),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -2653,7 +2655,7 @@ fun FiltersEditorDialog(
                     
                     if (showJpegWarning && localBgConfig.type == com.kompact.model.BackgroundType.TRANSPARENT) {
                         Text(
-                            text = "Warning: JPEG does not support transparency.",
+                            text = stringResource(R.string.warning_jpeg_does_not_support_transparency),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(bottom = 8.dp)
@@ -2711,7 +2713,7 @@ fun FiltersEditorDialog(
                 
                 if (selectedTab == "CUSTOM") {
                     Text(
-                        text = "Hue",
+                        text = stringResource(R.string.hue),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -2763,7 +2765,7 @@ fun FiltersEditorDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = { localColorConfig = localColorConfig.copy(intensity = 0f) }) {
-                        Text("Reset")
+                        Text(stringResource(R.string.reset))
                     }
                     TextButton(onClick = onDismiss) {
                         Text(stringResource(android.R.string.cancel))
@@ -2807,7 +2809,7 @@ fun RotateEditorDialog(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                Text("Action Rotate", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.action_rotate), style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(16.dp))
 
                 Box(
@@ -2827,7 +2829,7 @@ fun RotateEditorDialog(
                             colorFilter = colorFilter?.toComposeColorFilter()
                         )
                     } else {
-                        Text("No preview available")
+                        Text(stringResource(R.string.no_preview_available))
                     }
                 }
 
@@ -2874,11 +2876,11 @@ fun RotateEditorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
                     Button(onClick = {
                         onConfirm(localRotation)
                         onDismiss()
-                    }) { Text("Apply") }
+                    }) { Text(stringResource(R.string.apply)) }
                 }
             }
         }

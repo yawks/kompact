@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -35,7 +36,7 @@ fun TextEditorDialog(
     onDismiss: () -> Unit
 ) {
     var text by remember { mutableStateOf(textConfig?.text ?: "") }
-    var color by remember { mutableStateOf(Color(textConfig?.color ?: 0xFFFFFFFFUL)) }
+    var color by remember { mutableStateOf(Color(textConfig?.color ?: android.graphics.Color.WHITE)) }
     var scale by remember { mutableStateOf(textConfig?.scale ?: 1f) }
     var offset by remember { mutableStateOf(Offset(textConfig?.offsetX ?: 0.5f, textConfig?.offsetY ?: 0.5f)) }
 
@@ -46,7 +47,7 @@ fun TextEditorDialog(
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
-                    title = { Text("Add Text") },
+                    title = { Text(stringResource(R.string.add_text)) },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
                             Icon(Icons.Default.Close, contentDescription = "Close")
@@ -56,7 +57,7 @@ fun TextEditorDialog(
                         TextButton(onClick = {
                             val newConfig = if (text.isBlank()) null else TextOverlayConfig(
                                 text = text,
-                                color = color.value,
+                                color = color.toArgb(),
                                 scale = scale,
                                 offsetX = offset.x,
                                 offsetY = offset.y
@@ -64,7 +65,7 @@ fun TextEditorDialog(
                             onTextConfigChange(newConfig)
                             onDismiss()
                         }) {
-                            Text("Save")
+                            Text(stringResource(R.string.save))
                         }
                     }
                 )
@@ -115,7 +116,7 @@ fun TextEditorDialog(
                     OutlinedTextField(
                         value = text,
                         onValueChange = { text = it },
-                        label = { Text("Text content") },
+                        label = { Text(stringResource(R.string.text_content)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(16.dp))
