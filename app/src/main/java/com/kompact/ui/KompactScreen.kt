@@ -8,6 +8,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -20,7 +23,14 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Crop
+import androidx.compose.material.icons.filled.PhotoSizeSelectLarge
+import androidx.compose.material.icons.automirrored.filled.RotateRight
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.ui.draw.scale
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
@@ -70,18 +80,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.*
+import androidx.compose.ui.res.stringResource
+import com.kompact.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.filled.Crop
-import androidx.compose.material.icons.filled.PhotoSizeSelectLarge
-import androidx.compose.material.icons.filled.RotateRight
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
@@ -146,11 +153,19 @@ fun KompactScreen(
     onPickDestination: () -> Unit,
     onClearDestination: () -> Unit,
     onExifDataChange: (com.kompact.model.ExifData?) -> Unit,
-    onToggleExifEditor: () -> Unit,
-    onToggleCropEditor: () -> Unit,
     onToggleTextEditor: () -> Unit,
     onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
+    onToggleExifEditor: () -> Unit,
+    onToggleCropEditor: () -> Unit,
     onCropBoundsChange: (com.kompact.model.CropBounds?) -> Unit,
+    onToggleResizeEditor: () -> Unit,
+    onResizeConfigChange: (com.kompact.model.ResizeConfig?) -> Unit,
+    
+    onBackgroundConfigChange: (com.kompact.model.BackgroundConfig?) -> Unit,
+    onToggleColorFilterEditor: () -> Unit,
+    onColorFilterChange: (com.kompact.model.ColorFilterConfig?) -> Unit,
+    onRotate: (Float) -> Unit,
+    onResetEditsClick: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToAbout: () -> Unit,
@@ -166,10 +181,10 @@ fun KompactScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-                Text("Kompact", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(R.string.app_name), modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.headlineSmall)
                 HorizontalDivider()
                 NavigationDrawerItem(
-                    label = { Text("Home") },
+                    label = { Text(stringResource(R.string.nav_home)) },
                     selected = state.currentScreen == AppScreen.HOME,
                     onClick = {
                         onNavigateToHome()
@@ -179,7 +194,7 @@ fun KompactScreen(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Settings") },
+                    label = { Text(stringResource(R.string.nav_settings)) },
                     selected = state.currentScreen == AppScreen.SETTINGS,
                     onClick = {
                         onNavigateToSettings()
@@ -189,7 +204,7 @@ fun KompactScreen(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 NavigationDrawerItem(
-                    label = { Text("About") },
+                    label = { Text(stringResource(R.string.nav_about)) },
                     selected = state.currentScreen == AppScreen.ABOUT,
                     onClick = {
                         onNavigateToAbout()
@@ -199,7 +214,7 @@ fun KompactScreen(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Donate") },
+                    label = { Text(stringResource(R.string.nav_donate)) },
                     selected = state.currentScreen == AppScreen.DONATE,
                     onClick = {
                         onNavigateToDonate()
@@ -210,7 +225,7 @@ fun KompactScreen(
                 )
                 val uriHandler = LocalUriHandler.current
                 NavigationDrawerItem(
-                    label = { Text("Report Issue") },
+                    label = { Text(stringResource(R.string.nav_report_issue)) },
                     selected = false,
                     onClick = {
                         uriHandler.openUri("https://git.naxod.com/luca/Kompact/issues")
@@ -230,9 +245,9 @@ fun KompactScreen(
                     ),
                     title = {
                         Column(horizontalAlignment = Alignment.Start) {
-                            Text(text = "Kompact", style = MaterialTheme.typography.titleLarge)
+                            Text(text = stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
                             Text(
-                                text = "Compress images easily",
+                                text = stringResource(R.string.subtitle),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -257,15 +272,24 @@ fun KompactScreen(
                     onPickDestination = onPickDestination,
                     onClearDestination = onClearDestination,
                     onExifDataChange = onExifDataChange,
-                    onToggleExifEditor = onToggleExifEditor,
-                    onToggleCropEditor = onToggleCropEditor,
                     onToggleTextEditor = onToggleTextEditor,
                     onTextConfigChange = onTextConfigChange,
+                    onToggleExifEditor = onToggleExifEditor,
+                    onToggleCropEditor = onToggleCropEditor,
                     onCropBoundsChange = onCropBoundsChange,
+                    onToggleResizeEditor = onToggleResizeEditor,
+                    onResizeConfigChange = onResizeConfigChange,
+                    
+                    onBackgroundConfigChange = onBackgroundConfigChange,
+                    onToggleColorFilterEditor = onToggleColorFilterEditor,
+                    onColorFilterChange = onColorFilterChange,
+                    onRotate = onRotate,
+                    onResetEditsClick = onResetEditsClick,
                     modifier = modifier.padding(innerPadding)
                 )
                 AppScreen.SETTINGS -> SettingsScreen(
                     defaultDestinationFolder = state.defaultDestinationFolder,
+                    defaultDownloadsLabel = state.defaultDownloadsLabel,
                     themeMode = state.themeMode,
                     onThemeModeChange = onThemeModeChange,
                     onPickDefaultDestination = onPickDefaultDestination,
@@ -290,13 +314,22 @@ fun HomeScreen(
     onPickDestination: () -> Unit,
     onClearDestination: () -> Unit,
     onExifDataChange: (ExifData?) -> Unit,
-    onToggleExifEditor: () -> Unit,
-    onToggleCropEditor: () -> Unit,
     onToggleTextEditor: () -> Unit,
     onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
+    onToggleExifEditor: () -> Unit,
+    onToggleCropEditor: () -> Unit,
     onCropBoundsChange: (CropBounds?) -> Unit,
+    onToggleResizeEditor: () -> Unit,
+    onResizeConfigChange: (com.kompact.model.ResizeConfig?) -> Unit,
+    
+    onBackgroundConfigChange: (com.kompact.model.BackgroundConfig?) -> Unit,
+    onToggleColorFilterEditor: () -> Unit,
+    onColorFilterChange: (com.kompact.model.ColorFilterConfig?) -> Unit,
+    onRotate: (Float) -> Unit,
+    onResetEditsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var isRotateEditorVisible by remember { mutableStateOf(false) }
     val firstImageDescriptor = remember(state.selectedFiles) {
         state.selectedFiles.firstOrNull { it.mimeType?.startsWith("image/") == true }
     }
@@ -308,11 +341,13 @@ fun HomeScreen(
     val originalFormat = remember(firstImageDescriptor) {
         inferOriginalFormat(firstImageDescriptor)
     }
+    val defaultDirResource = "Default Dir"
     val defaultDestinationLabel = remember(
         state.defaultDestinationFolder,
-        state.defaultPicturesLabel,
+        state.defaultDownloadsLabel,
+        defaultDirResource
     ) {
-        state.defaultDestinationFolder?.let { getFolderDisplayName(Uri.parse(it)) } ?: state.defaultPicturesLabel.ifBlank { "Pictures / Kompact" }
+        state.defaultDestinationFolder?.let { getFolderDisplayName(Uri.parse(it)) } ?: state.defaultDownloadsLabel.ifBlank { defaultDirResource }
     }
     val defaultFileName = remember(state.selectedFiles) {
         if (state.selectedFiles.size == 1) {
@@ -362,10 +397,17 @@ fun HomeScreen(
                     isCropEditorVisible = state.isCropEditorVisible,
                     isCropApplied = cropApplied,
                     onCropClick = onToggleCropEditor,
+                    canResize = state.sourceCategory == SourceCategory.IMAGE,
+                    isResizeEditorVisible = state.isResizeEditorVisible,
+                    isResizeApplied = state.imageConfig.resizeConfig != null,
+                    onResizeClick = onToggleResizeEditor,
                     canText = singleImageSelected,
                     isTextEditorVisible = state.isTextEditorVisible,
                     isTextApplied = state.imageConfig.textConfig != null,
                     onTextClick = onToggleTextEditor,
+                    onRotateClick = { isRotateEditorVisible = true },
+                    onColorFilterClick = onToggleColorFilterEditor,
+                    onResetEditsClick = onResetEditsClick,
                 )
             }
         }
@@ -391,11 +433,17 @@ fun HomeScreen(
                 )
             }
             item {
-                PrimaryActionBar(
-                    isProcessing = state.isProcessing,
-                    canCompress = state.canProcessSelection && !state.isProcessing,
-                    onCompressClick = onCompressClick
-                )
+                val isCompleted = state.totalCount > 0 && 
+                                  state.processedCount == state.totalCount && 
+                                  !state.isProcessing && 
+                                  state.results.isNotEmpty()
+                if (!isCompleted) {
+                    PrimaryActionBar(
+                        isProcessing = state.isProcessing,
+                        canCompress = state.canProcessSelection && !state.isProcessing,
+                        onCompressClick = onCompressClick
+                    )
+                }
             }
         }
         if (state.isProcessing || state.processedCount > 0) {
@@ -424,19 +472,69 @@ fun HomeScreen(
         )
     }
 
-    if (state.isTextEditorVisible && singleImageSelected) {
-        TextEditorDialog(
-            imageUri = state.selectedFiles.firstOrNull()?.uri,
-            textConfig = state.imageConfig.textConfig,
-            onTextConfigChange = onTextConfigChange,
-            onDismiss = onToggleTextEditor,
+    if (state.isResizeEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+        ResizeEditorDialog(
+            config = state.imageConfig.resizeConfig,
+            previewUri = state.selectedFiles.firstOrNull()?.uri,
+            onConfigChange = onResizeConfigChange,
+            onDismiss = onToggleResizeEditor,
+        )
+    }
+
+    
+
+    if (state.isColorFilterEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+        val showJpegWarning = state.imageConfig.format == com.kompact.model.ImageOutputFormat.JPG
+        FiltersEditorDialog(
+            currentColorConfig = state.imageConfig.colorFilterConfig,
+            currentBackgroundConfig = state.imageConfig.backgroundConfig,
+            previewUri = state.selectedFiles.firstOrNull()?.uri,
+            showJpegWarning = showJpegWarning,
+            onConfirm = { colorCfg, bgCfg ->
+                onColorFilterChange(colorCfg)
+                onBackgroundConfigChange(bgCfg)
+            },
+            onDismiss = onToggleColorFilterEditor
+        )
+    }
+
+    if (state.isTextEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+        val uri = state.selectedFiles.firstOrNull()?.uri
+        if (uri != null) {
+            TextEditorDialog(
+                imageUri = uri,
+                textConfig = state.imageConfig.textConfig,
+                onTextConfigChange = { config ->
+                    onTextConfigChange(config)
+                    onToggleTextEditor() // close it
+                },
+                onDismiss = onToggleTextEditor
+            )
+        }
+    }
+
+    if (isRotateEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+        RotateEditorDialog(
+            currentRotation = state.imageConfig.rotationDegrees,
+            previewUri = state.selectedFiles.firstOrNull()?.uri,
+            colorFilter = state.imageConfig.colorFilterConfig,
+            onConfirm = { newRotation -> 
+                val absoluteRotation = if (newRotation < 0f) newRotation + 360f else newRotation
+                onRotate(absoluteRotation - state.imageConfig.rotationDegrees)
+            },
+            onDismiss = { isRotateEditorVisible = false }
         )
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+
+
     defaultDestinationFolder: String?,
+    defaultDownloadsLabel: String,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
     onPickDefaultDestination: () -> Unit,
@@ -450,23 +548,79 @@ fun SettingsScreen(
         contentPadding = PaddingValues(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item { Text("Settings", style = MaterialTheme.typography.headlineMedium) }
+        item { Text(stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium) }
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Default destination", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = defaultDestinationFolder?.let { getFolderDisplayName(Uri.parse(it)) } ?: "Not set",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = onPickDefaultDestination) {
-                            Icon(Icons.Filled.Folder, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Destination folder")
-                        }
-                        TextButton(onClick = onClearDefaultDestination, enabled = defaultDestinationFolder != null) {
-                            Text("Reset default")
+                    Text("Language", style = MaterialTheme.typography.titleMedium)
+
+                    val locales = remember {
+                        listOf(
+                            "" to "Default",
+                            "en" to "English",
+                            "ca" to "Català",
+                            "cs" to "Čeština",
+                            "de" to "Deutsch",
+                            "es" to "Español",
+                            "fr" to "Français",
+                            "hr" to "Hrvatski",
+                            "id" to "Indonesia",
+                            "it" to "Italiano",
+                            "hu" to "Magyar",
+                            "nl" to "Nederlands",
+                            "pl" to "Polski",
+                            "pt" to "Português",
+                            "ro" to "Română",
+                            "fi" to "Suomi",
+                            "sv" to "Svenska",
+                            "vi" to "Tiếng Việt",
+                            "tr" to "Türkçe",
+                            "el" to "Ελληνικά",
+                            "bg" to "Български",
+                            "ru" to "Русский",
+                            "sr" to "Српски",
+                            "uk" to "Українська",
+                            "ar" to "العربية",
+                            "fa" to "فارسی",
+                            "hi" to "हिन्दी",
+                            "bn" to "বাংলা",
+                            "ja" to "日本語",
+                            "zh-CN" to "中文 (简体)",
+                            "ko" to "한국어"
+                        )
+                    }
+
+                    var expanded by remember { mutableStateOf(false) }
+                    val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+                    val currentTags = currentLocales.toLanguageTags()
+                    val currentLang = if (currentTags.isBlank()) "" else currentTags.split("-")[0]
+                    val selectedText = locales.find { it.first == currentLang }?.second ?: "Default"
+                    val isRtl = currentLang in listOf("ar", "fa")
+                    val layoutDir = if (isRtl) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr
+
+                    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides layoutDir) {
+                        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+                            OutlinedTextField(
+                                value = selectedText,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                modifier = Modifier.menuAnchor()
+                            )
+                            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                                locales.forEach { (tag, label) ->
+                                    val itemDir = if (tag in listOf("ar", "fa")) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr
+                                    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides itemDir) {
+                                        DropdownMenuItem(
+                                            text = { Text(if (tag == "") "Lang Default" else label) },
+                                            onClick = {
+                                                androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(androidx.core.os.LocaleListCompat.forLanguageTags(tag))
+                                                expanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -476,12 +630,35 @@ fun SettingsScreen(
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Theme", style = MaterialTheme.typography.titleMedium)
+                    Text("Default Dest", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = defaultDestinationFolder?.let { getFolderDisplayName(Uri.parse(it)) } ?: defaultDownloadsLabel.ifBlank { "Default Dir" },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = onPickDefaultDestination) {
+                            Icon(Icons.Filled.Folder, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Dest Folder")
+                        }
+                        TextButton(onClick = onClearDefaultDestination, enabled = defaultDestinationFolder != null) {
+                            Text("Reset Default")
+                        }
+                    }
+                }
+            }
+        }
 
+        item {
+            Card {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Theme Title", style = MaterialTheme.typography.titleMedium)
+
+                    @Composable
                     fun labelFor(mode: ThemeMode): String = when (mode) {
-                        ThemeMode.SYSTEM -> "System"
-                        ThemeMode.LIGHT -> "Light"
-                        ThemeMode.DARK -> "Dark"
+                        ThemeMode.SYSTEM -> "Theme System"
+                        ThemeMode.LIGHT -> "Theme Light"
+                        ThemeMode.DARK -> "Theme Dark"
                     }
 
                     ThemeMode.entries.forEach { mode ->
@@ -514,7 +691,7 @@ fun AboutScreen(modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item { Text("About Kompact", style = MaterialTheme.typography.headlineMedium) }
+        item { Text("About Title", style = MaterialTheme.typography.headlineMedium) }
         item {
             Card {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -602,7 +779,7 @@ fun DonateScreen(modifier: Modifier = Modifier) {
                     Button(onClick = { uriHandler.openUri("https://liberapay.com/naxod/") }) {
                         Icon(Icons.Default.Favorite, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Donate")
+                        Text(stringResource(R.string.nav_donate))
                     }
                 }
             }
@@ -819,7 +996,7 @@ fun OutputCard(
                     Icon(Icons.Default.Folder, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Column {
-                        Text("Destination folder", style = MaterialTheme.typography.labelSmall)
+                        Text("Dest Folder", style = MaterialTheme.typography.labelSmall)
                         Text(destinationLabel, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
@@ -1001,9 +1178,9 @@ fun ExifEditorDialog(
     val scrollState = rememberScrollState()
     val currentExif = exifData ?: ExifData()
 
-    Dialog(
+    androidx.compose.ui.window.Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
             shape = RoundedCornerShape(20.dp),
@@ -1234,9 +1411,9 @@ fun CropEditorDialog(
         verticalRange = newStartY..(newStartY + height)
     }
 
-    Dialog(
+    androidx.compose.ui.window.Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
             shape = RoundedCornerShape(20.dp),
@@ -1712,7 +1889,7 @@ fun ResultsCard(results: List<CompressionResult>) {
     }
 
     if (zoomTarget != null) {
-        Dialog(onDismissRequest = {
+        androidx.compose.ui.window.Dialog(onDismissRequest = {
             zoomTarget = null
             zoomLabel = null
         }) {
@@ -1826,10 +2003,17 @@ private fun PreviewKompact() {
             onClearDestination = {},
             onExifDataChange = { _ -> },
             onToggleExifEditor = {},
-            onToggleCropEditor = {},
             onToggleTextEditor = {},
             onTextConfigChange = { _ -> },
+            onToggleCropEditor = {},
             onCropBoundsChange = { _ -> },
+            onToggleResizeEditor = {},
+            onResizeConfigChange = { _ -> },
+            onBackgroundConfigChange = { _ -> },
+            onToggleColorFilterEditor = {},
+            onColorFilterChange = { _ -> },
+            onRotate = { _ -> },
+            onResetEditsClick = {},
             onNavigateToSettings = {},
             onNavigateToHome = {},
             onNavigateToAbout = {},
@@ -1848,6 +2032,14 @@ fun LivePreviewCard(
     isCropEditorVisible: Boolean,
     isCropApplied: Boolean,
     onCropClick: () -> Unit,
+    canResize: Boolean,
+    isResizeEditorVisible: Boolean,
+    isResizeApplied: Boolean,
+    onResizeClick: () -> Unit,
+    
+    onRotateClick: () -> Unit,
+    onColorFilterClick: () -> Unit,
+    onResetEditsClick: () -> Unit,
     canText: Boolean = false,
     isTextEditorVisible: Boolean = false,
     isTextApplied: Boolean = false,
@@ -1858,30 +2050,82 @@ fun LivePreviewCard(
     var zoomLabel by remember { mutableStateOf<String?>(null) }
     Card(modifier) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Live Preview", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(end = 8.dp))
-                if (canCrop) {
-                    TextButton(onClick = onCropClick) {
-                        Icon(androidx.compose.material.icons.Icons.Default.Crop, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(when { isCropEditorVisible -> "Close Crop"; isCropApplied -> "Edit Crop"; else -> "Crop" })
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Live Preview", style = MaterialTheme.typography.titleMedium)
+                    TextButton(
+                        onClick = onResetEditsClick,
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
+                        androidx.compose.material3.Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.Refresh,
+                            contentDescription = "Reset",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Reset")
                     }
                 }
-                if (canText) {
-                    TextButton(onClick = onTextClick) {
-                        Icon(androidx.compose.material.icons.Icons.Default.TextFields, contentDescription = null)
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (canCrop) {
+                        TextButton(onClick = onCropClick) {
+                            Icon(androidx.compose.material.icons.Icons.Default.Crop, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            val label = when {
+                                isCropEditorVisible -> "Close Crop"
+                                isCropApplied -> "Edit Crop"
+                                else -> "Crop"
+                            }
+                            Text(label)
+                        }
+                    }
+                    if (canResize) {
+                        TextButton(onClick = onResizeClick) {
+                            Icon(androidx.compose.material.icons.Icons.Default.PhotoSizeSelectLarge, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            val label = when {
+                                isResizeEditorVisible -> "Close Resize"
+                                isResizeApplied -> "Edit Resize"
+                                else -> "Resize"
+                            }
+                            Text(label)
+                        }
+                    }
+                    TextButton(onClick = onRotateClick) {
+                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.RotateRight, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text(when { isTextEditorVisible -> "Close Text"; isTextApplied -> "Edit Text"; else -> "Text" })
+                        Text("Rotate")
+                    }
+                    TextButton(onClick = onColorFilterClick) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Palette, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Color Filter")
+                    }
+                    if (canText) {
+                        TextButton(onClick = onTextClick) {
+                            Icon(androidx.compose.material.icons.Icons.Default.TextFields, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            val label = when {
+                                isTextEditorVisible -> "Close Text"
+                                isTextApplied -> "Edit Text"
+                                else -> "Text"
+                            }
+                            Text(label)
+                        }
                     }
                 }
-                // Placeholders per future features
-                IconButton(onClick = {}) { Icon(androidx.compose.material.icons.Icons.Default.PhotoSizeSelectLarge, contentDescription = "Resize") }
-                IconButton(onClick = {}) { Icon(androidx.compose.material.icons.Icons.Default.RotateRight, contentDescription = "Rotate") }
-                IconButton(onClick = {}) { Icon(androidx.compose.material.icons.Icons.Default.Palette, contentDescription = "Filters") }
             }
             val hasPreviews = livePreview.kind == PreviewKind.IMAGE && livePreview.previews.isNotEmpty()
             val showLoadingOnly = livePreview.isGenerating && !hasPreviews
@@ -1940,7 +2184,7 @@ fun LivePreviewCard(
         }
     }
     if (zoomTarget != null) {
-        Dialog(onDismissRequest = {
+        androidx.compose.ui.window.Dialog(onDismissRequest = {
             zoomTarget = null
             zoomLabel = null
         }) {
@@ -1980,7 +2224,7 @@ fun LivePreviewRow(
     preview: ImagePreviewPayload,
     onPreviewClick: (Uri, String) -> Unit,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
         // Before
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Before", style = MaterialTheme.typography.bodySmall)
@@ -1995,11 +2239,45 @@ fun LivePreviewRow(
             )
             Text(preview.originalBytes.asReadableBytes(), style = MaterialTheme.typography.bodySmall)
         }
+
+        // Cropped (Optional)
+        if (preview.croppedPreviewUri != null) {
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Cropped", style = MaterialTheme.typography.bodySmall)
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val croppedRequest = remember(preview) {
+                    coil.request.ImageRequest.Builder(context)
+                        .data(preview.croppedPreviewUri)
+                        .memoryCacheKey("crop_${System.identityHashCode(preview)}")
+                        .diskCacheKey("crop_${System.identityHashCode(preview)}")
+                        .build()
+                }
+                AsyncImage(
+                    model = croppedRequest,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .clickable { onPreviewClick(preview.croppedPreviewUri, "Cropped") },
+                    contentScale = ContentScale.Crop
+                )
+                Text("-", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+
         // After
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("After", style = MaterialTheme.typography.bodySmall)
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val request = remember(preview) {
+                coil.request.ImageRequest.Builder(context)
+                    .data(preview.previewUri)
+                    .memoryCacheKey("after_${System.identityHashCode(preview)}")
+                    .diskCacheKey("after_${System.identityHashCode(preview)}")
+                    .build()
+            }
             AsyncImage(
-                model = preview.previewUri,
+                model = request,
                 contentDescription = null,
                 modifier = Modifier
                     .size(80.dp)
@@ -2025,8 +2303,17 @@ fun ZoomableImage(
         offset += offsetChange
     }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val request = remember(uri) {
+        coil.request.ImageRequest.Builder(context)
+            .data(uri)
+            .memoryCacheKey(uri?.toString() + "_" + System.currentTimeMillis())
+            .diskCacheKey(uri?.toString() + "_" + System.currentTimeMillis())
+            .build()
+    }
+
     AsyncImage(
-        model = uri,
+        model = request,
         contentDescription = null,
         modifier = modifier
             .graphicsLayer(
@@ -2104,4 +2391,528 @@ private fun getFolderDisplayName(uri: Uri?): String {
             else -> "Selected folder"
         }
     } ?: "Not set"
+}
+
+@Composable
+fun ResizeEditorDialog(
+    config: com.kompact.model.ResizeConfig?,
+    previewUri: Uri?,
+    onConfigChange: (com.kompact.model.ResizeConfig?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var widthStr by remember { mutableStateOf(config?.width?.takeIf { it > 0 }?.toString() ?: "") }
+    var heightStr by remember { mutableStateOf(config?.height?.takeIf { it > 0 }?.toString() ?: "") }
+    var maintainAspect by remember { mutableStateOf(config?.maintainAspectRatio ?: true) }
+    var isPercentage by remember { mutableStateOf(config?.isPercentage ?: false) }
+
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        androidx.compose.material3.Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .fillMaxHeight(0.85f),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Resize", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (previewUri != null) {
+                        coil.compose.AsyncImage(
+                            model = previewUri,
+                            contentDescription = "Preview",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
+                        Text("No preview available")
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = widthStr,
+                            onValueChange = { widthStr = it },
+                            label = { Text(if (isPercentage) "Scale %" else "Resize Width") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (!isPercentage) {
+                            OutlinedTextField(
+                                value = heightStr,
+                                onValueChange = { heightStr = it },
+                                label = { Text("Resize Height") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = isPercentage, onCheckedChange = { isPercentage = it })
+                        Text("Resize Percentage")
+                    }
+                    if (!isPercentage) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(checked = maintainAspect, onCheckedChange = { maintainAspect = it })
+                            Text("Resize Keep Aspect")
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = {
+                        onConfigChange(null)
+                        onDismiss()
+                    }) { Text("Clear") }
+                    Button(onClick = {
+                        val w = widthStr.toIntOrNull() ?: 0
+                        val h = heightStr.toIntOrNull() ?: 0
+                        if (w > 0 || h > 0) {
+                            onConfigChange(com.kompact.model.ResizeConfig(w, h, maintainAspect, isPercentage))
+                        }
+                        onDismiss()
+                    }) { Text("Apply") }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FiltersEditorDialog(
+    currentColorConfig: com.kompact.model.ColorFilterConfig?,
+    currentBackgroundConfig: com.kompact.model.BackgroundConfig?,
+    previewUri: android.net.Uri?,
+    showJpegWarning: Boolean,
+    onConfirm: (com.kompact.model.ColorFilterConfig?, com.kompact.model.BackgroundConfig?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var localColorConfig by remember { androidx.compose.runtime.mutableStateOf(currentColorConfig ?: com.kompact.model.ColorFilterConfig()) }
+    var localBgConfig by remember { androidx.compose.runtime.mutableStateOf(currentBackgroundConfig ?: com.kompact.model.BackgroundConfig()) }
+    
+    var selectedTab by remember { androidx.compose.runtime.mutableStateOf(
+        if (currentColorConfig == null) "NONE"
+        else currentColorConfig.filterType.name
+    ) }
+
+    val filterTypes = com.kompact.model.ColorFilterType.values().toList()
+    
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        androidx.compose.material3.Surface(
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp)
+            ) {
+                Text(
+                    text = "Action Color Filter",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Spacer(Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(
+                            when (localBgConfig.type) {
+                                com.kompact.model.BackgroundType.TRANSPARENT -> androidx.compose.ui.graphics.Color.Transparent
+                                com.kompact.model.BackgroundType.CUSTOM -> androidx.compose.ui.graphics.Color(localBgConfig.customColor)
+                                else -> androidx.compose.ui.graphics.Color.Black
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (previewUri != null) {
+                        coil.compose.AsyncImage(
+                            model = previewUri,
+                            contentDescription = "Preview",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit,
+                            colorFilter = localColorConfig.toComposeColorFilter()
+                        )
+                    } else {
+                        Text("No preview available")
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                
+                androidx.compose.foundation.lazy.LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    val itemsList = filterTypes.map { it.name }.toMutableList()
+                    val customIdx = itemsList.indexOf("CUSTOM")
+                    if(customIdx != -1) {
+                        itemsList.add(customIdx + 1, "BACKGROUND")
+                    } else {
+                        itemsList.add("BACKGROUND")
+                    }
+                    
+                    items(itemsList.size) { index ->
+                        val item = itemsList[index]
+                        val isSelected = (selectedTab == item)
+                        
+                        Column(
+                            modifier = Modifier
+                                .width(64.dp)
+                                .clickable { 
+                                    selectedTab = item
+                                    if(item != "BACKGROUND") {
+                                        localColorConfig = localColorConfig.copy(filterType = com.kompact.model.ColorFilterType.valueOf(item))
+                                    }
+                                },
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .border(
+                                        width = if (isSelected) 3.dp else 1.dp,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .background(if (item == "BACKGROUND") MaterialTheme.colorScheme.surfaceVariant else androidx.compose.ui.graphics.Color.Transparent),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (item == "BACKGROUND") {
+                                    val checkerColor1 = androidx.compose.ui.graphics.Color.LightGray.copy(alpha = 0.5f)
+                                    val checkerColor2 = androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.3f)
+                                    androidx.compose.foundation.Canvas(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(4.dp))) {
+                                        val squareSize = size.width / 4
+                                        for (row in 0 until 4) {
+                                            for (col in 0 until 4) {
+                                                val isEven = (row + col) % 2 == 0
+                                                drawRect(
+                                                    color = if (isEven) checkerColor1 else checkerColor2,
+                                                    topLeft = androidx.compose.ui.geometry.Offset(col * squareSize, row * squareSize),
+                                                    size = androidx.compose.ui.geometry.Size(squareSize, squareSize)
+                                                )
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    val fType = com.kompact.model.ColorFilterType.valueOf(item)
+                                    coil.compose.AsyncImage(
+                                        model = previewUri ?: R.drawable.ic_launcher,
+                                        contentDescription = item,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop,
+                                        colorFilter = com.kompact.model.ColorFilterConfig(filterType = fType).toComposeColorFilter()
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = if (item == "NONE") "Default" else if (item == "CUSTOM") "Color" else item.lowercase().replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(Modifier.height(16.dp))
+
+                if (selectedTab == "BACKGROUND") {
+                    Text(
+                        text = "Background Type",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    
+                    if (showJpegWarning && localBgConfig.type == com.kompact.model.BackgroundType.TRANSPARENT) {
+                        Text(
+                            text = "Warning: JPEG does not support transparency.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(androidx.compose.foundation.rememberScrollState()),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        BackgroundOption(
+                            label = "Transp.",
+                            color = androidx.compose.ui.graphics.Color.Transparent,
+                            isSelected = localBgConfig.type == com.kompact.model.BackgroundType.TRANSPARENT,
+                            onClick = { localBgConfig = localBgConfig.copy(type = com.kompact.model.BackgroundType.TRANSPARENT) }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        BackgroundOption(
+                            label = "Black",
+                            color = androidx.compose.ui.graphics.Color.Black,
+                            isSelected = localBgConfig.type == com.kompact.model.BackgroundType.CUSTOM && localBgConfig.customColor == android.graphics.Color.BLACK,
+                            onClick = {
+                                localBgConfig = localBgConfig.copy(
+                                    type = com.kompact.model.BackgroundType.CUSTOM,
+                                    customColor = android.graphics.Color.BLACK
+                                )
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        BackgroundOption(
+                            label = "White",
+                            color = androidx.compose.ui.graphics.Color.White,
+                            isSelected = localBgConfig.type == com.kompact.model.BackgroundType.CUSTOM && localBgConfig.customColor == android.graphics.Color.WHITE,
+                            onClick = {
+                                localBgConfig = localBgConfig.copy(
+                                    type = com.kompact.model.BackgroundType.CUSTOM,
+                                    customColor = android.graphics.Color.WHITE
+                                )
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        BackgroundOption(
+                            label = "Red",
+                            color = androidx.compose.ui.graphics.Color.Red,
+                            isSelected = localBgConfig.type == com.kompact.model.BackgroundType.CUSTOM && localBgConfig.customColor == android.graphics.Color.RED,
+                            onClick = {
+                                localBgConfig = localBgConfig.copy(
+                                    type = com.kompact.model.BackgroundType.CUSTOM,
+                                    customColor = android.graphics.Color.RED
+                                )
+                            }
+                        )
+                    }
+                } 
+                
+                if (selectedTab == "CUSTOM") {
+                    Text(
+                        text = "Hue",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    val gradientBrush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                        colors = listOf(
+                            androidx.compose.ui.graphics.Color.Red,
+                            androidx.compose.ui.graphics.Color.Yellow,
+                            androidx.compose.ui.graphics.Color.Green,
+                            androidx.compose.ui.graphics.Color.Cyan,
+                            androidx.compose.ui.graphics.Color.Blue,
+                            androidx.compose.ui.graphics.Color.Magenta,
+                            androidx.compose.ui.graphics.Color.Red
+                        )
+                    )
+
+                    Box(modifier = Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center) {
+                        Spacer(modifier = Modifier.matchParentSize().padding(vertical = 8.dp).clip(RoundedCornerShape(8.dp)).background(gradientBrush))
+                        androidx.compose.material3.Slider(
+                            value = localColorConfig.hue,
+                            onValueChange = { localColorConfig = localColorConfig.copy(hue = it) },
+                            valueRange = 0f..360f,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = androidx.compose.material3.SliderDefaults.colors(
+                                thumbColor = androidx.compose.ui.graphics.Color.White,
+                                activeTrackColor = androidx.compose.ui.graphics.Color.Transparent,
+                                inactiveTrackColor = androidx.compose.ui.graphics.Color.Transparent
+                            )
+                        )
+                    }
+                } 
+                
+                if (selectedTab != "NONE" && selectedTab != "BACKGROUND") {
+                    Text(
+                        text = "Intensity: ${(localColorConfig.intensity * 100).toInt()}%",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    androidx.compose.material3.Slider(
+                        value = localColorConfig.intensity,
+                        onValueChange = { localColorConfig = localColorConfig.copy(intensity = it) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = { localColorConfig = localColorConfig.copy(intensity = 0f) }) {
+                        Text("Reset")
+                    }
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+                    TextButton(
+                        onClick = {
+                            val colorRes = if (localColorConfig.filterType == com.kompact.model.ColorFilterType.NONE) null else localColorConfig
+                            val bgRes = if (localBgConfig.type == com.kompact.model.BackgroundType.TRANSPARENT) null else localBgConfig
+                            onConfirm(colorRes, bgRes)
+                            onDismiss()
+                        }
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RotateEditorDialog(
+    currentRotation: Float,
+    previewUri: Uri?,
+    colorFilter: com.kompact.model.ColorFilterConfig?,
+    onConfirm: (Float) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var localRotation by remember { mutableFloatStateOf(if (currentRotation > 180f) currentRotation - 360f else currentRotation) }
+
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        androidx.compose.material3.Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .fillMaxHeight(0.85f),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Action Rotate", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (previewUri != null) {
+                        coil.compose.AsyncImage(
+                            model = previewUri,
+                            contentDescription = "Preview",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .rotate(localRotation),
+                            contentScale = ContentScale.Fit,
+                            colorFilter = colorFilter?.toComposeColorFilter()
+                        )
+                    } else {
+                        Text("No preview available")
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                
+                Text(text = "Degrees: ${localRotation.toInt()}°", style = MaterialTheme.typography.bodyMedium)
+                androidx.compose.material3.Slider(
+                    value = localRotation,
+                    onValueChange = { localRotation = it },
+                    valueRange = -180f..180f,
+                    steps = 35,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(onClick = { 
+                        val rem = kotlin.math.abs((localRotation % 90f).toInt())
+                        if (rem != 0) {
+                            localRotation = -90f
+                        } else {
+                            localRotation -= 90f
+                            if (localRotation < -180f) localRotation += 360f
+                        }
+                    }) { Text("-90°") }
+                    Spacer(Modifier.width(16.dp))
+                    Button(onClick = { localRotation = 0f }) { Text("0°") }
+                    Spacer(Modifier.width(16.dp))
+                    Button(onClick = { 
+                        val rem = kotlin.math.abs((localRotation % 90f).toInt())
+                        if (rem != 0) {
+                            localRotation = 90f
+                        } else {
+                            localRotation += 90f
+                            if (localRotation > 180f) localRotation -= 360f
+                        }
+                    }) { Text("+90°") }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    Button(onClick = {
+                        onConfirm(localRotation)
+                        onDismiss()
+                    }) { Text("Apply") }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BackgroundOption(
+    label: String,
+    color: androidx.compose.ui.graphics.Color,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(if (color == androidx.compose.ui.graphics.Color.Transparent) MaterialTheme.colorScheme.surfaceVariant else color)
+                .border(
+                    width = if (isSelected) 3.dp else 1.dp,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (color == androidx.compose.ui.graphics.Color.Transparent) {
+                Text("T", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = label, style = MaterialTheme.typography.labelSmall)
+    }
 }
