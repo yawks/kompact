@@ -5,8 +5,11 @@ import android.net.Uri
 import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
 import com.kompact.model.ImagePreviewPayload
+import com.kompact.util.applyBackground
 import com.kompact.util.applyCrop
-import com.kompact.util.applyTextOverlay
+import com.kompact.util.applyResize
+import com.kompact.util.applyRotation
+import com.kompact.util.applyColorFilter
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
@@ -27,8 +30,11 @@ class ImagePreviewGenerator(context: Context) {
 
     suspend fun generate(source: Uri, config: ImageCompressionConfig): ImagePreviewPayload = withContext(Dispatchers.IO) {
         var bitmap = decodeBitmap(resolver, source) ?: error("Preview not available")
-        bitmap = bitmap.applyCrop(config.cropBounds)
-        bitmap = bitmap.applyTextOverlay(config.textConfig)
+        bitmap = bitmap.applyRotation(config.rotationDegrees)
+            .applyCrop(config.cropBounds)
+            .applyResize(config.resizeConfig)
+            .applyColorFilter(config.colorFilterConfig)
+            .applyBackground(config.backgroundConfig)
         val originalBytes = resolver.getFileSize(appContext, source)
         val extension = resolveImageExtension(appContext, resolver, source, config.format)
         val targetBytes = resolveTargetBytes(config, originalBytes)
@@ -65,7 +71,7 @@ class ImagePreviewGenerator(context: Context) {
     private fun cachePreviewFile(source: Uri, extension: String): File {
         val dir = File(appContext.cacheDir, "preview")
         if (!dir.exists()) dir.mkdirs()
-        val hash = source.hashCode().toString()
+        val hash = source.hashCode().toString() + "_" + System.currentTimeMillis()
         return File(dir, "live_preview_${hash}.$extension")
     }
 

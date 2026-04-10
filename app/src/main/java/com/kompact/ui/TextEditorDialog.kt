@@ -1,4 +1,6 @@
 package com.kompact.ui
+import com.kompact.R
+import androidx.compose.ui.res.stringResource
 
 import android.net.Uri
 import androidx.compose.foundation.Image

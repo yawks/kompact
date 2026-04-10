@@ -46,6 +46,22 @@ data class CropBounds(
     }
 }
 
+data class ResizeConfig(
+    val width: Int = 0,
+    val height: Int = 0,
+    val maintainAspectRatio: Boolean = true,
+    val isPercentage: Boolean = false
+) {
+    fun isValid() = width > 0 && height > 0
+}
+
+enum class BackgroundType { TRANSPARENT, CUSTOM }
+
+data class BackgroundConfig(
+    val type: BackgroundType = BackgroundType.TRANSPARENT,
+    val customColor: Int = android.graphics.Color.BLACK
+)
+
 data class ExifData(
     val dateTime: String? = null,
     val make: String? = null,
@@ -67,9 +83,17 @@ data class ExifData(
     val userComment: String? = null,
 )
 
+enum class ColorFilterType { NONE, GRAYSCALE, SEPIA, VINTAGE, COOL, WARM, CUSTOM }
+
+data class ColorFilterConfig(
+    val filterType: ColorFilterType = ColorFilterType.NONE,
+    val intensity: Float = 0.5f, // Optional for future intensity tuning
+    val hue: Float = 0f // Hue value from 0 to 360 for CUSTOM filter
+)
+
 data class ImageCompressionConfig(
     val goal: CompressionGoal = CompressionGoal.PERCENTAGE,
-    val percentage: Int = 100,
+    val percentage: Int = 70,
     val targetSizeBytes: Long? = null,
     val format: ImageOutputFormat = ImageOutputFormat.ORIGINAL,
     val exifData: ExifData? = null,
@@ -77,10 +101,10 @@ data class ImageCompressionConfig(
     val outputFileName: String? = null,
     val cropBounds: CropBounds? = null,
     val textConfig: TextOverlayConfig? = null,
-    // Placeholders for future features
-    val isResizeApplied: Boolean = false,
-    val isRotateApplied: Boolean = false,
-    val isFilterApplied: Boolean = false
+    val resizeConfig: ResizeConfig? = null,
+    val backgroundConfig: BackgroundConfig? = null,
+    val rotationDegrees: Float = 0f,
+    val colorFilterConfig: ColorFilterConfig? = null,
 )
 
 data class CompressionResult(
@@ -116,6 +140,7 @@ data class SelectedFileDescriptor(
 data class ImagePreviewPayload(
     val source: Uri,
     val previewUri: Uri,
+    val croppedPreviewUri: Uri? = null,
     val originalBytes: Long,
     val estimatedBytes: Long,
     val qualityUsed: Int,
@@ -137,8 +162,7 @@ data class CompressionUiState(
     val compressionType: CompressionType = CompressionType.IMAGE,
     val imageConfig: ImageCompressionConfig = ImageCompressionConfig(),
     val destinationFolder: Uri? = null,
-    val defaultPicturesLabel: String = "",
-    val defaultDocumentsLabel: String = "",
+    val defaultDownloadsLabel: String = "",
     val isProcessing: Boolean = false,
     val results: List<CompressionResult> = emptyList(),
     val errorMessage: String? = null,
@@ -158,4 +182,7 @@ data class CompressionUiState(
     val isExifEditorVisible: Boolean = false,
     val isCropEditorVisible: Boolean = false,
     val isTextEditorVisible: Boolean = false,
+    val isResizeEditorVisible: Boolean = false,
+    val isBackgroundEditorVisible: Boolean = false,
+    val isColorFilterEditorVisible: Boolean = false,
 )

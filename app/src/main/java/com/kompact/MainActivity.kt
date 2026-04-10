@@ -2,7 +2,7 @@ package com.kompact
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,7 +21,7 @@ private val SUPPORTED_MIME_TYPES = arrayOf(
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 )
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val viewModel: CompressionViewModel by viewModels()
 
@@ -67,11 +67,18 @@ class MainActivity : ComponentActivity() {
                     },
                     onClearDestination = { viewModel.clearDestinationFolder() },
                     onExifDataChange = { viewModel.updateExifData(it) },
-                    onToggleExifEditor = { viewModel.toggleExifEditor() },
-                    onToggleCropEditor = { viewModel.toggleCropEditor() },
                     onToggleTextEditor = { viewModel.toggleTextEditor() },
                     onTextConfigChange = { viewModel.updateTextConfig(it) },
+                    onToggleExifEditor = { viewModel.toggleExifEditor() },
+                    onToggleCropEditor = { viewModel.toggleCropEditor() },
                     onCropBoundsChange = { viewModel.updateCropBounds(it) },
+                    onToggleResizeEditor = { viewModel.toggleResizeEditor() },
+                    onResizeConfigChange = { viewModel.updateResizeConfig(it) },
+                    onBackgroundConfigChange = { viewModel.updateBackgroundConfig(it) },
+                    onToggleColorFilterEditor = { viewModel.toggleColorFilterEditor() },
+                    onColorFilterChange = { viewModel.updateColorFilterConfig(it) },
+                    onRotate = { viewModel.addRotation(it) },
+                    onResetEditsClick = { viewModel.resetImageEdits() },
                     onNavigateToSettings = { viewModel.navigateToSettings() },
                     onNavigateToHome = { viewModel.navigateToHome() },
                     onNavigateToAbout = { viewModel.navigateToAbout() },

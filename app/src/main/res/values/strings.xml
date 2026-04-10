@@ -95,22 +95,20 @@
     <string name="background_type">Background Type</string>
     <string name="warning_jpeg_does_not_support_transparency">Warning: JPEG does not support transparency.</string>
     <string name="hue">Hue</string>
-
     <string name="add_text">Add Text</string>
     <string name="save">Save</string>
     <string name="text_content">Text content</string>
-
     <string name="file_singular">file</string>
     <string name="file_plural">files</string>
     <string name="processed">processed</string>
     <string name="items_processed">processed</string>
     <string name="last_item">Last item</string>
-
-
-    <string name="file_singular">file</string>
-    <string name="file_plural">files</string>
-    <string name="processed">processed</string>
-    <string name="items_processed">processed</string>
-    <string name="last_item">Last item</string>
-
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="select_images">Select images</string>
+    <string name="select_files">Select files</string>
+    <string name="items_selected">item(s) selected</string>
+    <string name="add_more">Add more</string>
+    <string name="select_files_same_type">Select files of the same type</string>
 </resources>

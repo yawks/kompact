@@ -1,4 +1,5 @@
 package com.kompact.ui
+import com.kompact.R
 
 import android.app.Application
 import android.net.Uri
@@ -56,8 +57,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     init {
         _state.update {
             it.copy(
-                defaultPicturesLabel = DefaultDestinationResolver.defaultPicturesLabel(),
-                defaultDocumentsLabel = DefaultDestinationResolver.defaultDocumentsLabel(),
+                defaultDownloadsLabel = DefaultDestinationResolver.defaultDownloadsLabel(),
             )
         }
         loadPreferences()
@@ -74,7 +74,13 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         val nextFingerprint = config.previewFingerprint()
 
         _state.update {
-            it.copy(imageConfig = config)
+            it.copy(
+                imageConfig = config,
+                results = emptyList(),
+                processedCount = 0,
+                lastResult = null,
+                errorMessage = null
+            )
         }
 
         // Do not rerun preview for cosmetic-only changes like filename; refresh only when affecting compression.
@@ -122,7 +128,15 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun setDestinationFolder(uri: Uri?) {
-        _state.update { it.copy(destinationFolder = uri) }
+        _state.update { 
+            it.copy(
+                destinationFolder = uri,
+                results = emptyList(),
+                processedCount = 0,
+                lastResult = null,
+                errorMessage = null
+            ) 
+        }
     }
 
     fun clearDestinationFolder() {
@@ -179,14 +193,6 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun toggleTextEditor() {
-        _state.update { state ->
-            val canText = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1
-            val nextVisible = if (canText) !state.isTextEditorVisible else false
-            state.copy(isTextEditorVisible = nextVisible)
-        }
-    }
-
     fun updateCropBounds(bounds: CropBounds?) {
         val normalized = bounds?.normalized()
         _state.update { current ->
@@ -196,10 +202,66 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         scheduleLivePreview()
     }
 
-    fun updateTextConfig(config: com.kompact.model.TextOverlayConfig?) {
+    fun toggleColorFilterEditor() {
+        _state.update { state -> state.copy(isColorFilterEditorVisible = !state.isColorFilterEditorVisible) }
+    }
+
+    fun updateColorFilterConfig(config: com.kompact.model.ColorFilterConfig?) {
         _state.update { current ->
-            val updatedConfig = current.imageConfig.copy(textConfig = config)
-            current.copy(imageConfig = updatedConfig)
+            current.copy(imageConfig = current.imageConfig.copy(colorFilterConfig = config))
+        }
+        scheduleLivePreview()
+    }
+
+    fun addRotation(degrees: Float = 90f) {
+        _state.update { current ->
+            val currentRot = current.imageConfig.rotationDegrees
+            current.copy(imageConfig = current.imageConfig.copy(rotationDegrees = (currentRot + degrees) % 360f))
+        }
+        scheduleLivePreview()
+    }
+
+    fun toggleResizeEditor() {
+        _state.update { state ->
+            val canResize = state.sourceCategory == SourceCategory.IMAGE
+            val nextVisible = if (canResize) !state.isResizeEditorVisible else false
+            state.copy(isResizeEditorVisible = nextVisible)
+        }
+    }
+
+    fun updateResizeConfig(config: com.kompact.model.ResizeConfig?) {
+        _state.update { current ->
+            current.copy(imageConfig = current.imageConfig.copy(resizeConfig = config))
+        }
+        scheduleLivePreview()
+    }
+
+    fun toggleBackgroundEditor() {
+        _state.update { state ->
+            val canEditBg = state.sourceCategory == SourceCategory.IMAGE
+            val nextVisible = if (canEditBg) !state.isBackgroundEditorVisible else false
+            state.copy(isBackgroundEditorVisible = nextVisible)
+        }
+    }
+
+    fun updateBackgroundConfig(config: com.kompact.model.BackgroundConfig?) {
+        _state.update { current ->
+            current.copy(imageConfig = current.imageConfig.copy(backgroundConfig = config))
+        }
+        scheduleLivePreview()
+    }
+
+    fun resetImageEdits() {
+        _state.update { current ->
+            val baseConfig = com.kompact.model.ImageCompressionConfig(
+                format = current.imageConfig.format, 
+                goal = current.imageConfig.goal,
+                percentage = current.imageConfig.percentage,
+                targetSizeBytes = current.imageConfig.targetSizeBytes,
+                exifData = current.imageConfig.exifData,
+                originalExifData = current.imageConfig.originalExifData 
+            )
+            current.copy(imageConfig = baseConfig)
         }
         scheduleLivePreview()
     }
@@ -315,7 +377,9 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                     previewGenerator.generate(descriptor.uri, snapshot.imageConfig)
                 }.onSuccess { result ->
                     previewResults.add(result)
-                }.onFailure { _ ->
+                }.onFailure { e ->
+                    if (e is kotlinx.coroutines.CancellationException) throw e
+                    e.printStackTrace()
                     // Skip failed previews
                 }
             }
@@ -398,7 +462,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         }
         val categories = files.map { it.detectCategory() }.toSet()
         if (categories.size > 1) {
-            return SelectionClassification(SourceCategory.MIXED, null, canProcess = false, message = "Select files of the same type")
+            return SelectionClassification(SourceCategory.MIXED, null, canProcess = false, message = getApplication<Application>().getString(R.string.select_files_same_type))
         }
         val category = categories.first()
         return when (category) {
@@ -411,7 +475,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
             )
             SourceCategory.UNSUPPORTED -> SelectionClassification(category, null, canProcess = false, message = "Unsupported file type")
             SourceCategory.NONE -> SelectionClassification(SourceCategory.NONE, CompressionType.IMAGE, canProcess = false, message = null)
-            SourceCategory.MIXED -> SelectionClassification(SourceCategory.MIXED, null, canProcess = false, message = "Select files of the same type")
+            SourceCategory.MIXED -> SelectionClassification(SourceCategory.MIXED, null, canProcess = false, message = getApplication<Application>().getString(R.string.select_files_same_type))
         }
     }
 
@@ -509,4 +573,20 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
             preferencesRepository.setDefaultDestinationFolder(null)
         }
     }
+    fun toggleTextEditor() {
+        _state.update { state ->
+            val canText = state.sourceCategory == com.kompact.model.SourceCategory.IMAGE && state.selectedFiles.size == 1
+            val nextVisible = if (canText) !state.isTextEditorVisible else false
+            state.copy(isTextEditorVisible = nextVisible)
+        }
+    }
+
+    fun updateTextConfig(config: com.kompact.model.TextOverlayConfig?) {
+        _state.update { current ->
+            val updatedConfig = current.imageConfig.copy(textConfig = config)
+            current.copy(imageConfig = updatedConfig)
+        }
+        scheduleLivePreview()
+    }
 }
+

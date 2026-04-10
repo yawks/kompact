@@ -657,9 +657,9 @@ fun SettingsScreen(
 
                     @Composable
                     fun labelFor(mode: ThemeMode): String = when (mode) {
-                        ThemeMode.SYSTEM -> "Theme System"
-                        ThemeMode.LIGHT -> "Theme Light"
-                        ThemeMode.DARK -> "Theme Dark"
+                        ThemeMode.SYSTEM -> stringResource(R.string.theme_system)
+                        ThemeMode.LIGHT -> stringResource(R.string.theme_light)
+                        ThemeMode.DARK -> stringResource(R.string.theme_dark)
                     }
 
                     ThemeMode.entries.forEach { mode ->
@@ -799,10 +799,10 @@ fun SourceCard(
     errorMessage: String?,
 ) {
     Card {
-        val helperText = remember(files) {
-            if (files.isEmpty()) "Select images" else "${files.size} item(s) selected"
-        }
-        val selectLabel = if (files.isEmpty()) "Select files" else "Add more"
+        val strSelectImages = stringResource(R.string.select_images)
+        val strItemsSelected = stringResource(R.string.items_selected)
+        val helperText = if (files.isEmpty()) strSelectImages else "${files.size} $strItemsSelected"
+        val selectLabel = if (files.isEmpty()) stringResource(R.string.select_files) else stringResource(R.string.add_more)
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

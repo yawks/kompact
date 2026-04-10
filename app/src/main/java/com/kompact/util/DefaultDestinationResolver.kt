@@ -38,4 +38,8 @@ object DefaultDestinationResolver {
             }
             ?: fallback
     }
+
+
+    fun defaultDownloadsLabel(): String = buildLabel(Environment.DIRECTORY_DOWNLOADS)
+    fun downloadsRelativePath(): String = "${Environment.DIRECTORY_DOWNLOADS}/$DEFAULT_SUBFOLDER"
 }

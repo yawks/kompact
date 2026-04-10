@@ -8,11 +8,13 @@ import android.net.Uri
 import android.os.Build
 import androidx.documentfile.provider.DocumentFile
 import androidx.exifinterface.media.ExifInterface
+import com.kompact.model.BackgroundConfig
 import com.kompact.model.CompressionGoal
 import com.kompact.model.CropBounds
 import com.kompact.model.ExifData
 import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
+import com.kompact.model.ResizeConfig
 import java.io.ByteArrayOutputStream
 import kotlin.math.roundToInt
 
@@ -346,13 +348,73 @@ internal fun Bitmap.applyCrop(bounds: CropBounds?): Bitmap {
     }
     return cropped
 }
+
+internal fun Bitmap.applyResize(config: ResizeConfig?): Bitmap {
+    if (config == null || !config.isValid()) return this
+    if (config.width == width && config.height == height && !config.isPercentage) return this
+
+    var newWidth = config.width
+    var newHeight = config.height
+    
+    if (config.isPercentage) {
+        val pctW = config.width / 100f
+        val pctH = config.height / 100f
+        newWidth = (width * pctW).toInt()
+        newHeight = (height * pctH).toInt()
+    } else if (config.maintainAspectRatio) {
+         val aspectRatio = width.toFloat() / height.toFloat()
+         // if width changed and height changed, standard logic handles based on which changed, let's just use width as primary if both provided, or whatever simplistic logic. For simplicity, just use newWidth and calc height
+         if (newWidth > 0 && newHeight > 0) {
+              // let's just force aspect ratio on width usually
+              newHeight = (newWidth / aspectRatio).toInt()
+         }
+    }
+
+    if (newWidth <= 0) newWidth = 1
+    if (newHeight <= 0) newHeight = 1
+    
+    return Bitmap.createScaledBitmap(this, newWidth, newHeight, true)
+}
+
+internal fun Bitmap.applyBackground(config: BackgroundConfig?): Bitmap {
+    if (config == null || config.type == com.kompact.model.BackgroundType.TRANSPARENT) return this
+
+    val newBitmap = Bitmap.createBitmap(width, height, this.config ?: Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(newBitmap)
+    canvas.drawColor(config.customColor)
+    val paint = android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG)
+    canvas.drawBitmap(this, 0f, 0f, paint)
+    
+    return newBitmap
+}
+
+internal fun Bitmap.applyRotation(degrees: Float): Bitmap {
+    if (degrees % 360f == 0f) return this
+    val matrix = android.graphics.Matrix()
+    matrix.postRotate(degrees)
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+}
+
+internal fun Bitmap.applyColorFilter(config: com.kompact.model.ColorFilterConfig?): Bitmap {
+    if (config == null || config.filterType == com.kompact.model.ColorFilterType.NONE) return this
+
+    val colorMatrix = config.toAndroidColorMatrix() ?: return this
+
+    val paint = android.graphics.Paint()
+    paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
+
+    val newBitmap = Bitmap.createBitmap(width, height, this.config ?: Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(newBitmap)
+    canvas.drawBitmap(this, 0f, 0f, paint)
+    return newBitmap
+}
 internal fun android.graphics.Bitmap.applyTextOverlay(config: com.kompact.model.TextOverlayConfig?): android.graphics.Bitmap {
     if (config == null || config.text.isBlank()) return this
 
-    val workingBitmap = if (this.isMutable) this else this.copy(android.graphics.Bitmap.Config.ARGB_8888, true)
+    val workingBitmap = if (this.isMutable && this.config == android.graphics.Bitmap.Config.ARGB_8888) this else this.copy(android.graphics.Bitmap.Config.ARGB_8888, true) ?: return this
     val canvas = android.graphics.Canvas(workingBitmap)
     val paint = android.graphics.Paint().apply {
-        color = config.color.toInt()
+        color = config.color
         textSize = config.size * config.scale
         isAntiAlias = true
         style = android.graphics.Paint.Style.FILL
