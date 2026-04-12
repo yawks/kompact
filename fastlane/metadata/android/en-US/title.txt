@@ -1,1 +1,1 @@
-Kompact Image Editor
+Kompact: Image & PDF Compressor

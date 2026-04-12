@@ -1,1 +1,1 @@
-Offline image editor, compressor, cropper, and EXIF tool. No internet needed.
+Compress, resize, and watermark your photos and PDFs easily. Fully offline & FOSS.
