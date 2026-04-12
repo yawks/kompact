@@ -10,6 +10,7 @@ import com.kompact.util.applyCrop
 import com.kompact.util.applyResize
 import com.kompact.util.applyRotation
 import com.kompact.util.applyColorFilter
+import com.kompact.util.applyTextOverlay
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
@@ -35,6 +36,7 @@ class ImagePreviewGenerator(context: Context) {
             .applyResize(config.resizeConfig)
             .applyColorFilter(config.colorFilterConfig)
             .applyBackground(config.backgroundConfig)
+            .applyTextOverlay(config.textConfig)
         val originalBytes = resolver.getFileSize(appContext, source)
         val extension = resolveImageExtension(appContext, resolver, source, config.format)
         val targetBytes = resolveTargetBytes(config, originalBytes)

@@ -57,15 +57,28 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     init {
         _state.update {
             it.copy(
-                defaultDownloadsLabel = DefaultDestinationResolver.defaultDownloadsLabel(),
+                defaultDownloadsLabel = DefaultDestinationResolver.defaultPicturesLabel(),
             )
         }
         loadPreferences()
     }
 
-    fun onUrisSelected(uris: List<Uri>) {
-        val descriptors = uris.map { describeFile(it) }
-        applySelection(uris, descriptors)
+    fun onUrisSelected(newUris: List<Uri>) {
+        val currentUris = _state.value.selectedUris
+        val urisToAdd = newUris.filter { it !in currentUris }
+        if (urisToAdd.isEmpty() && newUris.isNotEmpty()) {
+            return // nothing new to add
+        }
+        
+        // Append new files instead of replacing, to support "Add more" correctly.
+        val combinedUris = currentUris + urisToAdd
+        val combinedDescriptors = _state.value.selectedFiles + urisToAdd.map { describeFile(it) }
+        
+        // Reset custom output filename when new files are loaded to prevent old custom name from applying to entirely new files.
+        _state.update { current ->
+            current.copy(imageConfig = current.imageConfig.copy(outputFileName = null))
+        }
+        applySelection(combinedUris, combinedDescriptors)
     }
 
     fun updateImageConfig(config: ImageCompressionConfig) {
@@ -106,6 +119,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun clearSelection() {
+        clearLivePreview()
         _state.update {
             it.copy(
                 selectedUris = emptyList(),
@@ -122,9 +136,9 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 totalCompressedBytes = 0,
                 isExifEditorVisible = false,
                 isCropEditorVisible = false,
+                imageConfig = it.imageConfig.copy(outputFileName = null)
             )
         }
-        clearLivePreview()
     }
 
     fun setDestinationFolder(uri: Uri?) {
@@ -329,7 +343,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                     totalOriginalBytes = finalOriginal,
                     totalCompressedBytes = totalCompressedBytes,
                     lastResult = results.lastOrNull()?.copy(
-                        message = "Processing completed: ${finalOriginal.asReadableBytes()} → ${totalCompressedBytes.asReadableBytes()}"
+                        message = getApplication<Application>().getString(R.string.processing_completed, finalOriginal.asReadableBytes(), totalCompressedBytes.asReadableBytes())
                     ),
                     errorMessage = if (hasSuccess) null else results.lastOrNull()?.message,
                 )
@@ -445,6 +459,11 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         val format: ImageOutputFormat,
         val exifData: ExifData?,
         val cropBounds: CropBounds?,
+        val resizeConfig: com.kompact.model.ResizeConfig?,
+        val colorFilterConfig: com.kompact.model.ColorFilterConfig?,
+        val backgroundConfig: com.kompact.model.BackgroundConfig?,
+        val textConfig: com.kompact.model.TextOverlayConfig?,
+        val rotationDegrees: Float,
     )
 
     private fun ImageCompressionConfig.previewFingerprint(): PreviewFingerprint = PreviewFingerprint(
@@ -454,6 +473,11 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         format = format,
         exifData = exifData,
         cropBounds = cropBounds,
+        resizeConfig = resizeConfig,
+        colorFilterConfig = colorFilterConfig,
+        backgroundConfig = backgroundConfig,
+        textConfig = textConfig,
+        rotationDegrees = rotationDegrees,
     )
 
     private fun classifySelection(files: List<SelectedFileDescriptor>): SelectionClassification {
@@ -562,6 +586,10 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         _state.update { it.copy(currentScreen = AppScreen.DONATE) }
     }
 
+    fun navigateToContact() {
+        _state.update { it.copy(currentScreen = AppScreen.CONTACT) }
+    }
+
     fun setDefaultDestinationFolder(uriString: String) {
         viewModelScope.launch {
             preferencesRepository.setDefaultDestinationFolder(uriString)
@@ -582,10 +610,12 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun updateTextConfig(config: com.kompact.model.TextOverlayConfig?) {
+        android.util.Log.d("CompressionViewModel", "updateTextConfig called with: text=${config?.text}, size=${config?.size}, scale=${config?.scale}")
         _state.update { current ->
             val updatedConfig = current.imageConfig.copy(textConfig = config)
             current.copy(imageConfig = updatedConfig)
         }
+        android.util.Log.d("CompressionViewModel", "Scheduling live preview after text config update")
         scheduleLivePreview()
     }
 }

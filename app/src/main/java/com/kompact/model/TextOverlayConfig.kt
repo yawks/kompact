@@ -6,5 +6,6 @@ data class TextOverlayConfig(
     val size: Float = 50f,
     val offsetX: Float = 0f,
     val offsetY: Float = 0f,
-    val scale: Float = 1f
+    val scale: Float = 1f,
+    val rotation: Float = 0f
 )

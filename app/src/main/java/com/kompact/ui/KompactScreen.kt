@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.PhotoSizeSelectLarge
 import androidx.compose.material.icons.automirrored.filled.RotateRight
+import androidx.compose.material.icons.automirrored.filled.RotateLeft
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.Icons
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -114,6 +116,10 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+
 import androidx.documentfile.provider.DocumentFile
 import coil.compose.AsyncImage
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -169,6 +175,7 @@ fun KompactScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToAbout: () -> Unit,
+    onNavigateToContact: () -> Unit,
     onNavigateToDonate: () -> Unit,
     onThemeModeChange: (ThemeMode) -> Unit,
     onPickDefaultDestination: () -> Unit,
@@ -223,6 +230,16 @@ fun KompactScreen(
                     icon = { Icon(Icons.Filled.Favorite, contentDescription = null) },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.nav_contact_us)) },
+                    selected = state.currentScreen == AppScreen.CONTACT,
+                    onClick = {
+                        onNavigateToContact()
+                        scope.launch { drawerState.close() }
+                    },
+                    icon = { Icon(Icons.Filled.Email, contentDescription = null) },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
                 val uriHandler = LocalUriHandler.current
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.nav_report_issue)) },
@@ -256,6 +273,11 @@ fun KompactScreen(
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { onNavigateToDonate() }) {
+                            Icon(Icons.Filled.Favorite, contentDescription = stringResource(R.string.nav_donate))
                         }
                     }
                 )
@@ -297,7 +319,9 @@ fun KompactScreen(
                     modifier = modifier.padding(innerPadding)
                 )
                 AppScreen.ABOUT -> AboutScreen(modifier = modifier.padding(innerPadding))
+                AppScreen.CONTACT -> ContactScreen(modifier = modifier.padding(innerPadding))
                 AppScreen.DONATE -> DonateScreen(modifier = modifier.padding(innerPadding))
+                else -> {}
             }
         }
     }
@@ -389,31 +413,44 @@ fun HomeScreen(
                 errorMessage = state.errorMessage,
             )
         }
-        if (showLivePreviewCard) {
-            item {
-                LivePreviewCard(
-                    livePreview = state.livePreview,
-                    canCrop = singleImageSelected,
-                    isCropEditorVisible = state.isCropEditorVisible,
-                    isCropApplied = cropApplied,
-                    onCropClick = onToggleCropEditor,
-                    canResize = state.sourceCategory == SourceCategory.IMAGE,
-                    isResizeEditorVisible = state.isResizeEditorVisible,
-                    isResizeApplied = state.imageConfig.resizeConfig != null,
-                    onResizeClick = onToggleResizeEditor,
-                    canText = singleImageSelected,
-                    isTextEditorVisible = state.isTextEditorVisible,
-                    isTextApplied = state.imageConfig.textConfig != null,
-                    onTextClick = onToggleTextEditor,
-                    onRotateClick = { isRotateEditorVisible = true },
-                    onColorFilterClick = onToggleColorFilterEditor,
-                    onResetEditsClick = onResetEditsClick,
-                )
+        item {
+            Box {
+                Box(modifier = if (state.selectedFiles.isEmpty()) Modifier.alpha(0.38f) else Modifier) {
+                    LivePreviewCard(
+                        livePreview = state.livePreview,
+                        canCrop = singleImageSelected || state.selectedFiles.isEmpty(),
+                        isCropEditorVisible = state.isCropEditorVisible,
+                        isCropApplied = cropApplied,
+                        onCropClick = onToggleCropEditor,
+                        canResize = state.sourceCategory == SourceCategory.IMAGE || state.selectedFiles.isEmpty(),
+                        isResizeEditorVisible = state.isResizeEditorVisible,
+                        isResizeApplied = state.imageConfig.resizeConfig != null,
+                        onResizeClick = onToggleResizeEditor,
+                        canText = false, // DISABLED: Text editor needs fixing
+                        isTextEditorVisible = state.isTextEditorVisible,
+                        isTextApplied = state.imageConfig.textConfig != null,
+                        onTextClick = onToggleTextEditor,
+                        onRotateClick = { isRotateEditorVisible = true },
+                        onColorFilterClick = onToggleColorFilterEditor,
+                        onResetEditsClick = onResetEditsClick,
+                    )
+                }
+                if (state.selectedFiles.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {}
+                    )
+                }
             }
         }
-        if (state.selectedFiles.isNotEmpty()) {
-            item {
-                OutputCard(
+        item {
+            Box {
+                Box(modifier = if (state.selectedFiles.isEmpty()) Modifier.alpha(0.38f) else Modifier) {
+                    OutputCard(
                     category = state.sourceCategory,
                     imageConfig = state.imageConfig,
                     onImageConfigChange = onImageConfigChange,
@@ -427,11 +464,25 @@ fun HomeScreen(
                     referenceBytes = referenceBytes,
                     liveEstimateBytes = state.livePreview.estimatedBatchBytes.takeIf { state.livePreview.kind == PreviewKind.IMAGE && it > 0L },
                     selectedFilesCount = state.selectedFiles.size,
-                    exifEditingEnabled = exifEditingEnabled,
+                    exifEditingEnabled = exifEditingEnabled || state.selectedFiles.isEmpty(),
                     isEditingExif = state.isExifEditorVisible,
                     onToggleExifEditor = onToggleExifEditor,
                 )
+                }
+                if (state.selectedFiles.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {}
+                    )
+                }
             }
+        }
+        
+        if (state.selectedFiles.isNotEmpty()) {
             item {
                 val isCompleted = state.totalCount > 0 && 
                                   state.processedCount == state.totalCount && 
@@ -550,7 +601,7 @@ fun SettingsScreen(
     ) {
         item { Text(stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium) }
         item {
-            Card {
+            Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
 
@@ -629,7 +680,7 @@ fun SettingsScreen(
         }
 
         item {
-            Card {
+            Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.default_dest), style = MaterialTheme.typography.titleMedium)
                     Text(
@@ -651,7 +702,7 @@ fun SettingsScreen(
         }
 
         item {
-            Card {
+            Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.theme_title), style = MaterialTheme.typography.titleMedium)
 
@@ -799,10 +850,6 @@ fun SourceCard(
     errorMessage: String?,
 ) {
     Card {
-        val strSelectImages = stringResource(R.string.select_images)
-        val strItemsSelected = stringResource(R.string.items_selected)
-        val helperText = if (files.isEmpty()) strSelectImages else "${files.size} $strItemsSelected"
-        val selectLabel = if (files.isEmpty()) stringResource(R.string.select_files) else stringResource(R.string.add_more)
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -811,16 +858,20 @@ fun SourceCard(
             ) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(stringResource(R.string.files), style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = helperText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (files.isNotEmpty()) {
+                        Text(
+                            text = "${files.size} ${stringResource(R.string.items_selected)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-                OutlinedButton(onClick = onPickFiles) {
-                    Icon(Icons.Default.CloudUpload, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(selectLabel)
+                if (files.isNotEmpty()) {
+                    OutlinedButton(onClick = onPickFiles) {
+                        Icon(Icons.Default.CloudUpload, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.add_more))
+                    }
                 }
                 TextButton(
                     onClick = onClearSelection,
@@ -836,7 +887,7 @@ fun SourceCard(
                 Text(selectionMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (files.isEmpty()) {
-                SourceEmptyState()
+                SourceEmptyState(onPickFiles)
             } else {
                 LazyColumn(
                     modifier = Modifier.heightIn(max = 300.dp),
@@ -884,7 +935,7 @@ fun SourceCard(
 }
 
 @Composable
-private fun SourceEmptyState() {
+private fun SourceEmptyState(onPickFiles: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -893,7 +944,11 @@ private fun SourceEmptyState() {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
-        Text(stringResource(R.string.select_images_to_compress), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+        Button(onClick = onPickFiles) {
+            Icon(Icons.Default.CloudUpload, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.select_images_to_compress), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+        }
     }
 }
 
@@ -916,8 +971,10 @@ fun PrimaryActionBar(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+                val processingText = stringResource(R.string.processing_dots)
+                val readyText = stringResource(R.string.ready_to_process)
                 Text(
-                    text = if (isProcessing) "Processing..." else "Ready to process",
+                    text = if (isProcessing) processingText else readyText,
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -1115,7 +1172,7 @@ fun ImageConfigSection(
         }
         if (liveEstimateBytes != null && selectedFilesCount > 0) {
             val totalEstimate = liveEstimateBytes * selectedFilesCount
-            Text("Estimated total: ${totalEstimate.asReadableBytes()}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("${stringResource(R.string.estimated_total)} ${totalEstimate.asReadableBytes()}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (defaultFileName != null) {
             // Keep a draft independent from preview recalculations; do not re-inject the default name once the user cleared it.
@@ -1422,10 +1479,12 @@ fun CropEditorDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp)
+                .padding(vertical = 24.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -1455,19 +1514,27 @@ fun CropEditorDialog(
                             .fillMaxWidth()
                             .padding(horizontal = previewPadding)
                     ) {
-                        val controlsWidth = sliderWidth.coerceAtMost(maxWidth * 0.25f)
+                        val outerMaxWidth = maxWidth
+                        val controlsWidth = sliderWidth.coerceAtMost(outerMaxWidth * 0.25f)
                         val effectiveAspect = (aspectRatio ?: 4f / 3f).coerceIn(0.3f, 3.5f)
+
+                        val maxDialogHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * 0.45f
+                        val maxPreviewWidth = outerMaxWidth - controlsWidth - sliderGap
+                        
+                        val fitsWidthFirst = (maxPreviewWidth / effectiveAspect) <= maxDialogHeight
+                        val finalPreviewWidth = if (fitsWidthFirst) maxPreviewWidth else maxDialogHeight * effectiveAspect
+                        val finalPreviewHeight = if (fitsWidthFirst) maxPreviewWidth / effectiveAspect else maxDialogHeight
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(IntrinsicSize.Min),
-                            horizontalArrangement = Arrangement.spacedBy(sliderGap),
+                            horizontalArrangement = Arrangement.spacedBy(sliderGap, Alignment.CenterHorizontally),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             BoxWithConstraints(
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .aspectRatio(effectiveAspect)
+                                    .size(finalPreviewWidth, finalPreviewHeight)
                             ) {
                                 val previewWidth = maxWidth
                                 val previewHeight = maxHeight
@@ -1714,9 +1781,9 @@ fun CropEditorDialog(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text(stringResource(R.string.vertical), style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
                                 VerticalRangeSlider(
                                     value = verticalRange,
+                                    length = finalPreviewHeight,
                                     onValueChange = { range ->
                                         val start = range.start.coerceIn(0f, 1f - minSpan)
                                         val end = range.endInclusive.coerceIn(start + minSpan, 1f)
@@ -1746,7 +1813,6 @@ fun CropEditorDialog(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.horizontal), style = MaterialTheme.typography.titleSmall)
                     RangeSlider(
                         value = horizontalRange,
                         onValueChange = { range ->
@@ -1762,6 +1828,34 @@ fun CropEditorDialog(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val presets = listOf(
+                        "1:1" to 1f,
+                        "4:3" to 4f/3f,
+                        "3:4" to 3f/4f,
+                        "16:9" to 16f/9f,
+                        "9:16" to 9f/16f
+                    )
+                    items(presets.size) { idx ->
+                        val (label, ratio) = presets[idx]
+                        androidx.compose.material3.OutlinedButton(onClick = {
+                            aspectRatio?.let { imgAR ->
+                                val targetSpanRatio = ratio / imgAR
+                                val hSpan = if (targetSpanRatio > 1f) 1f else targetSpanRatio
+                                val vSpan = if (targetSpanRatio > 1f) 1f / targetSpanRatio else 1f
+                                horizontalRange = ((0.5f - hSpan/2f).coerceAtLeast(0f))..((0.5f + hSpan/2f).coerceAtMost(1f))
+                                verticalRange = ((0.5f - vSpan/2f).coerceAtLeast(0f))..((0.5f + vSpan/2f).coerceAtMost(1f))
+                            }
+                        }) {
+                            Icon(Icons.Default.Crop, contentDescription = null, modifier = Modifier.size(18.dp).padding(end=4.dp))
+                            Text(label)
+                        }
+                    }
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -1792,18 +1886,46 @@ fun CropEditorDialog(
 @Composable
 private fun VerticalRangeSlider(
     value: ClosedFloatingPointRange<Float>,
+    length: Dp,
     onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
     modifier: Modifier = Modifier,
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
     steps: Int = 0,
 ) {
-    RangeSlider(
+    androidx.compose.material3.RangeSlider(
         value = value,
         onValueChange = onValueChange,
         valueRange = valueRange,
         steps = steps,
-        modifier = modifier.rotate(-90f)
+        modifier = modifier
+            .rotate(-90f)
+            .requiredWidth(length)
     )
+}
+
+@Composable
+private fun rememberImageDimensions(imageUri: Uri?): androidx.compose.ui.unit.IntSize? {
+    val context = LocalContext.current
+    var dimensions by remember(imageUri) { mutableStateOf<androidx.compose.ui.unit.IntSize?>(null) }
+
+    LaunchedEffect(imageUri, context) {
+        dimensions = imageUri?.let { uri ->
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                        BitmapFactory.decodeStream(stream, null, options)
+                        if (options.outWidth > 0 && options.outHeight > 0) {
+                            androidx.compose.ui.unit.IntSize(options.outWidth, options.outHeight)
+                        } else {
+                            null
+                        }
+                    }
+                }.getOrNull()
+            }
+        }
+    }
+    return dimensions
 }
 
 @Composable
@@ -1835,19 +1957,25 @@ private fun rememberImageAspectRatio(imageUri: Uri?): Float? {
 fun ProgressCard(state: CompressionUiState) {
     val progress = if (state.totalCount == 0) 0f else state.processedCount.toFloat() / max(1, state.totalCount)
     val context = LocalContext.current
-    val title = if (state.isProcessing) "Processing..." else "Completed"
+    val processingLabel = stringResource(R.string.processing_dots)
+    val completedLabel = stringResource(R.string.completed)
+    val title = if (state.isProcessing) processingLabel else completedLabel
     
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             LinearProgressIndicator(progress = { progress.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
-            val fileLabel = if (state.totalCount == 1) "file" else "files"
-            Text("${state.processedCount}/${state.totalCount} $fileLabel processed", style = MaterialTheme.typography.bodySmall)
+            val fileSingular = stringResource(R.string.file_singular)
+            val filePlural = stringResource(R.string.file_plural)
+            val processedLabel = stringResource(R.string.processed)
+            val fileLabel = if (state.totalCount == 1) fileSingular else filePlural
+            Text("${state.processedCount}/${state.totalCount} $fileLabel $processedLabel", style = MaterialTheme.typography.bodySmall)
             state.lastResult?.let { last ->
                 val lastItemName = remember(last.source) {
                     DocumentFile.fromSingleUri(context, last.source)?.name ?: last.source.lastPathSegment ?: ""
                 }
-                Text("Last item: $lastItemName", style = MaterialTheme.typography.labelSmall)
+                val lastItemLabel = stringResource(R.string.last_item)
+                Text("$lastItemLabel: $lastItemName", style = MaterialTheme.typography.labelSmall)
                 Text(last.message, style = MaterialTheme.typography.labelSmall)
             }
         }
@@ -1866,7 +1994,7 @@ fun ResultsCard(results: List<CompressionResult>) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.results), style = MaterialTheme.typography.titleMedium)
             if (successfulResults.isNotEmpty()) {
-                Text("Total: ${totalOriginal.asReadableBytes()} → ${totalCompressed.asReadableBytes()}", style = MaterialTheme.typography.bodyMedium)
+                Text("${stringResource(R.string.total_label)} ${totalOriginal.asReadableBytes()} → ${totalCompressed.asReadableBytes()}", style = MaterialTheme.typography.bodyMedium)
             }
             LazyColumn(
                 modifier = Modifier.heightIn(max = 400.dp),
@@ -2018,6 +2146,7 @@ private fun PreviewKompact() {
             onNavigateToSettings = {},
             onNavigateToHome = {},
             onNavigateToAbout = {},
+            onNavigateToContact = {},
             onNavigateToDonate = {},
             onThemeModeChange = {},
             onPickDefaultDestination = {},
@@ -2114,17 +2243,18 @@ fun LivePreviewCard(
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.color_filter))
                     }
-                    if (canText) {
-                        TextButton(onClick = onTextClick) {
-                            Icon(androidx.compose.material.icons.Icons.Default.TextFields, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            val label = when {
-                                isTextEditorVisible -> "Close Text"
-                                isTextApplied -> "Edit Text"
-                                else -> "Text"
-                            }
-                            Text(label)
+                    TextButton(
+                        onClick = onTextClick,
+                        enabled = canText
+                    ) {
+                        Icon(androidx.compose.material.icons.Icons.Default.TextFields, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        val label = when {
+                            isTextEditorVisible -> "Close Text"
+                            isTextApplied -> "Edit Text"
+                            else -> "Text"
                         }
+                        Text(label)
                     }
                 }
             }
@@ -2137,7 +2267,7 @@ fun LivePreviewCard(
                         val totalOriginal = livePreview.previews.sumOf { it.originalBytes }
                         val totalEstimated = livePreview.previews.sumOf { it.estimatedBytes }
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Total: ${totalOriginal.asReadableBytes()} → ${totalEstimated.asReadableBytes()}", style = MaterialTheme.typography.bodyMedium)
+                            Text("${stringResource(R.string.total_label)} ${totalOriginal.asReadableBytes()} → ${totalEstimated.asReadableBytes()}", style = MaterialTheme.typography.bodyMedium)
                             LazyColumn(
                                 modifier = Modifier.heightIn(max = 400.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -2327,9 +2457,16 @@ fun ZoomableImage(
             .transformable(state = state)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onDoubleTap = {
-                        scale = 1f
-                        offset = Offset.Zero
+                    onDoubleTap = { tapOffset ->
+                        if (scale > 1f) {
+                            scale = 1f
+                            offset = Offset.Zero
+                        } else {
+                            val newScale = 2.5f
+                            val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
+                            offset = (center - tapOffset) * (newScale - 1f)
+                            scale = newScale
+                        }
                     }
                 )
             },
@@ -2402,30 +2539,44 @@ fun ResizeEditorDialog(
     onConfigChange: (com.kompact.model.ResizeConfig?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var widthStr by remember { mutableStateOf(config?.width?.takeIf { it > 0 }?.toString() ?: "") }
-    var heightStr by remember { mutableStateOf(config?.height?.takeIf { it > 0 }?.toString() ?: "") }
+    var isPercentage by remember { mutableStateOf(config?.isPercentage ?: true) }
+    var currentPct by remember { mutableFloatStateOf(if (isPercentage) (config?.width?.toFloat() ?: 100f) else 100f) }
+
+    var widthStr by remember { mutableStateOf(if (!isPercentage) config?.width?.takeIf { it > 0 }?.toString() ?: "" else "") }
+    var heightStr by remember { mutableStateOf(if (!isPercentage) config?.height?.takeIf { it > 0 }?.toString() ?: "" else "") }
+    
     var maintainAspect by remember { mutableStateOf(config?.maintainAspectRatio ?: true) }
-    var isPercentage by remember { mutableStateOf(config?.isPercentage ?: false) }
+    
+    val imageDimensions = rememberImageDimensions(previewUri)
+    val aspectRatio = rememberImageAspectRatio(previewUri)
+
+    LaunchedEffect(imageDimensions) {
+        if (imageDimensions != null && widthStr.isEmpty() && heightStr.isEmpty()) {
+            widthStr = imageDimensions.width.toString()
+            heightStr = imageDimensions.height.toString()
+        }
+    }
 
     androidx.compose.ui.window.Dialog(
         onDismissRequest = onDismiss,
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        val maxImageHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * 0.45f
         androidx.compose.material3.Surface(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.85f),
+                .padding(vertical = 24.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())
             ) {
                 Text(stringResource(R.string.resize), style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(16.dp))
 
                 Box(
                     modifier = Modifier
-                        .weight(1f)
+                        .heightIn(max = maxImageHeight)
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
@@ -2444,51 +2595,87 @@ fun ResizeEditorDialog(
                 Spacer(Modifier.height(16.dp))
                 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Slider percentage
+                    Column(modifier = Modifier.fillMaxWidth().alpha(if (isPercentage) 1f else 0.5f)) {
+                        Text("${stringResource(R.string.scale_label)} ${currentPct.toInt()}%", style = MaterialTheme.typography.bodyMedium)
+                        Slider(
+                            value = currentPct,
+                            onValueChange = { 
+                                if (isPercentage) {
+                                    currentPct = it
+                                    imageDimensions?.let { dims ->
+                                        widthStr = (dims.width * (it / 100f)).roundToInt().toString()
+                                        heightStr = (dims.height * (it / 100f)).roundToInt().toString()
+                                    }
+                                }
+                            },
+                            valueRange = 1f..100f,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = isPercentage
+                        )
+                    }
+
+                    // Pixel Inputs
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = widthStr,
-                            onValueChange = { widthStr = it },
-                            label = { Text(if (isPercentage) "Scale %" else "Resize Width") },
+                            onValueChange = { 
+                                isPercentage = false // Lock percentage
+                                widthStr = it 
+                                if (maintainAspect && aspectRatio != null && it.isNotEmpty()) {
+                                    it.toIntOrNull()?.let { w ->
+                                        heightStr = (w / aspectRatio).roundToInt().toString()
+                                    }
+                                }
+                            },
+                            label = { Text(stringResource(R.string.resize_width)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f)
                         )
-                        if (!isPercentage) {
-                            OutlinedTextField(
-                                value = heightStr,
-                                onValueChange = { heightStr = it },
-                                label = { Text(stringResource(R.string.resize_height)) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
+                        OutlinedTextField(
+                            value = heightStr,
+                            onValueChange = { 
+                                isPercentage = false // Lock percentage
+                                heightStr = it 
+                                if (maintainAspect && aspectRatio != null && it.isNotEmpty()) {
+                                    it.toIntOrNull()?.let { h ->
+                                        widthStr = (h * aspectRatio).roundToInt().toString()
+                                    }
+                                }
+                            },
+                            label = { Text(stringResource(R.string.resize_height)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
                     }
+                    
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = isPercentage, onCheckedChange = { isPercentage = it })
-                        Text(stringResource(R.string.resize_percentage))
-                    }
-                    if (!isPercentage) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = maintainAspect, onCheckedChange = { maintainAspect = it })
-                            Text(stringResource(R.string.resize_keep_aspect))
-                        }
+                        Checkbox(checked = maintainAspect, onCheckedChange = { maintainAspect = it })
+                        Text(stringResource(R.string.resize_keep_aspect))
                     }
                 }
 
                 Spacer(Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+                Row(modifier = Modifier.fillMaxWidth()) {
                     TextButton(onClick = {
+                        isPercentage = true
+                        currentPct = 100f
+                        maintainAspect = true
+                        widthStr = imageDimensions?.width?.toString() ?: ""
+                        heightStr = imageDimensions?.height?.toString() ?: ""
                         onConfigChange(null)
-                        onDismiss()
-                    }) { Text(stringResource(R.string.clear)) }
+                    }) { Text(stringResource(R.string.reset)) }
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
                     Button(onClick = {
-                        val w = widthStr.toIntOrNull() ?: 0
-                        val h = heightStr.toIntOrNull() ?: 0
-                        if (w > 0 || h > 0) {
-                            onConfigChange(com.kompact.model.ResizeConfig(w, h, maintainAspect, isPercentage))
+                        if (isPercentage) {
+                            onConfigChange(com.kompact.model.ResizeConfig(currentPct.toInt(), currentPct.toInt(), maintainAspect, true))
+                        } else {
+                            val w = widthStr.toIntOrNull() ?: 0
+                            val h = heightStr.toIntOrNull() ?: 0
+                            if (w > 0 || h > 0) {
+                                onConfigChange(com.kompact.model.ResizeConfig(w, h, maintainAspect, false))
+                            }
                         }
                         onDismiss()
                     }) { Text(stringResource(R.string.apply)) }
@@ -2517,15 +2704,19 @@ fun FiltersEditorDialog(
 
     val filterTypes = com.kompact.model.ColorFilterType.values().toList()
     
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        val maxImageHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * 0.45f
         androidx.compose.material3.Surface(
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f),
+            modifier = Modifier.fillMaxWidth(0.9f).padding(vertical = 24.dp),
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp
         ) {
             Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp)
+                modifier = Modifier.padding(16.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())
             ) {
                 Text(
                     text = stringResource(R.string.action_color_filter),
@@ -2538,7 +2729,7 @@ fun FiltersEditorDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
+                        .heightIn(max = maxImageHeight)
                         .clip(RoundedCornerShape(8.dp))
                         .background(
                             when (localBgConfig.type) {
@@ -2587,7 +2778,9 @@ fun FiltersEditorDialog(
                                 .clickable { 
                                     selectedTab = item
                                     if(item != "BACKGROUND") {
-                                        localColorConfig = localColorConfig.copy(filterType = com.kompact.model.ColorFilterType.valueOf(item))
+                                        val newFilterType = com.kompact.model.ColorFilterType.valueOf(item)
+                                        val newIntensity = if (newFilterType == com.kompact.model.ColorFilterType.CUSTOM) 0.5f else 1.0f
+                                        localColorConfig = localColorConfig.copy(filterType = newFilterType, intensity = newIntensity)
                                     }
                                 },
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -2760,13 +2953,15 @@ fun FiltersEditorDialog(
                 }
 
                 Spacer(Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = { localColorConfig = localColorConfig.copy(intensity = 0f) }) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    TextButton(onClick = { 
+                        selectedTab = "NONE"
+                        localColorConfig = com.kompact.model.ColorFilterConfig() 
+                        localBgConfig = com.kompact.model.BackgroundConfig()
+                    }) {
                         Text(stringResource(R.string.reset))
                     }
+                    Spacer(Modifier.weight(1f))
                     TextButton(onClick = onDismiss) {
                         Text(stringResource(android.R.string.cancel))
                     }
@@ -2800,21 +2995,22 @@ fun RotateEditorDialog(
         onDismissRequest = onDismiss,
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        val maxImageHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * 0.45f
         androidx.compose.material3.Surface(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.85f),
+                .padding(vertical = 24.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())
             ) {
                 Text(stringResource(R.string.action_rotate), style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(16.dp))
 
                 Box(
                     modifier = Modifier
-                        .weight(1f)
+                        .heightIn(max = maxImageHeight)
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
@@ -2856,9 +3052,11 @@ fun RotateEditorDialog(
                             localRotation -= 90f
                             if (localRotation < -180f) localRotation += 360f
                         }
-                    }) { Text("-90°") }
-                    Spacer(Modifier.width(16.dp))
-                    Button(onClick = { localRotation = 0f }) { Text("0°") }
+                    }) { 
+                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.RotateLeft, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.rotate_left)) 
+                    }
                     Spacer(Modifier.width(16.dp))
                     Button(onClick = { 
                         val rem = kotlin.math.abs((localRotation % 90f).toInt())
@@ -2868,14 +3066,19 @@ fun RotateEditorDialog(
                             localRotation += 90f
                             if (localRotation > 180f) localRotation -= 360f
                         }
-                    }) { Text("+90°") }
+                    }) { 
+                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.RotateRight, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.rotate_right)) 
+                    }
                 }
 
                 Spacer(Modifier.height(16.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth()
                 ) {
+                    TextButton(onClick = { localRotation = 0f }) { Text(stringResource(R.string.reset)) }
+                    Spacer(Modifier.weight(1f))
                     TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
                     Button(onClick = {
                         onConfirm(localRotation)
@@ -2911,7 +3114,7 @@ fun BackgroundOption(
             contentAlignment = Alignment.Center
         ) {
             if (color == androidx.compose.ui.graphics.Color.Transparent) {
-                Text("T", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.text_tool), style = MaterialTheme.typography.bodySmall)
             }
         }
         Spacer(modifier = Modifier.height(4.dp))

@@ -2,7 +2,7 @@ package com.kompact.model
 
 import android.net.Uri
 
-enum class AppScreen { HOME, SETTINGS, ABOUT, DONATE }
+enum class AppScreen { HOME, SETTINGS, ABOUT, DONATE, CONTACT }
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
@@ -52,7 +52,7 @@ data class ResizeConfig(
     val maintainAspectRatio: Boolean = true,
     val isPercentage: Boolean = false
 ) {
-    fun isValid() = width > 0 && height > 0
+    fun isValid() = if (isPercentage) width > 0 else width > 0 && height > 0
 }
 
 enum class BackgroundType { TRANSPARENT, CUSTOM }
@@ -87,7 +87,7 @@ enum class ColorFilterType { NONE, GRAYSCALE, SEPIA, VINTAGE, COOL, WARM, CUSTOM
 
 data class ColorFilterConfig(
     val filterType: ColorFilterType = ColorFilterType.NONE,
-    val intensity: Float = 0.5f, // Optional for future intensity tuning
+    val intensity: Float = 1.0f, // Optional for future intensity tuning
     val hue: Float = 0f // Hue value from 0 to 360 for CUSTOM filter
 )
 

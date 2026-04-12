@@ -82,6 +82,7 @@ class MainActivity : AppCompatActivity() {
                     onNavigateToSettings = { viewModel.navigateToSettings() },
                     onNavigateToHome = { viewModel.navigateToHome() },
                     onNavigateToAbout = { viewModel.navigateToAbout() },
+                    onNavigateToContact = { viewModel.navigateToContact() },
                     onNavigateToDonate = { viewModel.navigateToDonate() },
                     onThemeModeChange = { viewModel.setThemeMode(it) },
                     onPickDefaultDestination = { defaultDestinationLauncher.launch(null) },

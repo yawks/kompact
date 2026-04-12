@@ -357,10 +357,9 @@ internal fun Bitmap.applyResize(config: ResizeConfig?): Bitmap {
     var newHeight = config.height
     
     if (config.isPercentage) {
-        val pctW = config.width / 100f
-        val pctH = config.height / 100f
-        newWidth = (width * pctW).toInt()
-        newHeight = (height * pctH).toInt()
+        val pct = config.width / 100f
+        newWidth = (width * pct).toInt()
+        newHeight = (height * pct).toInt()
     } else if (config.maintainAspectRatio) {
          val aspectRatio = width.toFloat() / height.toFloat()
          // if width changed and height changed, standard logic handles based on which changed, let's just use width as primary if both provided, or whatever simplistic logic. For simplicity, just use newWidth and calc height
@@ -415,15 +414,32 @@ internal fun android.graphics.Bitmap.applyTextOverlay(config: com.kompact.model.
     val canvas = android.graphics.Canvas(workingBitmap)
     val paint = android.graphics.Paint().apply {
         color = config.color
-        textSize = config.size * config.scale
+        // Scala il testo in base alla larghezza dell'immagine (reference 1080px)
+        textSize = config.size * config.scale * (workingBitmap.width / 1080f).coerceAtLeast(1f)
         isAntiAlias = true
         style = android.graphics.Paint.Style.FILL
+        textAlign = android.graphics.Paint.Align.CENTER
+        setShadowLayer(4f, 2f, 2f, android.graphics.Color.BLACK)
     }
 
     val x = config.offsetX * workingBitmap.width
     val y = config.offsetY * workingBitmap.height
+    
+    canvas.save()
+    canvas.translate(x, y)
+    canvas.rotate(config.rotation)
+    
+    // Draw multiline text
+    val lines = config.text.split("\\n")
 
-    canvas.drawText(config.text, x, y, paint)
+    var currentY = 0f
+    val spacing = paint.descent() - paint.ascent()
+    for (line in lines) {
+        canvas.drawText(line, 0f, currentY, paint)
+        currentY += spacing
+    }
+    
+    canvas.restore()
 
     return workingBitmap
 }
