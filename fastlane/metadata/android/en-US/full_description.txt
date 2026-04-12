@@ -1,12 +1,10 @@
-**Kompact** is a powerful, privacy-first, fully offline Swiss Army knife for your digital media. Easily compress images (JPEG, PNG, WebP) and PDFs, resize them, and apply custom text watermarks—all without sending a single byte of your data to the cloud.
+Kompact is a privacy-first, fully offline utility for managing and processing digital images. Easily compress photos (JPEG, PNG, WebP), resize dimensions, and apply text watermarks, all without relying on cloud services.
 
-### 🌟 Key Features
-* 📏 **Smart Compression:** Reduce file sizes drastically while maintaining excellent visual quality. Ideal for email attachments, web uploads, or saving device storage.
-* 🖼️ **Image Resizing & Formatting:** Automatically adjust image dimensions and convert between popular formats such as JPEG, PNG, and WebP.
-* 📄 **PDF Optimization:** Compress hefty PDF documents with a single tap, making them easy to share.
-* 🖋️ **Custom Watermarks:** Add personalized, styled text watermarks to your images to protect your intellectual property or add a creative touch.
-* 🔒 **100% Offline & Private:** Your files never leave your device. All processing happens locally for maximum security and peace of mind.
-* 🎨 **Modern & Intuitive Design:** A clean, easy-to-use interface built with Jetpack Compose featuring full support for dynamic theming (Material You) and dark mode.
+Features:
+* Smart Compression: Reduce image file sizes while maintaining high visual quality.
+* Image Resizing & Conversion: Adjust dimensions and convert across popular formats (JPEG, PNG, WebP).
+* Custom Text Watermarks: Add personalized, styled text overlays to images.
+* 100% Offline: All image processing happens locally on the device for maximum privacy.
+* Material Design: Clean interface built with Jetpack Compose, supporting dynamic theming and dark mode.
 
-### ⚙️ Why Kompact?
-Whether you are a photographer looking to watermark your portfolio, a student trying to shrink a heavy assignment PDF, or simply someone who wants to free up phone storage without sacrificing photo quality, Kompact gives you all the tools you need in one lightweight, open-source package. No ads, no tracking, and entirely free forever.
+Kompact provides essential image processing tools in a lightweight, open-source package. No analytics, no network telemetry, and no advertisements.
