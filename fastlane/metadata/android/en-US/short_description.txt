@@ -1,1 +1,1 @@
-Compress and convert images offline. Batch select, set quality, and export
+Offline image editor, compressor, cropper, and EXIF tool. No internet needed.

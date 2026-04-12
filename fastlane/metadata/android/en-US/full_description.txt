@@ -1,8 +1,16 @@
-Multi-selection of images through the Storage Access Framework.
-Fully configurable compression parameters (quality, max size, output format).
-Result cards summarize original vs compressed size and the status of each operation.
-Modern Material 3 UI with light/dark support.
-Automatic export to the Pictures/Kompact directory with the option to pick any other destination.
-Side-by-side preview of source/output with synchronized quality and target size controls.
+<p><b>Kompact</b> is a powerful, privacy-first offline image editor and file compressor.</p>
 
-Note: PDF documents, audio tracks, and video files are not supported yet. They remain on the roadmap and will arrive in future releases once the image workflow is fully battle-tested.
+<p>Designed to run entirely on your device, your files never leave your phone, ensuring complete privacy. It goes far beyond simple compression, offering a comprehensive suite of photo editing and optimization tools.</p>
+
+<p><b>✨ Key Features:</b></p>
+<ul>
+  <li><b>Precision Compression:</b> Target specific file sizes or quality levels to drastically save storage without noticeable quality loss.</li>
+  <li><b>Smart Image Editing:</b> Crop, rotate, flip, and resize images with pixel-perfect accuracy.</li>
+  <li><b>Color Filters & Adjustments:</b> Apply visual filters to enhance your photos directly within the app.</li>
+  <li><b>Text Overlays:</b> Add custom text/watermarks to your images quickly.</li>
+  <li><b>EXIF Metadata Management:</b> View, preserve, or securely strip away sensitive EXIF metadata (like GPS location and camera details) before sharing.</li>
+  <li><b>Format Conversion:</b> Seamlessly convert your pictures between formats (JPEG, PNG, WEBP, etc.).</li>
+  <li><b>Material You Design:</b> Beautiful, modern, and intuitive user interface supporting both light and dark themes.</li>
+</ul>
+
+<p>Whether you need to shrink a huge photo to send via email, remove location tags, or edit an image, Kompact handles it securely offline.</p>

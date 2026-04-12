@@ -15,11 +15,11 @@ android {
         .all { !it.isNullOrBlank() }
 
     defaultConfig {
-        applicationId = "com.kompact"
+        applicationId = "com.kompact.file"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.1.6"
+        versionCode = 4
+        versionName = "1.0.0"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -56,7 +56,6 @@ android {
             }
         }
         debug {
-            applicationIdSuffix = ".file"
             versionNameSuffix = "+1"
         }
     }
