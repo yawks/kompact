@@ -15,7 +15,7 @@ android {
         .all { !it.isNullOrBlank() }
 
     defaultConfig {
-        applicationId = "com.kompact.file"
+        applicationId = "com.kompact"
         minSdk = 24
         targetSdk = 35
         versionCode = 4
