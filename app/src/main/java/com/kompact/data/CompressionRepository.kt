@@ -77,7 +77,14 @@ class LocalCompressionRepository(
         return runCatching {
             val extension = resolveImageExtension(context, resolver, uri, config.format)
             val outFile = cacheFile(extension)
-            if (config.percentage == 0 && config.format == ImageOutputFormat.ORIGINAL && config.exifData == config.originalExifData) {
+            val hasVisualEdits = config.cropBounds != null ||
+                config.textConfig != null ||
+                config.resizeConfig != null ||
+                config.backgroundConfig != null ||
+                config.rotationDegrees != 0f ||
+                config.colorFilterConfig != null
+
+            if (!hasVisualEdits && config.percentage == 0 && config.format == ImageOutputFormat.ORIGINAL && config.exifData == config.originalExifData) {
                 // Copy original without re-encoding or exif modification
                 val filePath = getFilePath(uri)
                 if (filePath != null) {
