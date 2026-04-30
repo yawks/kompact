@@ -87,6 +87,7 @@ class MainActivity : AppCompatActivity() {
                     onThemeModeChange = { viewModel.setThemeMode(it) },
                     onPickDefaultDestination = { defaultDestinationLauncher.launch(null) },
                     onClearDefaultDestination = { viewModel.clearDefaultDestinationFolder() },
+                    onDeleteOriginalsChange = { viewModel.updateDeleteOriginals(it) }
                 )
             }
         }

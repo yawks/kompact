@@ -133,4 +133,9 @@
     <string name="rotate_left">-90°</string>
     <string name="rotate_right">+90°</string>
     <string name="text_tool">T</string>
+
+    <string name="delete_original_files">Διαγραφή αρχικών αρχείων</string>
+    <string name="delete_originals_title">Διαγραφή αρχικών;</string>
+    <string name="delete_originals_message">Είστε βέβαιοι ότι θέλετε να διαγράψετε τα αρχικά αρχεία μετά την επεξεργασία; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</string>
+    <string name="yes_delete">Ναι, διαγραφή</string>
 </resources>

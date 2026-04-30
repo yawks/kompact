@@ -133,4 +133,9 @@
     <string name="rotate_left">-90°</string>
     <string name="rotate_right">+90°</string>
     <string name="text_tool">T</string>
+
+    <string name="delete_original_files">Обриши оригиналне датотеке</string>
+    <string name="delete_originals_title">Обрисати оригинале?</string>
+    <string name="delete_originals_message">Да ли сте сигурни да желите да обришете оригиналне датотеке након обраде? Ова радња се не може поништити.</string>
+    <string name="yes_delete">Да, обриши</string>
 </resources>

@@ -81,6 +81,10 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         applySelection(combinedUris, combinedDescriptors)
     }
 
+    fun updateDeleteOriginals(delete: Boolean) {
+        _state.update { it.copy(deleteOriginals = delete) }
+    }
+
     fun updateImageConfig(config: ImageCompressionConfig) {
         val previous = _state.value.imageConfig
         val prevFingerprint = previous.previewFingerprint()
@@ -334,6 +338,28 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
             val successfulCompressed = results.filter { res -> res.success && res.output != null }
                 .sumOf { it.compressedSizeBytes }
             val totalCompressedBytes = successfulCompressed.takeIf { total -> total > 0 } ?: finalOriginal
+            val deletedSources = mutableSetOf<Uri>()
+
+            if (snapshot.deleteOriginals) {
+                val context = getApplication<Application>()
+                results
+                    .asSequence()
+                    .filter { it.success && it.output != null && it.source != it.output }
+                    .map { it.source }
+                    .distinct()
+                    .forEach { sourceUri ->
+                    runCatching {
+                        val deletedWithDocumentFile = DocumentFile.fromSingleUri(context, sourceUri)?.delete() == true
+                        val deletedWithResolver = if (deletedWithDocumentFile) true else {
+                            context.contentResolver.delete(sourceUri, null, null) > 0
+                        }
+                        if (deletedWithDocumentFile || deletedWithResolver) {
+                            deletedSources += sourceUri
+                        }
+                    }
+                }
+            }
+
             _state.update {
                 it.copy(
                     isProcessing = false,
@@ -346,6 +372,8 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                         message = getApplication<Application>().getString(R.string.processing_completed, finalOriginal.asReadableBytes(), totalCompressedBytes.asReadableBytes())
                     ),
                     errorMessage = if (hasSuccess) null else results.lastOrNull()?.message,
+                    selectedUris = it.selectedUris.filterNot { uri -> uri in deletedSources },
+                    selectedFiles = it.selectedFiles.filterNot { file -> file.uri in deletedSources },
                 )
             }
             clearLivePreview()

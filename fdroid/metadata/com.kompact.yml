@@ -2,9 +2,13 @@ Categories:
   - Graphics
   - Multimedia
 License: AGPL-3.0-or-later
-SourceCode: https://git.naxod.com/luca/Kompact
-IssueTracker: https://git.naxod.com/luca/Kompact/issues
-Changelog: https://git.naxod.com/luca/Kompact/releases
+SourceCode: https://gitlab.com/naxodlab/kompact
+IssueTracker: https://gitlab.com/naxodlab/kompact/-/issues
+Changelog: https://gitlab.com/naxodlab/kompact/-/releases
+Donate: https://liberapay.com/Naxod/
+AuthorEmail: lab@naxod.com
+WebSite: https://naxod.com/kompact/
+AuthorName: Naxod
 Name: Kompact
 AutoName: Kompact
 Description: |-
@@ -20,11 +24,11 @@ Description: |-
   - Official releases are published solely by the upstream maintainer to preserve a single trusted key
 
 RepoType: git
-Repo: https://git.naxod.com/luca/Kompact.git
+Repo: https://gitlab.com/naxodlab/kompact.git
 
 Builds:
-  - versionName: 1.0.0
-    versionCode: 1
+  - versionName: 1.0.2
+    versionCode: 6
     commit: 8b0bb71047754fdfe72f546e244d079ace61f9be
     timeout: 7200
     subdir: .
@@ -32,7 +36,7 @@ Builds:
       - yes
     output: app/build/outputs/apk/release/app-release-unsigned.apk
 
-AutoUpdateMode: Version +v %v
+AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0
-CurrentVersionCode: 1
+CurrentVersion: 1.0.2
+CurrentVersionCode: 6

@@ -133,4 +133,9 @@
     <string name="rotate_left">-90°</string>
     <string name="rotate_right">+90°</string>
     <string name="text_tool">T</string>
+
+    <string name="delete_original_files">Excluir arquivos originais</string>
+    <string name="delete_originals_title">Excluir originais?</string>
+    <string name="delete_originals_message">Tem certeza de que deseja excluir os arquivos originais após o processamento? Esta ação não pode ser desfeita.</string>
+    <string name="yes_delete">Sim, excluir</string>
 </resources>

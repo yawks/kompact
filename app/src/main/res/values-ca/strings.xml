@@ -133,4 +133,9 @@
     <string name="rotate_left">-90°</string>
     <string name="rotate_right">+90°</string>
     <string name="text_tool">T</string>
+
+    <string name="delete_original_files">Suprimeix els fitxers originals</string>
+    <string name="delete_originals_title">Suprimir els originals?</string>
+    <string name="delete_originals_message">Esteu segurs que voleu suprimir els fitxers originals després de processar-los? Aquesta acció no es pot desfer.</string>
+    <string name="yes_delete">Sí, suprimeix</string>
 </resources>

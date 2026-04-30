@@ -1,0 +1,2921 @@
+     1	package com.kompact.ui
+     2	
+     3	import android.content.res.Configuration
+     4	import android.graphics.BitmapFactory
+     5	import android.net.Uri
+     6	import androidx.compose.foundation.Canvas
+     7	import androidx.compose.foundation.ExperimentalFoundationApi
+     8	import androidx.compose.foundation.background
+     9	import androidx.compose.foundation.border
+    10	import androidx.compose.foundation.clickable
+    11	import androidx.compose.foundation.shape.CircleShape
+    12	import androidx.compose.material.icons.filled.Build
+    13	import androidx.compose.foundation.horizontalScroll
+    14	import androidx.compose.foundation.gestures.detectDragGestures
+    15	import androidx.compose.foundation.gestures.detectTapGestures
+    16	import androidx.compose.foundation.gestures.rememberTransformableState
+    17	import androidx.compose.foundation.gestures.transformable
+    18	import androidx.compose.foundation.layout.*
+    19	import androidx.compose.foundation.layout.aspectRatio
+    20	import androidx.compose.foundation.lazy.LazyColumn
+    21	import androidx.compose.foundation.text.KeyboardOptions
+    22	import androidx.compose.foundation.text.KeyboardActions
+    23	import androidx.compose.foundation.BorderStroke
+    24	import androidx.compose.foundation.rememberScrollState
+    25	import androidx.compose.foundation.verticalScroll
+    26	import androidx.compose.material.icons.filled.Crop
+    27	import androidx.compose.material.icons.filled.PhotoSizeSelectLarge
+    28	import androidx.compose.material.icons.automirrored.filled.RotateRight
+    29	import androidx.compose.material.icons.filled.Palette
+    30	import androidx.compose.material.icons.filled.TextFields
+    31	import androidx.compose.material.icons.Icons
+    32	import androidx.compose.material.icons.filled.Refresh
+    33	import androidx.compose.ui.draw.scale
+    34	import androidx.compose.material.icons.filled.BugReport
+    35	import androidx.compose.material.icons.filled.CheckCircle
+    36	import androidx.compose.material.icons.filled.CloudUpload
+    37	import androidx.compose.material.icons.filled.Close
+    38	import androidx.compose.material.icons.filled.Description
+    39	import androidx.compose.material.icons.filled.Error
+    40	import androidx.compose.material.icons.filled.ExpandLess
+    41	import androidx.compose.material.icons.filled.ExpandMore
+    42	import androidx.compose.material.icons.filled.Favorite
+    43	import androidx.compose.material.icons.filled.Folder
+    44	import androidx.compose.material.icons.filled.Home
+    45	import androidx.compose.material.icons.filled.Image
+    46	import androidx.compose.material.icons.filled.Info
+    47	import androidx.compose.material.icons.filled.Menu
+    48	import androidx.compose.material.icons.filled.PlayArrow
+    49	import androidx.compose.material.icons.filled.Schedule
+    50	import androidx.compose.material.icons.filled.Storage
+    51	import androidx.compose.material.icons.filled.Settings
+    52	import androidx.compose.material3.Button
+    53	import androidx.compose.material3.Card
+    54	import androidx.compose.material3.CardDefaults
+    55	import androidx.compose.material3.CircularProgressIndicator
+    56	import androidx.compose.material3.DropdownMenu
+    57	import androidx.compose.material3.ExperimentalMaterial3Api
+    58	import androidx.compose.material3.ExposedDropdownMenuBox
+    59	import androidx.compose.material3.ModalNavigationDrawer
+    60	import androidx.compose.material3.NavigationDrawerItem
+    61	import androidx.compose.material3.NavigationDrawerItemDefaults
+    62	import androidx.compose.material3.rememberDrawerState
+    63	import androidx.compose.material3.Scaffold
+    64	import androidx.compose.material3.HorizontalDivider
+    65	import androidx.compose.material3.Icon
+    66	import androidx.compose.material3.IconButton
+    67	import androidx.compose.material3.Text
+    68	import androidx.compose.foundation.layout.Row
+    69	import androidx.compose.material3.ExposedDropdownMenuBox
+    70	import androidx.compose.material3.ExposedDropdownMenuDefaults
+    71	import androidx.compose.material3.DropdownMenuItem
+    72	import androidx.compose.material3.LinearProgressIndicator
+    73	import androidx.compose.material3.MaterialTheme
+    74	import androidx.compose.material3.OutlinedButton
+    75	import androidx.compose.material3.OutlinedTextField
+    76	import androidx.compose.material3.Slider
+    77	import androidx.compose.material3.RangeSlider
+    78	import androidx.compose.material3.RadioButton
+    79	import androidx.compose.material3.TopAppBar
+    80	import androidx.compose.material3.TopAppBarDefaults
+    81	import androidx.compose.material3.Surface
+    82	import androidx.compose.material3.TextButton
+    83	import androidx.compose.material3.AlertDialog
+    84	import androidx.compose.material3.Checkbox
+    85	import androidx.compose.runtime.*
+    86	import androidx.compose.ui.res.stringResource
+    87	import com.kompact.R
+    88	import kotlinx.coroutines.Dispatchers
+    89	import kotlinx.coroutines.launch
+    90	import kotlinx.coroutines.withContext
+    91	import androidx.compose.ui.Alignment
+    92	import androidx.compose.ui.Modifier
+    93	import androidx.compose.ui.geometry.Offset
+    94	import androidx.compose.ui.graphics.graphicsLayer
+    95	import androidx.compose.ui.graphics.drawscope.Stroke
+    96	import androidx.compose.ui.input.pointer.pointerInput
+    97	import androidx.compose.ui.input.pointer.consumeAllChanges
+    98	import androidx.compose.ui.platform.LocalContext
+    99	import androidx.compose.ui.platform.LocalDensity
+   100	import androidx.compose.ui.platform.LocalFocusManager
+   101	import androidx.compose.ui.platform.LocalUriHandler
+   102	import androidx.compose.ui.draw.clip
+   103	import androidx.compose.ui.draw.rotate
+   104	import androidx.compose.foundation.shape.RoundedCornerShape
+   105	import androidx.compose.ui.layout.ContentScale
+   106	import androidx.compose.ui.text.input.KeyboardType
+   107	import androidx.compose.ui.text.input.ImeAction
+   108	import androidx.compose.ui.text.style.TextAlign
+   109	import androidx.compose.ui.text.style.TextOverflow
+   110	import androidx.compose.ui.tooling.preview.Preview
+   111	import androidx.compose.ui.unit.Dp
+   112	import androidx.compose.ui.unit.dp
+   113	import androidx.compose.ui.focus.onFocusChanged
+   114	import androidx.compose.ui.zIndex
+   115	import androidx.compose.ui.window.Dialog
+   116	import androidx.compose.ui.window.DialogProperties
+   117	import androidx.documentfile.provider.DocumentFile
+   118	import coil.compose.AsyncImage
+   119	import androidx.compose.runtime.saveable.rememberSaveable
+   120	import com.kompact.ui.theme.KompactTheme
+   121	import com.kompact.util.asReadableBytes
+   122	import com.kompact.util.parseBytes
+   123	import com.kompact.model.AppScreen
+   124	import com.kompact.model.CompressionType
+   125	import com.kompact.model.CompressionUiState
+   126	import com.kompact.model.ExifData
+   127	import com.kompact.model.ImageCompressionConfig
+   128	import com.kompact.model.ImageOutputFormat
+   129	import com.kompact.model.LivePreviewState
+   130	import com.kompact.model.PreviewKind
+   131	import com.kompact.model.SelectedFileDescriptor
+   132	import com.kompact.model.SourceCategory
+   133	import com.kompact.model.CompressionResult
+   134	import com.kompact.model.CropBounds
+   135	import com.kompact.model.ImagePreviewPayload
+   136	import com.kompact.model.ThemeMode
+   137	import androidx.compose.material3.DrawerValue
+   138	import androidx.compose.material3.ModalDrawerSheet
+   139	import com.kompact.model.CompressionGoal
+   140	import java.util.Locale
+   141	import kotlin.math.max
+   142	import kotlin.math.roundToInt
+   143	
+   144	@Composable
+   145	@OptIn(ExperimentalMaterial3Api::class)
+   146	fun KompactScreen(
+   147	    state: com.kompact.model.CompressionUiState,
+   148	    onPickFiles: () -> Unit,
+   149	    onCompressClick: () -> Unit,
+   150	    onImageConfigChange: (com.kompact.model.ImageCompressionConfig) -> Unit,
+   151	    onRemoveFile: (android.net.Uri) -> Unit,
+   152	    onClearSelection: () -> Unit,
+   153	    onPickDestination: () -> Unit,
+   154	    onClearDestination: () -> Unit,
+   155	    onExifDataChange: (com.kompact.model.ExifData?) -> Unit,
+   156	    onToggleTextEditor: () -> Unit,
+   157	    onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
+   158	    onToggleExifEditor: () -> Unit,
+   159	    onToggleCropEditor: () -> Unit,
+   160	    onCropBoundsChange: (com.kompact.model.CropBounds?) -> Unit,
+   161	    onToggleResizeEditor: () -> Unit,
+   162	    onResizeConfigChange: (com.kompact.model.ResizeConfig?) -> Unit,
+   163	    
+   164	    onBackgroundConfigChange: (com.kompact.model.BackgroundConfig?) -> Unit,
+   165	    onToggleColorFilterEditor: () -> Unit,
+   166	    onColorFilterChange: (com.kompact.model.ColorFilterConfig?) -> Unit,
+   167	    onRotate: (Float) -> Unit,
+   168	    onResetEditsClick: () -> Unit,
+   169	    onNavigateToSettings: () -> Unit,
+   170	    onNavigateToHome: () -> Unit,
+   171	    onNavigateToAbout: () -> Unit,
+   172	    onNavigateToDonate: () -> Unit,
+   173	    onThemeModeChange: (ThemeMode) -> Unit,
+   174	    onPickDefaultDestination: () -> Unit,
+   175	    onClearDefaultDestination: () -> Unit,
+   176	    modifier: Modifier = Modifier,
+   177	) {
+   178	    val drawerState = rememberDrawerState(DrawerValue.Closed)
+   179	    val scope = rememberCoroutineScope()
+   180	    ModalNavigationDrawer(
+   181	        drawerState = drawerState,
+   182	        drawerContent = {
+   183	            ModalDrawerSheet {
+   184	                Text(stringResource(R.string.app_name), modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.headlineSmall)
+   185	                HorizontalDivider()
+   186	                NavigationDrawerItem(
+   187	                    label = { Text(stringResource(R.string.nav_home)) },
+   188	                    selected = state.currentScreen == AppScreen.HOME,
+   189	                    onClick = {
+   190	                        onNavigateToHome()
+   191	                        scope.launch { drawerState.close() }
+   192	                    },
+   193	                    icon = { Icon(Icons.Filled.Home, contentDescription = null) },
+   194	                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+   195	                )
+   196	                NavigationDrawerItem(
+   197	                    label = { Text(stringResource(R.string.nav_settings)) },
+   198	                    selected = state.currentScreen == AppScreen.SETTINGS,
+   199	                    onClick = {
+   200	                        onNavigateToSettings()
+   201	                        scope.launch { drawerState.close() }
+   202	                    },
+   203	                    icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
+   204	                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+   205	                )
+   206	                NavigationDrawerItem(
+   207	                    label = { Text(stringResource(R.string.nav_about)) },
+   208	                    selected = state.currentScreen == AppScreen.ABOUT,
+   209	                    onClick = {
+   210	                        onNavigateToAbout()
+   211	                        scope.launch { drawerState.close() }
+   212	                    },
+   213	                    icon = { Icon(Icons.Filled.Info, contentDescription = null) },
+   214	                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+   215	                )
+   216	                NavigationDrawerItem(
+   217	                    label = { Text(stringResource(R.string.nav_donate)) },
+   218	                    selected = state.currentScreen == AppScreen.DONATE,
+   219	                    onClick = {
+   220	                        onNavigateToDonate()
+   221	                        scope.launch { drawerState.close() }
+   222	                    },
+   223	                    icon = { Icon(Icons.Filled.Favorite, contentDescription = null) },
+   224	                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+   225	                )
+   226	                val uriHandler = LocalUriHandler.current
+   227	                NavigationDrawerItem(
+   228	                    label = { Text(stringResource(R.string.nav_report_issue)) },
+   229	                    selected = false,
+   230	                    onClick = {
+   231	                        uriHandler.openUri("https://git.naxod.com/luca/Kompact/issues")
+   232	                        scope.launch { drawerState.close() }
+   233	                    },
+   234	                    icon = { Icon(Icons.Filled.BugReport, contentDescription = null) },
+   235	                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+   236	                )
+   237	            }
+   238	        }
+   239	    ) {
+   240	        Scaffold(
+   241	            topBar = {
+   242	                TopAppBar(
+   243	                    colors = TopAppBarDefaults.topAppBarColors(
+   244	                        containerColor = MaterialTheme.colorScheme.surface
+   245	                    ),
+   246	                    title = {
+   247	                        Column(horizontalAlignment = Alignment.Start) {
+   248	                            Text(text = stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+   249	                            Text(
+   250	                                text = stringResource(R.string.subtitle),
+   251	                                style = MaterialTheme.typography.labelSmall,
+   252	                                color = MaterialTheme.colorScheme.onSurfaceVariant
+   253	                            )
+   254	                        }
+   255	                    },
+   256	                    navigationIcon = {
+   257	                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+   258	                            Icon(Icons.Filled.Menu, contentDescription = "Menu")
+   259	                        }
+   260	                    }
+   261	                )
+   262	            }
+   263	        ) { innerPadding ->
+   264	            when (state.currentScreen) {
+   265	                AppScreen.HOME -> HomeScreen(
+   266	                    state = state,
+   267	                    onPickFiles = onPickFiles,
+   268	                    onCompressClick = onCompressClick,
+   269	                    onImageConfigChange = onImageConfigChange,
+   270	                    onRemoveFile = onRemoveFile,
+   271	                    onClearSelection = onClearSelection,
+   272	                    onPickDestination = onPickDestination,
+   273	                    onClearDestination = onClearDestination,
+   274	                    onExifDataChange = onExifDataChange,
+   275	                    onToggleTextEditor = onToggleTextEditor,
+   276	                    onTextConfigChange = onTextConfigChange,
+   277	                    onToggleExifEditor = onToggleExifEditor,
+   278	                    onToggleCropEditor = onToggleCropEditor,
+   279	                    onCropBoundsChange = onCropBoundsChange,
+   280	                    onToggleResizeEditor = onToggleResizeEditor,
+   281	                    onResizeConfigChange = onResizeConfigChange,
+   282	                    
+   283	                    onBackgroundConfigChange = onBackgroundConfigChange,
+   284	                    onToggleColorFilterEditor = onToggleColorFilterEditor,
+   285	                    onColorFilterChange = onColorFilterChange,
+   286	                    onRotate = onRotate,
+   287	                    onResetEditsClick = onResetEditsClick,
+   288	                    modifier = modifier.padding(innerPadding)
+   289	                )
+   290	                AppScreen.SETTINGS -> SettingsScreen(
+   291	                    defaultDestinationFolder = state.defaultDestinationFolder,
+   292	                    defaultDownloadsLabel = state.defaultDownloadsLabel,
+   293	                    themeMode = state.themeMode,
+   294	                    onThemeModeChange = onThemeModeChange,
+   295	                    onPickDefaultDestination = onPickDefaultDestination,
+   296	                    onClearDefaultDestination = onClearDefaultDestination,
+   297	                    modifier = modifier.padding(innerPadding)
+   298	                )
+   299	                AppScreen.ABOUT -> AboutScreen(modifier = modifier.padding(innerPadding))
+   300	                AppScreen.DONATE -> DonateScreen(modifier = modifier.padding(innerPadding))
+   301	            }
+   302	        }
+   303	    }
+   304	}
+   305	
+   306	@Composable
+   307	fun HomeScreen(
+   308	    state: CompressionUiState,
+   309	    onPickFiles: () -> Unit,
+   310	    onCompressClick: () -> Unit,
+   311	    onImageConfigChange: (ImageCompressionConfig) -> Unit,
+   312	    onRemoveFile: (Uri) -> Unit,
+   313	    onClearSelection: () -> Unit,
+   314	    onPickDestination: () -> Unit,
+   315	    onClearDestination: () -> Unit,
+   316	    onExifDataChange: (ExifData?) -> Unit,
+   317	    onToggleTextEditor: () -> Unit,
+   318	    onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
+   319	    onToggleExifEditor: () -> Unit,
+   320	    onToggleCropEditor: () -> Unit,
+   321	    onCropBoundsChange: (CropBounds?) -> Unit,
+   322	    onToggleResizeEditor: () -> Unit,
+   323	    onResizeConfigChange: (com.kompact.model.ResizeConfig?) -> Unit,
+   324	    
+   325	    onBackgroundConfigChange: (com.kompact.model.BackgroundConfig?) -> Unit,
+   326	    onToggleColorFilterEditor: () -> Unit,
+   327	    onColorFilterChange: (com.kompact.model.ColorFilterConfig?) -> Unit,
+   328	    onRotate: (Float) -> Unit,
+   329	    onResetEditsClick: () -> Unit,
+   330	    modifier: Modifier = Modifier,
+   331	) {
+   332	    var isRotateEditorVisible by remember { mutableStateOf(false) }
+   333	    val firstImageDescriptor = remember(state.selectedFiles) {
+   334	        state.selectedFiles.firstOrNull { it.mimeType?.startsWith("image/") == true }
+   335	    }
+   336	    val defaultFormatLabel = remember(firstImageDescriptor) {
+   337	        inferDefaultFormatLabel(firstImageDescriptor)
+   338	    }
+   339	    val singleImageSelected = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1
+   340	    val exifEditingEnabled = singleImageSelected
+   341	    val originalFormat = remember(firstImageDescriptor) {
+   342	        inferOriginalFormat(firstImageDescriptor)
+   343	    }
+   344	    val defaultDirResource = stringResource(R.string.default_dir)
+   345	    val defaultDestinationLabel = remember(
+   346	        state.defaultDestinationFolder,
+   347	        state.defaultDownloadsLabel,
+   348	        defaultDirResource
+   349	    ) {
+   350	        state.defaultDestinationFolder?.let { getFolderDisplayName(Uri.parse(it)) } ?: state.defaultDownloadsLabel.ifBlank { defaultDirResource }
+   351	    }
+   352	    val defaultFileName = remember(state.selectedFiles) {
+   353	        if (state.selectedFiles.size == 1) {
+   354	            val file = state.selectedFiles.first()
+   355	            file.displayName.substringBeforeLast('.', "").ifBlank { file.displayName }
+   356	        } else null
+   357	    }
+   358	    val referenceBytes = state.selectedFiles.sumOf { it.sizeBytes }.coerceAtLeast(1L)
+   359	    val showLivePreviewCard = remember(state.livePreview) {
+   360	        state.livePreview.kind != PreviewKind.NONE ||
+   361	            state.livePreview.isGenerating ||
+   362	            state.livePreview.errorMessage != null
+   363	    }
+   364	    val cropApplied = remember(state.imageConfig.cropBounds) {
+   365	        state.imageConfig.cropBounds?.isFull() == false
+   366	    }
+   367	    LaunchedEffect(state.selectedFiles) {
+   368	        if (state.selectedFiles.isNotEmpty()) {
+   369	            when (state.sourceCategory) {
+   370	                SourceCategory.IMAGE -> onImageConfigChange(state.imageConfig.copy(percentage = 0, goal = CompressionGoal.PERCENTAGE, targetSizeBytes = null))
+   371	                else -> {}
+   372	            }
+   373	        }
+   374	    }
+   375	    LazyColumn(
+   376	        modifier = modifier
+   377	            .fillMaxSize()
+   378	            .padding(horizontal = 16.dp),
+   379	        contentPadding = PaddingValues(top = 16.dp, bottom = 32.dp),
+   380	        verticalArrangement = Arrangement.spacedBy(16.dp)
+   381	    ) {
+   382	        item {
+   383	            SourceCard(
+   384	                files = state.selectedFiles,
+   385	                selectionMessage = state.selectionMessage,
+   386	                onRemoveFile = onRemoveFile,
+   387	                onClearSelection = onClearSelection,
+   388	                onPickFiles = onPickFiles,
+   389	                errorMessage = state.errorMessage,
+   390	            )
+   391	        }
+   392	        if (showLivePreviewCard) {
+   393	            item {
+   394	                LivePreviewCard(
+   395	                    livePreview = state.livePreview,
+   396	                    canCrop = singleImageSelected,
+   397	                    isCropEditorVisible = state.isCropEditorVisible,
+   398	                    isCropApplied = cropApplied,
+   399	                    onCropClick = onToggleCropEditor,
+   400	                    canResize = state.sourceCategory == SourceCategory.IMAGE,
+   401	                    isResizeEditorVisible = state.isResizeEditorVisible,
+   402	                    isResizeApplied = state.imageConfig.resizeConfig != null,
+   403	                    onResizeClick = onToggleResizeEditor,
+   404	                    canText = singleImageSelected,
+   405	                    isTextEditorVisible = state.isTextEditorVisible,
+   406	                    isTextApplied = state.imageConfig.textConfig != null,
+   407	                    onTextClick = onToggleTextEditor,
+   408	                    onRotateClick = { isRotateEditorVisible = true },
+   409	                    onColorFilterClick = onToggleColorFilterEditor,
+   410	                    onResetEditsClick = onResetEditsClick,
+   411	                )
+   412	            }
+   413	        }
+   414	        if (state.selectedFiles.isNotEmpty()) {
+   415	            item {
+   416	                OutputCard(
+   417	                    category = state.sourceCategory,
+   418	                    imageConfig = state.imageConfig,
+   419	                    onImageConfigChange = onImageConfigChange,
+   420	                    defaultFormatLabel = defaultFormatLabel,
+   421	                    originalFormat = originalFormat,
+   422	                    defaultFileName = defaultFileName,
+   423	                    destinationFolder = state.destinationFolder,
+   424	                    defaultDestinationLabel = defaultDestinationLabel,
+   425	                    onPickDestination = onPickDestination,
+   426	                    onClearDestination = onClearDestination,
+   427	                    referenceBytes = referenceBytes,
+   428	                    liveEstimateBytes = state.livePreview.estimatedBatchBytes.takeIf { state.livePreview.kind == PreviewKind.IMAGE && it > 0L },
+   429	                    selectedFilesCount = state.selectedFiles.size,
+   430	                    exifEditingEnabled = exifEditingEnabled,
+   431	                    isEditingExif = state.isExifEditorVisible,
+   432	                    onToggleExifEditor = onToggleExifEditor,
+   433	                )
+   434	            }
+   435	            item {
+   436	                val isCompleted = state.totalCount > 0 && 
+   437	                                  state.processedCount == state.totalCount && 
+   438	                                  !state.isProcessing && 
+   439	                                  state.results.isNotEmpty()
+   440	                if (!isCompleted) {
+   441	                    PrimaryActionBar(
+   442	                        isProcessing = state.isProcessing,
+   443	                        canCompress = state.canProcessSelection && !state.isProcessing,
+   444	                        onCompressClick = onCompressClick
+   445	                    )
+   446	                }
+   447	            }
+   448	        }
+   449	        if (state.isProcessing || state.processedCount > 0) {
+   450	            item { ProgressCard(state = state) }
+   451	        }
+   452	        if (state.results.isNotEmpty()) {
+   453	            item { ResultsCard(state.results) }
+   454	        }
+   455	    }
+   456	
+   457	    if (state.isExifEditorVisible && exifEditingEnabled) {
+   458	        ExifEditorDialog(
+   459	            exifData = state.exifData,
+   460	            originalExifData = state.originalExifData,
+   461	            onExifDataChange = onExifDataChange,
+   462	            onDismiss = onToggleExifEditor,
+   463	        )
+   464	    }
+   465	
+   466	    if (state.isCropEditorVisible && singleImageSelected) {
+   467	        CropEditorDialog(
+   468	            imageUri = state.selectedFiles.firstOrNull()?.uri,
+   469	            cropBounds = state.imageConfig.cropBounds,
+   470	            onCropBoundsChange = onCropBoundsChange,
+   471	            onDismiss = onToggleCropEditor,
+   472	        )
+   473	    }
+   474	
+   475	    if (state.isResizeEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+   476	        ResizeEditorDialog(
+   477	            config = state.imageConfig.resizeConfig,
+   478	            previewUri = state.selectedFiles.firstOrNull()?.uri,
+   479	            onConfigChange = onResizeConfigChange,
+   480	            onDismiss = onToggleResizeEditor,
+   481	        )
+   482	    }
+   483	
+   484	    
+   485	
+   486	    if (state.isColorFilterEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+   487	        val showJpegWarning = state.imageConfig.format == com.kompact.model.ImageOutputFormat.JPG
+   488	        FiltersEditorDialog(
+   489	            currentColorConfig = state.imageConfig.colorFilterConfig,
+   490	            currentBackgroundConfig = state.imageConfig.backgroundConfig,
+   491	            previewUri = state.selectedFiles.firstOrNull()?.uri,
+   492	            showJpegWarning = showJpegWarning,
+   493	            onConfirm = { colorCfg, bgCfg ->
+   494	                onColorFilterChange(colorCfg)
+   495	                onBackgroundConfigChange(bgCfg)
+   496	            },
+   497	            onDismiss = onToggleColorFilterEditor
+   498	        )
+   499	    }
+   500	
+   501	    if (state.isTextEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+   502	        val uri = state.selectedFiles.firstOrNull()?.uri
+   503	        if (uri != null) {
+   504	            TextEditorDialog(
+   505	                imageUri = uri,
+   506	                textConfig = state.imageConfig.textConfig,
+   507	                onTextConfigChange = { config ->
+   508	                    onTextConfigChange(config)
+   509	                    onToggleTextEditor() // close it
+   510	                },
+   511	                onDismiss = onToggleTextEditor
+   512	            )
+   513	        }
+   514	    }
+   515	
+   516	    if (isRotateEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+   517	        RotateEditorDialog(
+   518	            currentRotation = state.imageConfig.rotationDegrees,
+   519	            previewUri = state.selectedFiles.firstOrNull()?.uri,
+   520	            colorFilter = state.imageConfig.colorFilterConfig,
+   521	            onConfirm = { newRotation -> 
+   522	                val absoluteRotation = if (newRotation < 0f) newRotation + 360f else newRotation
+   523	                onRotate(absoluteRotation - state.imageConfig.rotationDegrees)
+   524	            },
+   525	            onDismiss = { isRotateEditorVisible = false }
+   526	        )
+   527	    }
+   528	}
+   529	
+   530	
+   531	@OptIn(ExperimentalMaterial3Api::class)
+   532	@Composable
+   533	fun SettingsScreen(
+   534	
+   535	
+   536	    defaultDestinationFolder: String?,
+   537	    defaultDownloadsLabel: String,
+   538	    themeMode: ThemeMode,
+   539	    onThemeModeChange: (ThemeMode) -> Unit,
+   540	    onPickDefaultDestination: () -> Unit,
+   541	    onClearDefaultDestination: () -> Unit,
+   542	    modifier: Modifier = Modifier,
+   543	) {
+   544	    LazyColumn(
+   545	        modifier = modifier
+   546	            .fillMaxSize()
+   547	            .padding(horizontal = 16.dp),
+   548	        contentPadding = PaddingValues(vertical = 16.dp),
+   549	        verticalArrangement = Arrangement.spacedBy(16.dp)
+   550	    ) {
+   551	        item { Text(stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium) }
+   552	        item {
+   553	            Card {
+   554	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   555	                    Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium)
+   556	
+   557	                    val defaultLanguage = stringResource(R.string.default_text)
+   558	                    val locales = remember {
+   559	                        listOf(
+   560	                            "" to defaultLanguage,
+   561	                            "en" to "English",
+   562	                            "ca" to "Català",
+   563	                            "cs" to "Čeština",
+   564	                            "de" to "Deutsch",
+   565	                            "es" to "Español",
+   566	                            "fr" to "Français",
+   567	                            "hr" to "Hrvatski",
+   568	                            "id" to "Indonesia",
+   569	                            "it" to "Italiano",
+   570	                            "hu" to "Magyar",
+   571	                            "nl" to "Nederlands",
+   572	                            "pl" to "Polski",
+   573	                            "pt" to "Português",
+   574	                            "ro" to "Română",
+   575	                            "fi" to "Suomi",
+   576	                            "sv" to "Svenska",
+   577	                            "vi" to "Tiếng Việt",
+   578	                            "tr" to "Türkçe",
+   579	                            "el" to "Ελληνικά",
+   580	                            "bg" to "Български",
+   581	                            "ru" to "Русский",
+   582	                            "sr" to "Српски",
+   583	                            "uk" to "Українська",
+   584	                            "ar" to "العربية",
+   585	                            "fa" to "فارسی",
+   586	                            "hi" to "हिन्दी",
+   587	                            "bn" to "বাংলা",
+   588	                            "ja" to "日本語",
+   589	                            "zh-CN" to "中文 (简体)",
+   590	                            "ko" to "한국어"
+   591	                        )
+   592	                    }
+   593	
+   594	                    var expanded by remember { mutableStateOf(false) }
+   595	                    val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+   596	                    val currentTags = currentLocales.toLanguageTags()
+   597	                    val currentLang = if (currentTags.isBlank()) "" else currentTags.split("-")[0]
+   598	                    val selectedText = locales.find { it.first == currentLang }?.second ?: stringResource(R.string.default_text)
+   599	                    val isRtl = currentLang in listOf("ar", "fa")
+   600	                    val layoutDir = if (isRtl) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr
+   601	
+   602	                    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides layoutDir) {
+   603	                        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+   604	                            OutlinedTextField(
+   605	                                value = selectedText,
+   606	                                onValueChange = {},
+   607	                                readOnly = true,
+   608	                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+   609	                                modifier = Modifier.menuAnchor()
+   610	                            )
+   611	                            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+   612	                                locales.forEach { (tag, label) ->
+   613	                                    val itemDir = if (tag in listOf("ar", "fa")) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr
+   614	                                    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides itemDir) {
+   615	                                        DropdownMenuItem(
+   616	                                            text = { Text(if (tag == "") "Lang Default" else label) },
+   617	                                            onClick = {
+   618	                                                androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(androidx.core.os.LocaleListCompat.forLanguageTags(tag))
+   619	                                                expanded = false
+   620	                                            }
+   621	                                        )
+   622	                                    }
+   623	                                }
+   624	                            }
+   625	                        }
+   626	                    }
+   627	                }
+   628	            }
+   629	        }
+   630	
+   631	        item {
+   632	            Card {
+   633	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   634	                    Text(stringResource(R.string.default_dest), style = MaterialTheme.typography.titleMedium)
+   635	                    Text(
+   636	                        text = defaultDestinationFolder?.let { getFolderDisplayName(Uri.parse(it)) } ?: defaultDownloadsLabel.ifBlank { stringResource(R.string.default_dir) },
+   637	                        style = MaterialTheme.typography.bodyMedium
+   638	                    )
+   639	                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+   640	                        Button(onClick = onPickDefaultDestination) {
+   641	                            Icon(Icons.Filled.Folder, contentDescription = null)
+   642	                            Spacer(Modifier.width(8.dp))
+   643	                            Text(stringResource(R.string.dest_folder))
+   644	                        }
+   645	                        TextButton(onClick = onClearDefaultDestination, enabled = defaultDestinationFolder != null) {
+   646	                            Text(stringResource(R.string.reset_default))
+   647	                        }
+   648	                    }
+   649	                }
+   650	            }
+   651	        }
+   652	
+   653	        item {
+   654	            Card {
+   655	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   656	                    Text(stringResource(R.string.theme_title), style = MaterialTheme.typography.titleMedium)
+   657	
+   658	                    @Composable
+   659	                    fun labelFor(mode: ThemeMode): String = when (mode) {
+   660	                        ThemeMode.SYSTEM -> stringResource(R.string.theme_system)
+   661	                        ThemeMode.LIGHT -> stringResource(R.string.theme_light)
+   662	                        ThemeMode.DARK -> stringResource(R.string.theme_dark)
+   663	                    }
+   664	
+   665	                    ThemeMode.entries.forEach { mode ->
+   666	                        Row(
+   667	                            modifier = Modifier
+   668	                                .fillMaxWidth()
+   669	                                .clickable { onThemeModeChange(mode) },
+   670	                            verticalAlignment = Alignment.CenterVertically,
+   671	                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+   672	                        ) {
+   673	                            RadioButton(
+   674	                                selected = themeMode == mode,
+   675	                                onClick = { onThemeModeChange(mode) }
+   676	                            )
+   677	                            Text(labelFor(mode), style = MaterialTheme.typography.bodyMedium)
+   678	                        }
+   679	                    }
+   680	                }
+   681	            }
+   682	        }
+   683	    }
+   684	}
+   685	
+   686	@Composable
+   687	fun AboutScreen(modifier: Modifier = Modifier) {
+   688	    LazyColumn(
+   689	        modifier = modifier
+   690	            .fillMaxSize()
+   691	            .padding(horizontal = 16.dp),
+   692	        contentPadding = PaddingValues(vertical = 16.dp),
+   693	        verticalArrangement = Arrangement.spacedBy(16.dp)
+   694	    ) {
+   695	        item { Text(stringResource(R.string.about_title), style = MaterialTheme.typography.headlineMedium) }
+   696	        item {
+   697	            Card {
+   698	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   699	                    Text(stringResource(R.string.mission), style = MaterialTheme.typography.titleMedium)
+   700	                    Text(
+   701	                        stringResource(R.string.kompact_is_an_offline_file_compressor_designed_to_run_entirely_on_device_your_files_never_leave_your_phone_ensuring_complete_privacy),
+   702	                        style = MaterialTheme.typography.bodyMedium
+   703	                    )
+   704	                }
+   705	            }
+   706	        }
+   707	        item {
+   708	            Card {
+   709	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   710	                    Text(stringResource(R.string.current_features), style = MaterialTheme.typography.titleMedium)
+   711	                    Text(
+   712	                        stringResource(R.string.precision_compression_target_specific_file_sizes_or_quality_percentages_n) +
+   713	                        "• Format Conversion: Switch easily between JPG, PNG, WebP, and more.\n" +
+   714	                        stringResource(R.string.smart_editing) +
+   715	                        "• Live Preview: Compare original vs. compressed results in real-time.",
+   716	                        style = MaterialTheme.typography.bodyMedium
+   717	                    )
+   718	                }
+   719	            }
+   720	        }
+   721	        item {
+   722	            Card {
+   723	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   724	                    Text(stringResource(R.string.roadmap), style = MaterialTheme.typography.titleMedium)
+   725	                    Text(
+   726	                        stringResource(R.string.we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files),
+   727	                        style = MaterialTheme.typography.bodyMedium
+   728	                    )
+   729	                }
+   730	            }
+   731	        }
+   732	        item {
+   733	            Card {
+   734	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   735	                    Text(stringResource(R.string.open_source), style = MaterialTheme.typography.titleMedium)
+   736	                    Text(
+   737	                        stringResource(R.string.this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository),
+   738	                        style = MaterialTheme.typography.bodyMedium
+   739	                    )
+   740	                    val uriHandler = LocalUriHandler.current
+   741	                    TextButton(onClick = { uriHandler.openUri("https://git.naxod.com/luca/Kompact") }) {
+   742	                        Text(stringResource(R.string.visit_repository))
+   743	                    }
+   744	                }
+   745	            }
+   746	        }
+   747	    }
+   748	}
+   749	
+   750	@Composable
+   751	fun DonateScreen(modifier: Modifier = Modifier) {
+   752	    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+   753	    LazyColumn(
+   754	        modifier = modifier
+   755	            .fillMaxSize()
+   756	            .padding(horizontal = 16.dp),
+   757	        contentPadding = PaddingValues(vertical = 16.dp),
+   758	        verticalArrangement = Arrangement.spacedBy(16.dp)
+   759	    ) {
+   760	        item { Text(stringResource(R.string.support_development), style = MaterialTheme.typography.headlineMedium) }
+   761	        item {
+   762	            Card {
+   763	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   764	                    Text(stringResource(R.string.a_personal_note), style = MaterialTheme.typography.titleMedium)
+   765	                    Text(
+   766	                        stringResource(R.string.i_built_kompact_because_i_believe_essential_tools_should_be_simple_private_and_free_of_ads_or_tracking_i_work_on_this_in_my_spare_time_driven_by_the_idea_of_making_a_useful_utility_for_everyone),
+   767	                        style = MaterialTheme.typography.bodyMedium
+   768	                    )
+   769	                }
+   770	            }
+   771	        }
+   772	        item {
+   773	            Card {
+   774	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   775	                    Text(stringResource(R.string.support), style = MaterialTheme.typography.titleMedium)
+   776	                    Text(
+   777	                        stringResource(R.string.if_kompact_has_saved_you_space_or_time_please_consider_supporting_its_development_your_donation_directly_helps_me_dedicate_more_hours_to_adding_features_like_pdf_audio_and_video_support_and_keeps_the_project_independent_and_sustainable),
+   778	                        style = MaterialTheme.typography.bodyMedium
+   779	                    )
+   780	                    Button(onClick = { uriHandler.openUri("https://liberapay.com/naxod/") }) {
+   781	                        Icon(Icons.Default.Favorite, contentDescription = null)
+   782	                        Spacer(Modifier.width(8.dp))
+   783	                        Text(stringResource(R.string.nav_donate))
+   784	                    }
+   785	                }
+   786	            }
+   787	        }
+   788	    }
+   789	}
+   790	
+   791	
+   792	@Composable
+   793	fun SourceCard(
+   794	    files: List<SelectedFileDescriptor>,
+   795	    selectionMessage: String?,
+   796	    onRemoveFile: (Uri) -> Unit,
+   797	    onClearSelection: () -> Unit,
+   798	    onPickFiles: () -> Unit,
+   799	    errorMessage: String?,
+   800	) {
+   801	    Card {
+   802	        val strSelectImages = stringResource(R.string.select_images)
+   803	        val strItemsSelected = stringResource(R.string.items_selected)
+   804	        val helperText = if (files.isEmpty()) strSelectImages else "${files.size} $strItemsSelected"
+   805	        val selectLabel = if (files.isEmpty()) stringResource(R.string.select_files) else stringResource(R.string.add_more)
+   806	        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+   807	            Row(
+   808	                modifier = Modifier.fillMaxWidth(),
+   809	                verticalAlignment = Alignment.CenterVertically,
+   810	                horizontalArrangement = Arrangement.spacedBy(12.dp)
+   811	            ) {
+   812	                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+   813	                    Text(stringResource(R.string.files), style = MaterialTheme.typography.titleMedium)
+   814	                    Text(
+   815	                        text = helperText,
+   816	                        style = MaterialTheme.typography.bodySmall,
+   817	                        color = MaterialTheme.colorScheme.onSurfaceVariant
+   818	                    )
+   819	                }
+   820	                OutlinedButton(onClick = onPickFiles) {
+   821	                    Icon(Icons.Default.CloudUpload, contentDescription = null)
+   822	                    Spacer(Modifier.width(8.dp))
+   823	                    Text(selectLabel)
+   824	                }
+   825	                TextButton(
+   826	                    onClick = onClearSelection,
+   827	                    enabled = files.isNotEmpty()
+   828	                ) {
+   829	                    Text(stringResource(R.string.clear_all))
+   830	                }
+   831	            }
+   832	            if (errorMessage != null) {
+   833	                Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+   834	            }
+   835	            if (selectionMessage != null) {
+   836	                Text(selectionMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+   837	            }
+   838	            if (files.isEmpty()) {
+   839	                SourceEmptyState()
+   840	            } else {
+   841	                LazyColumn(
+   842	                    modifier = Modifier.heightIn(max = 300.dp),
+   843	                    verticalArrangement = Arrangement.spacedBy(8.dp)
+   844	                ) {
+   845	                    items(count = files.size) { index ->
+   846	                        val file = files[index]
+   847	                        if (file.mimeType?.startsWith("image/") == true) {
+   848	                            Column {
+   849	                                Row(verticalAlignment = Alignment.CenterVertically) {
+   850	                                    val str_original = stringResource(R.string.original)
+   851	                AsyncImage(
+   852	                                        model = file.uri,
+   853	                                        contentDescription = null,
+   854	                                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
+   855	                                        contentScale = ContentScale.Crop
+   856	                                    )
+   857	                                    Spacer(Modifier.width(12.dp))
+   858	                                    Column(Modifier.weight(1f)) {
+   859	                                        Text(file.displayName, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+   860	                                        Text(file.sizeBytes.asReadableBytes(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+   861	                                    }
+   862	                                    IconButton(onClick = { onRemoveFile(file.uri) }) {
+   863	                                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove))
+   864	                                    }
+   865	                                }
+   866	                            }
+   867	                        } else {
+   868	                            Row(verticalAlignment = Alignment.CenterVertically) {
+   869	                                Icon(Icons.Default.Description, contentDescription = null, modifier = Modifier.size(48.dp))
+   870	                                Spacer(Modifier.width(12.dp))
+   871	                                Column(Modifier.weight(1f)) {
+   872	                                    Text(file.displayName, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+   873	                                    Text(file.sizeBytes.asReadableBytes(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+   874	                                }
+   875	                                IconButton(onClick = { onRemoveFile(file.uri) }) {
+   876	                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove))
+   877	                                }
+   878	                            }
+   879	                        }
+   880	                    }
+   881	                }
+   882	            }
+   883	        }
+   884	    }
+   885	}
+   886	
+   887	@Composable
+   888	private fun SourceEmptyState() {
+   889	    Column(
+   890	        modifier = Modifier
+   891	            .fillMaxWidth()
+   892	            .padding(vertical = 32.dp),
+   893	        horizontalAlignment = Alignment.CenterHorizontally,
+   894	        verticalArrangement = Arrangement.spacedBy(12.dp)
+   895	    ) {
+   896	        Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+   897	        Text(stringResource(R.string.select_images_to_compress), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+   898	    }
+   899	}
+   900	
+   901	@Composable
+   902	fun PrimaryActionBar(
+   903	    isProcessing: Boolean,
+   904	    canCompress: Boolean,
+   905	    onCompressClick: () -> Unit,
+   906	    modifier: Modifier = Modifier,
+   907	) {
+   908	    Surface(
+   909	        modifier = modifier.fillMaxWidth(),
+   910	        shape = RoundedCornerShape(20.dp),
+   911	        tonalElevation = 2.dp,
+   912	        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+   913	    ) {
+   914	        Row(
+   915	            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+   916	            verticalAlignment = Alignment.CenterVertically,
+   917	            horizontalArrangement = Arrangement.spacedBy(16.dp)
+   918	        ) {
+   919	            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+   920	                Text(
+   921	                    text = if (isProcessing) stringResource(R.string.processing_dots) else stringResource(R.string.ready_to_process),
+   922	                    style = MaterialTheme.typography.titleMedium
+   923	                )
+   924	            }
+   925	            Button(
+   926	                onClick = onCompressClick,
+   927	                enabled = canCompress,
+   928	                modifier = Modifier.height(48.dp)
+   929	            ) {
+   930	                if (isProcessing) {
+   931	                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+   932	                    Spacer(Modifier.width(8.dp))
+   933	                    Text(stringResource(R.string.working))
+   934	                } else {
+   935	                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+   936	                    Spacer(Modifier.width(8.dp))
+   937	                    Text(stringResource(R.string.start))
+   938	                }
+   939	            }
+   940	        }
+   941	    }
+   942	}
+   943	
+   944	@Composable
+   945	fun OutputCard(
+   946	    category: SourceCategory,
+   947	    imageConfig: ImageCompressionConfig,
+   948	    onImageConfigChange: (ImageCompressionConfig) -> Unit,
+   949	    defaultFormatLabel: String?,
+   950	    originalFormat: ImageOutputFormat?,
+   951	    defaultFileName: String?,
+   952	    destinationFolder: Uri?,
+   953	    defaultDestinationLabel: String,
+   954	    onPickDestination: () -> Unit,
+   955	    onClearDestination: () -> Unit,
+   956	    referenceBytes: Long,
+   957	    liveEstimateBytes: Long?,
+   958	    selectedFilesCount: Int,
+   959	    exifEditingEnabled: Boolean,
+   960	    isEditingExif: Boolean,
+   961	    onToggleExifEditor: () -> Unit,
+   962	) {
+   963	    Card {
+   964	        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+   965	            Row(
+   966	                modifier = Modifier.fillMaxWidth(),
+   967	                horizontalArrangement = Arrangement.SpaceBetween,
+   968	                verticalAlignment = Alignment.CenterVertically
+   969	            ) {
+   970	                Text(stringResource(R.string.output), style = MaterialTheme.typography.titleMedium)
+   971	                if (exifEditingEnabled) {
+   972	                    TextButton(onClick = onToggleExifEditor) {
+   973	                        Icon(Icons.Default.Settings, contentDescription = null)
+   974	                        Spacer(Modifier.width(8.dp))
+   975	                        Text(if (isEditingExif) "Close EXIF" else "Edit EXIF")
+   976	                    }
+   977	                }
+   978	            }
+   979	            if (category == SourceCategory.IMAGE) {
+   980	                ImageConfigSection(
+   981	                    config = imageConfig,
+   982	                    onConfigChange = onImageConfigChange,
+   983	                    defaultFormatLabel = defaultFormatLabel,
+   984	                    originalFormat = originalFormat,
+   985	                    defaultFileName = defaultFileName,
+   986	                    referenceBytes = referenceBytes,
+   987	                    liveEstimateBytes = liveEstimateBytes,
+   988	                    selectedFilesCount = selectedFilesCount,
+   989	                )
+   990	            }
+   991	            HorizontalDivider()
+   992	            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+   993	                val destinationLabel = destinationFolder?.let { getFolderDisplayName(it) } ?: defaultDestinationLabel
+   994	                OutlinedButton(
+   995	                    onClick = onPickDestination,
+   996	                    modifier = Modifier.weight(1f)
+   997	                ) {
+   998	                    Icon(Icons.Default.Folder, contentDescription = null)
+   999	                    Spacer(Modifier.width(8.dp))
+  1000	                    Column {
+  1001	                        Text(stringResource(R.string.dest_folder), style = MaterialTheme.typography.labelSmall)
+  1002	                        Text(destinationLabel, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+  1003	                    }
+  1004	                }
+  1005	                TextButton(onClick = onClearDestination, enabled = destinationFolder != null) {
+  1006	                    Text(stringResource(R.string.default_text))
+  1007	                }
+  1008	            }
+  1009	        }
+  1010	    }
+  1011	}
+  1012	
+  1013	@Composable
+  1014	@OptIn(ExperimentalMaterial3Api::class)
+  1015	fun ImageConfigSection(
+  1016	    config: ImageCompressionConfig,
+  1017	    onConfigChange: (ImageCompressionConfig) -> Unit,
+  1018	    defaultFormatLabel: String?,
+  1019	    originalFormat: ImageOutputFormat?,
+  1020	    defaultFileName: String?,
+  1021	    referenceBytes: Long,
+  1022	    liveEstimateBytes: Long?,
+  1023	    selectedFilesCount: Int,
+  1024	) {
+  1025	    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  1026	        Text(stringResource(R.string.format), style = MaterialTheme.typography.titleSmall)
+  1027	        var expanded by remember { mutableStateOf(false) }
+  1028	        val formatOptions = remember(originalFormat) {
+  1029	            ImageOutputFormat.entries.filterNot { format ->
+  1030	                originalFormat != null && format != ImageOutputFormat.ORIGINAL && format == originalFormat
+  1031	            }
+  1032	        }
+  1033	        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+  1034	            OutlinedTextField(
+  1035	                value = formatDisplayLabel(config.format, defaultFormatLabel),
+  1036	                onValueChange = {},
+  1037	                readOnly = true,
+  1038	                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+  1039	                modifier = Modifier.menuAnchor()
+  1040	            )
+  1041	            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+  1042	                formatOptions.forEach { format ->
+  1043	                    DropdownMenuItem(
+  1044	                        text = { Text(formatDisplayLabel(format, defaultFormatLabel)) },
+  1045	                        onClick = {
+  1046	                            onConfigChange(config.copy(format = format))
+  1047	                            expanded = false
+  1048	                        }
+  1049	                    )
+  1050	                }
+  1051	            }
+  1052	        }
+  1053	        Text(stringResource(R.string.quality), style = MaterialTheme.typography.titleSmall)
+  1054	        val configPercentage = when (config.goal) {
+  1055	            CompressionGoal.PERCENTAGE -> config.percentage
+  1056	            CompressionGoal.TARGET_SIZE -> if (config.targetSizeBytes == null) config.percentage else (config.targetSizeBytes.toFloat().div(referenceBytes).times(100)).roundToInt()
+  1057	        }.coerceIn(0, 100)
+  1058	
+  1059	        var isDragging by remember { mutableStateOf(false) }
+  1060	        var sliderPercentage by remember { mutableIntStateOf(configPercentage) }
+  1061	        LaunchedEffect(configPercentage) {
+  1062	            if (!isDragging) {
+  1063	                sliderPercentage = configPercentage
+  1064	            }
+  1065	        }
+  1066	
+  1067	        val shownPercentage = if (isDragging) sliderPercentage else configPercentage
+  1068	        Row(
+  1069	            verticalAlignment = Alignment.CenterVertically,
+  1070	            horizontalArrangement = Arrangement.spacedBy(8.dp)
+  1071	        ) {
+  1072	            Slider(
+  1073	                value = shownPercentage.toFloat(),
+  1074	                onValueChange = { newValue ->
+  1075	                    isDragging = true
+  1076	                    sliderPercentage = newValue.roundToInt().coerceIn(0, 100)
+  1077	                },
+  1078	                onValueChangeFinished = {
+  1079	                    val newPercentage = sliderPercentage.coerceIn(0, 100)
+  1080	                    isDragging = false
+  1081	                    if (newPercentage == 0) {
+  1082	                        onConfigChange(config.copy(percentage = 0, targetSizeBytes = null))
+  1083	                    } else {
+  1084	                        when (config.goal) {
+  1085	                            CompressionGoal.PERCENTAGE -> onConfigChange(config.copy(percentage = newPercentage, targetSizeBytes = null))
+  1086	                            CompressionGoal.TARGET_SIZE -> {
+  1087	                                val newTarget = (referenceBytes * newPercentage / 100.0).roundToInt().toLong().coerceAtLeast(1)
+  1088	                                onConfigChange(config.copy(targetSizeBytes = newTarget))
+  1089	                            }
+  1090	                        }
+  1091	                    }
+  1092	                },
+  1093	                valueRange = 0f..100f,
+  1094	                steps = 100,
+  1095	                modifier = Modifier.weight(1f)
+  1096	            )
+  1097	            OutlinedTextField(
+  1098	                value = if (shownPercentage == 0) "" else shownPercentage.toString(),
+  1099	                onValueChange = { newValue ->
+  1100	                    val newPercentage = if (newValue.isBlank()) 0 else newValue.toIntOrNull()?.coerceIn(0, 100) ?: shownPercentage
+  1101	                    if (newPercentage == 0) {
+  1102	                        onConfigChange(config.copy(percentage = 0, targetSizeBytes = null))
+  1103	                    } else {
+  1104	                        when (config.goal) {
+  1105	                            CompressionGoal.PERCENTAGE -> onConfigChange(config.copy(percentage = newPercentage, targetSizeBytes = null))
+  1106	                            CompressionGoal.TARGET_SIZE -> {
+  1107	                                val newTarget = (referenceBytes * newPercentage / 100.0).roundToInt().toLong().coerceAtLeast(1)
+  1108	                                onConfigChange(config.copy(targetSizeBytes = newTarget))
+  1109	                            }
+  1110	                        }
+  1111	                    }
+  1112	                },
+  1113	                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+  1114	                modifier = Modifier.width(80.dp)
+  1115	            )
+  1116	        }
+  1117	        if (liveEstimateBytes != null && selectedFilesCount > 0) {
+  1118	            val totalEstimate = liveEstimateBytes * selectedFilesCount
+  1119	            Text("Estimated total: ${totalEstimate.asReadableBytes()}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+  1120	        }
+  1121	        if (defaultFileName != null) {
+  1122	            // Keep a draft independent from preview recalculations; do not re-inject the default name once the user cleared it.
+  1123	            var fileNameDraft by rememberSaveable(defaultFileName) {
+  1124	                mutableStateOf(config.outputFileName ?: defaultFileName)
+  1125	            }
+  1126	
+  1127	            // If config explicitly carries a custom name, reflect it; otherwise leave the user draft untouched.
+  1128	            LaunchedEffect(config.outputFileName, defaultFileName) {
+  1129	                val desired = config.outputFileName
+  1130	                if (desired != null && desired != fileNameDraft) {
+  1131	                    fileNameDraft = desired
+  1132	                }
+  1133	            }
+  1134	
+  1135	            val focusManager = LocalFocusManager.current
+  1136	
+  1137	            // Update local draft immediately, but debounce applying to the shared config
+  1138	            OutlinedTextField(
+  1139	                value = fileNameDraft,
+  1140	                onValueChange = { fileNameDraft = it },
+  1141	                label = { Text(stringResource(R.string.output_filename)) },
+  1142	                modifier = Modifier.fillMaxWidth(),
+  1143	                keyboardOptions = KeyboardOptions(
+  1144	                    keyboardType = KeyboardType.Text,
+  1145	                    imeAction = ImeAction.Done
+  1146	                ),
+  1147	                keyboardActions = KeyboardActions(onDone = {
+  1148	                    val trimmed = fileNameDraft.trim()
+  1149	                    val normalized = trimmed.takeIf { it.isNotBlank() }
+  1150	                    if (normalized != config.outputFileName) {
+  1151	                        onConfigChange(config.copy(outputFileName = normalized))
+  1152	                    }
+  1153	                    focusManager.clearFocus()
+  1154	                })
+  1155	            )
+  1156	
+  1157	            // Debounce: apply changes after a short pause in typing to avoid expensive recompositions
+  1158	            LaunchedEffect(fileNameDraft) {
+  1159	                val current = fileNameDraft
+  1160	                kotlinx.coroutines.delay(350)
+  1161	                if (current == fileNameDraft) {
+  1162	                    val trimmed = current.trim()
+  1163	                    val normalized = trimmed.takeIf { it.isNotBlank() }
+  1164	                    if (normalized != config.outputFileName) {
+  1165	                        onConfigChange(config.copy(outputFileName = normalized))
+  1166	                    }
+  1167	                }
+  1168	            }
+  1169	        }
+  1170	    }
+  1171	}
+  1172	
+  1173	@Composable
+  1174	fun ExifEditorDialog(
+  1175	    exifData: ExifData?,
+  1176	    originalExifData: ExifData?,
+  1177	    onExifDataChange: (ExifData?) -> Unit,
+  1178	    onDismiss: () -> Unit,
+  1179	) {
+  1180	    val scrollState = rememberScrollState()
+  1181	    val currentExif = exifData ?: ExifData()
+  1182	
+  1183	    androidx.compose.ui.window.Dialog(
+  1184	        onDismissRequest = onDismiss,
+  1185	        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+  1186	    ) {
+  1187	        Surface(
+  1188	            shape = RoundedCornerShape(20.dp),
+  1189	            tonalElevation = 6.dp,
+  1190	            modifier = Modifier
+  1191	                .fillMaxWidth()
+  1192	                .padding(horizontal = 8.dp)
+  1193	        ) {
+  1194	            Column(
+  1195	                modifier = Modifier
+  1196	                    .fillMaxWidth()
+  1197	                    .heightIn(max = 600.dp)
+  1198	                    .verticalScroll(scrollState)
+  1199	                    .padding(20.dp),
+  1200	                verticalArrangement = Arrangement.spacedBy(12.dp)
+  1201	            ) {
+  1202	                Row(verticalAlignment = Alignment.CenterVertically) {
+  1203	                    Text(
+  1204	                        text = stringResource(R.string.edit_exif_metadata),
+  1205	                        style = MaterialTheme.typography.titleMedium,
+  1206	                        modifier = Modifier.weight(1f)
+  1207	                    )
+  1208	                    IconButton(onClick = onDismiss) {
+  1209	                        Icon(Icons.Default.Close, contentDescription = "Close EXIF editor")
+  1210	                    }
+  1211	                }
+  1212	                Text(
+  1213	                    text = stringResource(R.string.changes_apply_instantly_to_the_selected_image),
+  1214	                    style = MaterialTheme.typography.bodySmall,
+  1215	                    color = MaterialTheme.colorScheme.onSurfaceVariant
+  1216	                )
+  1217	
+  1218	                Text(stringResource(R.string.basic_info), style = MaterialTheme.typography.titleSmall)
+  1219	                OutlinedTextField(
+  1220	                    value = currentExif.make ?: "",
+  1221	                    onValueChange = { onExifDataChange(currentExif.copy(make = it.takeIf { it.isNotBlank() })) },
+  1222	                    label = { Text(stringResource(R.string.make)) },
+  1223	                    modifier = Modifier.fillMaxWidth()
+  1224	                )
+  1225	                OutlinedTextField(
+  1226	                    value = currentExif.model ?: "",
+  1227	                    onValueChange = { onExifDataChange(currentExif.copy(model = it.takeIf { it.isNotBlank() })) },
+  1228	                    label = { Text(stringResource(R.string.model)) },
+  1229	                    modifier = Modifier.fillMaxWidth()
+  1230	                )
+  1231	                OutlinedTextField(
+  1232	                    value = currentExif.software ?: "",
+  1233	                    onValueChange = { onExifDataChange(currentExif.copy(software = it.takeIf { it.isNotBlank() })) },
+  1234	                    label = { Text(stringResource(R.string.software)) },
+  1235	                    modifier = Modifier.fillMaxWidth()
+  1236	                )
+  1237	
+  1238	                Text(stringResource(R.string.date_and_time), style = MaterialTheme.typography.titleSmall)
+  1239	                OutlinedTextField(
+  1240	                    value = currentExif.dateTime ?: "",
+  1241	                    onValueChange = { onExifDataChange(currentExif.copy(dateTime = it.takeIf { it.isNotBlank() })) },
+  1242	                    label = { Text(stringResource(R.string.date_time)) },
+  1243	                    modifier = Modifier.fillMaxWidth()
+  1244	                )
+  1245	
+  1246	                Text(stringResource(R.string.location), style = MaterialTheme.typography.titleSmall)
+  1247	                OutlinedTextField(
+  1248	                    value = currentExif.latitude?.toString() ?: "",
+  1249	                    onValueChange = { onExifDataChange(currentExif.copy(latitude = it.toDoubleOrNull())) },
+  1250	                    label = { Text(stringResource(R.string.lat)) },
+  1251	                    modifier = Modifier.fillMaxWidth()
+  1252	                )
+  1253	                OutlinedTextField(
+  1254	                    value = currentExif.longitude?.toString() ?: "",
+  1255	                    onValueChange = { onExifDataChange(currentExif.copy(longitude = it.toDoubleOrNull())) },
+  1256	                    label = { Text(stringResource(R.string.lon)) },
+  1257	                    modifier = Modifier.fillMaxWidth()
+  1258	                )
+  1259	                OutlinedTextField(
+  1260	                    value = currentExif.altitude?.toString() ?: "",
+  1261	                    onValueChange = { onExifDataChange(currentExif.copy(altitude = it.toDoubleOrNull())) },
+  1262	                    label = { Text(stringResource(R.string.alt)) },
+  1263	                    modifier = Modifier.fillMaxWidth()
+  1264	                )
+  1265	
+  1266	                Text(stringResource(R.string.camera_settings), style = MaterialTheme.typography.titleSmall)
+  1267	                OutlinedTextField(
+  1268	                    value = currentExif.exposureTime ?: "",
+  1269	                    onValueChange = { onExifDataChange(currentExif.copy(exposureTime = it.takeIf { it.isNotBlank() })) },
+  1270	                    label = { Text(stringResource(R.string.exp_time)) },
+  1271	                    modifier = Modifier.fillMaxWidth()
+  1272	                )
+  1273	                OutlinedTextField(
+  1274	                    value = currentExif.fNumber ?: "",
+  1275	                    onValueChange = { onExifDataChange(currentExif.copy(fNumber = it.takeIf { it.isNotBlank() })) },
+  1276	                    label = { Text(stringResource(R.string.f)) },
+  1277	                    modifier = Modifier.fillMaxWidth()
+  1278	                )
+  1279	                OutlinedTextField(
+  1280	                    value = currentExif.iso?.toString() ?: "",
+  1281	                    onValueChange = { onExifDataChange(currentExif.copy(iso = it.toIntOrNull())) },
+  1282	                    label = { Text(stringResource(R.string.iso)) },
+  1283	                    modifier = Modifier.fillMaxWidth()
+  1284	                )
+  1285	                OutlinedTextField(
+  1286	                    value = currentExif.focalLength ?: "",
+  1287	                    onValueChange = { onExifDataChange(currentExif.copy(focalLength = it.takeIf { it.isNotBlank() })) },
+  1288	                    label = { Text(stringResource(R.string.focal_len)) },
+  1289	                    modifier = Modifier.fillMaxWidth()
+  1290	                )
+  1291	                OutlinedTextField(
+  1292	                    value = currentExif.flash?.toString() ?: "",
+  1293	                    onValueChange = { onExifDataChange(currentExif.copy(flash = it.toIntOrNull())) },
+  1294	                    label = { Text(stringResource(R.string.flash)) },
+  1295	                    modifier = Modifier.fillMaxWidth()
+  1296	                )
+  1297	                OutlinedTextField(
+  1298	                    value = currentExif.whiteBalance?.toString() ?: "",
+  1299	                    onValueChange = { onExifDataChange(currentExif.copy(whiteBalance = it.toIntOrNull())) },
+  1300	                    label = { Text(stringResource(R.string.wb)) },
+  1301	                    modifier = Modifier.fillMaxWidth()
+  1302	                )
+  1303	                OutlinedTextField(
+  1304	                    value = currentExif.orientation?.toString() ?: "",
+  1305	                    onValueChange = { onExifDataChange(currentExif.copy(orientation = it.toIntOrNull())) },
+  1306	                    label = { Text(stringResource(R.string.orientation)) },
+  1307	                    modifier = Modifier.fillMaxWidth()
+  1308	                )
+  1309	
+  1310	                Text(stringResource(R.string.metadata), style = MaterialTheme.typography.titleSmall)
+  1311	                OutlinedTextField(
+  1312	                    value = currentExif.artist ?: "",
+  1313	                    onValueChange = { onExifDataChange(currentExif.copy(artist = it.takeIf { it.isNotBlank() })) },
+  1314	                    label = { Text(stringResource(R.string.artist)) },
+  1315	                    modifier = Modifier.fillMaxWidth()
+  1316	                )
+  1317	                OutlinedTextField(
+  1318	                    value = currentExif.copyright ?: "",
+  1319	                    onValueChange = { onExifDataChange(currentExif.copy(copyright = it.takeIf { it.isNotBlank() })) },
+  1320	                    label = { Text(stringResource(R.string.copyright)) },
+  1321	                    modifier = Modifier.fillMaxWidth()
+  1322	                )
+  1323	                OutlinedTextField(
+  1324	                    value = currentExif.description ?: "",
+  1325	                    onValueChange = { onExifDataChange(currentExif.copy(description = it.takeIf { it.isNotBlank() })) },
+  1326	                    label = { Text(stringResource(R.string.description)) },
+  1327	                    modifier = Modifier.fillMaxWidth()
+  1328	                )
+  1329	                OutlinedTextField(
+  1330	                    value = currentExif.userComment ?: "",
+  1331	                    onValueChange = { onExifDataChange(currentExif.copy(userComment = it.takeIf { it.isNotBlank() })) },
+  1332	                    label = { Text(stringResource(R.string.user_comment)) },
+  1333	                    modifier = Modifier.fillMaxWidth()
+  1334	                )
+  1335	
+  1336	                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  1337	                    Row(
+  1338	                        modifier = Modifier.fillMaxWidth(),
+  1339	                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+  1340	                        verticalAlignment = Alignment.CenterVertically
+  1341	                    ) {
+  1342	                        OutlinedButton(onClick = { onExifDataChange(ExifData()) }) {
+  1343	                            Text(stringResource(R.string.remove_metadata))
+  1344	                        }
+  1345	                        Spacer(modifier = Modifier.weight(1f))
+  1346	                        TextButton(onClick = onDismiss) {
+  1347	                            Text(stringResource(R.string.done))
+  1348	                        }
+  1349	                    }
+  1350	                    Button(onClick = { onExifDataChange(originalExifData) }, enabled = originalExifData != null, modifier = Modifier.fillMaxWidth()) {
+  1351	                        Text(stringResource(R.string.restore_original))
+  1352	                    }
+  1353	                }
+  1354	            }
+  1355	        }
+  1356	    }
+  1357	}
+  1358	
+  1359	@Composable
+  1360	@OptIn(ExperimentalMaterial3Api::class)
+  1361	fun CropEditorDialog(
+  1362	    imageUri: Uri?,
+  1363	    cropBounds: CropBounds?,
+  1364	    onCropBoundsChange: (CropBounds?) -> Unit,
+  1365	    onDismiss: () -> Unit,
+  1366	) {
+  1367	    val aspectRatio = rememberImageAspectRatio(imageUri)
+  1368	    val initialBounds = remember(imageUri, cropBounds) { cropBounds ?: CropBounds.Full }
+  1369	    var horizontalRange by remember(imageUri, cropBounds) {
+  1370	        mutableStateOf(initialBounds.left..initialBounds.right)
+  1371	    }
+  1372	    var verticalRange by remember(imageUri, cropBounds) {
+  1373	        mutableStateOf(initialBounds.top..initialBounds.bottom)
+  1374	    }
+  1375	    val currentBounds = remember(horizontalRange, verticalRange) {
+  1376	        CropBounds(
+  1377	            left = horizontalRange.start,
+  1378	            top = verticalRange.start,
+  1379	            right = horizontalRange.endInclusive,
+  1380	            bottom = verticalRange.endInclusive,
+  1381	        )
+  1382	    }
+  1383	    val minSpan = 0.05f
+  1384	    fun adjustHorizontalStart(delta: Float) {
+  1385	        if (delta == 0f) return
+  1386	        val newStart = (horizontalRange.start + delta).coerceIn(0f, horizontalRange.endInclusive - minSpan)
+  1387	        horizontalRange = newStart..horizontalRange.endInclusive
+  1388	    }
+  1389	    fun adjustHorizontalEnd(delta: Float) {
+  1390	        if (delta == 0f) return
+  1391	        val newEnd = (horizontalRange.endInclusive + delta).coerceIn(horizontalRange.start + minSpan, 1f)
+  1392	        horizontalRange = horizontalRange.start..newEnd
+  1393	    }
+  1394	    fun adjustVerticalStart(delta: Float) {
+  1395	        if (delta == 0f) return
+  1396	        val newStart = (verticalRange.start + delta).coerceIn(0f, verticalRange.endInclusive - minSpan)
+  1397	        verticalRange = newStart..verticalRange.endInclusive
+  1398	    }
+  1399	    fun adjustVerticalEnd(delta: Float) {
+  1400	        if (delta == 0f) return
+  1401	        val newEnd = (verticalRange.endInclusive + delta).coerceIn(verticalRange.start + minSpan, 1f)
+  1402	        verticalRange = verticalRange.start..newEnd
+  1403	    }
+  1404	    fun moveSelection(deltaX: Float, deltaY: Float) {
+  1405	        if (deltaX == 0f && deltaY == 0f) return
+  1406	        val width = horizontalRange.endInclusive - horizontalRange.start
+  1407	        val height = verticalRange.endInclusive - verticalRange.start
+  1408	        val clampedDx = deltaX.coerceIn(-horizontalRange.start, 1f - horizontalRange.endInclusive)
+  1409	        val clampedDy = deltaY.coerceIn(-verticalRange.start, 1f - verticalRange.endInclusive)
+  1410	        val newStartX = (horizontalRange.start + clampedDx).coerceIn(0f, 1f - width)
+  1411	        val newStartY = (verticalRange.start + clampedDy).coerceIn(0f, 1f - height)
+  1412	        horizontalRange = newStartX..(newStartX + width)
+  1413	        verticalRange = newStartY..(newStartY + height)
+  1414	    }
+  1415	
+  1416	    androidx.compose.ui.window.Dialog(
+  1417	        onDismissRequest = onDismiss,
+  1418	        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+  1419	    ) {
+  1420	        Surface(
+  1421	            shape = RoundedCornerShape(20.dp),
+  1422	            tonalElevation = 6.dp,
+  1423	            modifier = Modifier
+  1424	                .fillMaxWidth()
+  1425	                .padding(horizontal = 8.dp)
+  1426	        ) {
+  1427	            Column(
+  1428	                modifier = Modifier
+  1429	                    .fillMaxWidth()
+  1430	                    .padding(20.dp),
+  1431	                verticalArrangement = Arrangement.spacedBy(16.dp)
+  1432	            ) {
+  1433	                Row(verticalAlignment = Alignment.CenterVertically) {
+  1434	                    Text(
+  1435	                        text = stringResource(R.string.crop_image),
+  1436	                        style = MaterialTheme.typography.titleMedium,
+  1437	                        modifier = Modifier.weight(1f)
+  1438	                    )
+  1439	                    IconButton(onClick = onDismiss) {
+  1440	                        Icon(Icons.Default.Close, contentDescription = "Close crop editor")
+  1441	                    }
+  1442	                }
+  1443	                Text(
+  1444	                    text = stringResource(R.string.drag_the_guides_or_use_the_sliders_to_define_what_stays_before_compression),
+  1445	                    style = MaterialTheme.typography.bodySmall,
+  1446	                    color = MaterialTheme.colorScheme.onSurfaceVariant
+  1447	                )
+  1448	
+  1449	                if (imageUri != null) {
+  1450	                    val previewPadding = 2.dp
+  1451	                    val sliderGap = 2.dp
+  1452	                    val sliderWidth = 100.dp
+  1453	                    val previewShape = RoundedCornerShape(20.dp)
+  1454	                    BoxWithConstraints(
+  1455	                        modifier = Modifier
+  1456	                            .fillMaxWidth()
+  1457	                            .padding(horizontal = previewPadding)
+  1458	                    ) {
+  1459	                        val controlsWidth = sliderWidth.coerceAtMost(maxWidth * 0.25f)
+  1460	                        val effectiveAspect = (aspectRatio ?: 4f / 3f).coerceIn(0.3f, 3.5f)
+  1461	                        Row(
+  1462	                            modifier = Modifier
+  1463	                                .fillMaxWidth()
+  1464	                                .height(IntrinsicSize.Min),
+  1465	                            horizontalArrangement = Arrangement.spacedBy(sliderGap),
+  1466	                            verticalAlignment = Alignment.CenterVertically
+  1467	                        ) {
+  1468	                            BoxWithConstraints(
+  1469	                                modifier = Modifier
+  1470	                                    .weight(1f)
+  1471	                                    .aspectRatio(effectiveAspect)
+  1472	                            ) {
+  1473	                                val previewWidth = maxWidth
+  1474	                                val previewHeight = maxHeight
+  1475	                                val density = LocalDensity.current
+  1476	                                val widthPx = with(density) { previewWidth.toPx() }.coerceAtLeast(1f)
+  1477	                                val heightPx = with(density) { previewHeight.toPx() }.coerceAtLeast(1f)
+  1478	                                val overlayColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f)
+  1479	                                val borderColor = MaterialTheme.colorScheme.primary
+  1480	                                val borderWidthPx = with(density) { 2.dp.toPx() }
+  1481	                                val handleColor = MaterialTheme.colorScheme.primary
+  1482	                                val handleThickness = 6.dp
+  1483	                                val handleLength = 48.dp
+  1484	                                val handleTouchExtra = 12.dp
+  1485	                                val cornerSize = 20.dp
+  1486	                                val leftDp = previewWidth * horizontalRange.start
+  1487	                                val topDp = previewHeight * verticalRange.start
+  1488	                                val rightDp = previewWidth * horizontalRange.endInclusive
+  1489	                                val bottomDp = previewHeight * verticalRange.endInclusive
+  1490	                                val centerXDp = (leftDp + rightDp) / 2f
+  1491	                                val centerYDp = (topDp + bottomDp) / 2f
+  1492	                                val selectionWidth = rightDp - leftDp
+  1493	                                val selectionHeight = bottomDp - topDp
+  1494	                                fun Modifier.handleDrag(onDrag: (Float, Float) -> Unit): Modifier {
+  1495	                                    return pointerInput(widthPx, heightPx) {
+  1496	                                        detectDragGestures { change, dragAmount ->
+  1497	                                            change.consume()
+  1498	                                            if (widthPx == 0f || heightPx == 0f) return@detectDragGestures
+  1499	                                            val deltaX = dragAmount.x / widthPx
+  1500	                                            val deltaY = dragAmount.y / heightPx
+  1501	                                            onDrag(deltaX, deltaY)
+  1502	                                        }
+  1503	                                    }
+  1504	                                }
+  1505	
+  1506	                                @Composable
+  1507	                                fun DragHandle(
+  1508	                                    offsetX: Dp,
+  1509	                                    offsetY: Dp,
+  1510	                                    width: Dp,
+  1511	                                    height: Dp,
+  1512	                                    onDrag: (Float, Float) -> Unit,
+  1513	                                    content: @Composable () -> Unit,
+  1514	                                ) {
+  1515	                                    Box(
+  1516	                                        modifier = Modifier
+  1517	                                            .offset(x = offsetX - handleTouchExtra, y = offsetY - handleTouchExtra)
+  1518	                                            .width(width + handleTouchExtra * 2)
+  1519	                                            .height(height + handleTouchExtra * 2)
+  1520	                                            .handleDrag(onDrag),
+  1521	                                        contentAlignment = Alignment.Center
+  1522	                                    ) { content() }
+  1523	                                }
+  1524	
+  1525	                                Box(
+  1526	                                    modifier = Modifier
+  1527	                                        .matchParentSize()
+  1528	                                        .clip(previewShape)
+  1529	                                ) {
+  1530	                                    AsyncImage(
+  1531	                                        model = imageUri,
+  1532	                                        contentDescription = null,
+  1533	                                        modifier = Modifier.matchParentSize(),
+  1534	                                        contentScale = ContentScale.Fit
+  1535	                                    )
+  1536	                                }
+  1537	                                Canvas(
+  1538	                                    modifier = Modifier
+  1539	                                        .matchParentSize()
+  1540	                                        .clip(previewShape)
+  1541	                                ) {
+  1542	                                    val leftPx = size.width * horizontalRange.start
+  1543	                                    val topPx = size.height * verticalRange.start
+  1544	                                    val rightPx = size.width * horizontalRange.endInclusive
+  1545	                                    val bottomPx = size.height * verticalRange.endInclusive
+  1546	                                    drawRect(
+  1547	                                        color = overlayColor,
+  1548	                                        size = androidx.compose.ui.geometry.Size(size.width, topPx)
+  1549	                                    )
+  1550	                                    drawRect(
+  1551	                                        color = overlayColor,
+  1552	                                        topLeft = Offset(0f, bottomPx),
+  1553	                                        size = androidx.compose.ui.geometry.Size(size.width, size.height - bottomPx)
+  1554	                                    )
+  1555	                                    drawRect(
+  1556	                                        color = overlayColor,
+  1557	                                        topLeft = Offset(0f, topPx),
+  1558	                                        size = androidx.compose.ui.geometry.Size(leftPx, bottomPx - topPx)
+  1559	                                    )
+  1560	                                    drawRect(
+  1561	                                        color = overlayColor,
+  1562	                                        topLeft = Offset(rightPx, topPx),
+  1563	                                        size = androidx.compose.ui.geometry.Size(size.width - rightPx, bottomPx - topPx)
+  1564	                                    )
+  1565	                                    drawRect(
+  1566	                                        color = borderColor,
+  1567	                                        topLeft = Offset(leftPx, topPx),
+  1568	                                        size = androidx.compose.ui.geometry.Size(rightPx - leftPx, bottomPx - topPx),
+  1569	                                        style = Stroke(width = borderWidthPx)
+  1570	                                    )
+  1571	                                }
+  1572	                                Box(
+  1573	                                    modifier = Modifier
+  1574	                                        .offset(x = leftDp, y = topDp)
+  1575	                                        .width(selectionWidth)
+  1576	                                        .height(selectionHeight)
+  1577	                                        .handleDrag { dx, dy -> moveSelection(dx, dy) }
+  1578	                                )
+  1579	                                Box(modifier = Modifier.matchParentSize().zIndex(1f)) {
+  1580	                                    DragHandle(
+  1581	                                        offsetX = leftDp - handleThickness / 2,
+  1582	                                        offsetY = centerYDp - handleLength / 2,
+  1583	                                        width = handleThickness,
+  1584	                                        height = handleLength,
+  1585	                                        onDrag = { dx, _ -> adjustHorizontalStart(dx) }
+  1586	                                    ) {
+  1587	                                        Box(
+  1588	                                            modifier = Modifier
+  1589	                                                .width(handleThickness)
+  1590	                                                .height(handleLength)
+  1591	                                                .clip(RoundedCornerShape(3.dp))
+  1592	                                                .background(handleColor)
+  1593	                                        )
+  1594	                                    }
+  1595	                                    DragHandle(
+  1596	                                        offsetX = rightDp - handleThickness / 2,
+  1597	                                        offsetY = centerYDp - handleLength / 2,
+  1598	                                        width = handleThickness,
+  1599	                                        height = handleLength,
+  1600	                                        onDrag = { dx, _ -> adjustHorizontalEnd(dx) }
+  1601	                                    ) {
+  1602	                                        Box(
+  1603	                                            modifier = Modifier
+  1604	                                                .width(handleThickness)
+  1605	                                                .height(handleLength)
+  1606	                                                .clip(RoundedCornerShape(3.dp))
+  1607	                                                .background(handleColor)
+  1608	                                        )
+  1609	                                    }
+  1610	                                    DragHandle(
+  1611	                                        offsetX = centerXDp - handleLength / 2,
+  1612	                                        offsetY = topDp - handleThickness / 2,
+  1613	                                        width = handleLength,
+  1614	                                        height = handleThickness,
+  1615	                                        onDrag = { _, dy -> adjustVerticalStart(dy) }
+  1616	                                    ) {
+  1617	                                        Box(
+  1618	                                            modifier = Modifier
+  1619	                                                .width(handleLength)
+  1620	                                                .height(handleThickness)
+  1621	                                                .clip(RoundedCornerShape(3.dp))
+  1622	                                                .background(handleColor)
+  1623	                                        )
+  1624	                                    }
+  1625	                                    DragHandle(
+  1626	                                        offsetX = centerXDp - handleLength / 2,
+  1627	                                        offsetY = bottomDp - handleThickness / 2,
+  1628	                                        width = handleLength,
+  1629	                                        height = handleThickness,
+  1630	                                        onDrag = { _, dy -> adjustVerticalEnd(dy) }
+  1631	                                    ) {
+  1632	                                        Box(
+  1633	                                            modifier = Modifier
+  1634	                                                .width(handleLength)
+  1635	                                                .height(handleThickness)
+  1636	                                                .clip(RoundedCornerShape(3.dp))
+  1637	                                                .background(handleColor)
+  1638	                                        )
+  1639	                                    }
+  1640	                                    DragHandle(
+  1641	                                        offsetX = leftDp - cornerSize / 2,
+  1642	                                        offsetY = topDp - cornerSize / 2,
+  1643	                                        width = cornerSize,
+  1644	                                        height = cornerSize,
+  1645	                                        onDrag = { dx, dy ->
+  1646	                                            adjustHorizontalStart(dx)
+  1647	                                            adjustVerticalStart(dy)
+  1648	                                        }
+  1649	                                    ) {
+  1650	                                        Box(
+  1651	                                            modifier = Modifier
+  1652	                                                .size(cornerSize)
+  1653	                                                .clip(RoundedCornerShape(6.dp))
+  1654	                                                .background(handleColor)
+  1655	                                        )
+  1656	                                    }
+  1657	                                    DragHandle(
+  1658	                                        offsetX = rightDp - cornerSize / 2,
+  1659	                                        offsetY = topDp - cornerSize / 2,
+  1660	                                        width = cornerSize,
+  1661	                                        height = cornerSize,
+  1662	                                        onDrag = { dx, dy ->
+  1663	                                            adjustHorizontalEnd(dx)
+  1664	                                            adjustVerticalStart(dy)
+  1665	                                        }
+  1666	                                    ) {
+  1667	                                        Box(
+  1668	                                            modifier = Modifier
+  1669	                                                .size(cornerSize)
+  1670	                                                .clip(RoundedCornerShape(6.dp))
+  1671	                                                .background(handleColor)
+  1672	                                        )
+  1673	                                    }
+  1674	                                    DragHandle(
+  1675	                                        offsetX = leftDp - cornerSize / 2,
+  1676	                                        offsetY = bottomDp - cornerSize / 2,
+  1677	                                        width = cornerSize,
+  1678	                                        height = cornerSize,
+  1679	                                        onDrag = { dx, dy ->
+  1680	                                            adjustHorizontalStart(dx)
+  1681	                                            adjustVerticalEnd(dy)
+  1682	                                        }
+  1683	                                    ) {
+  1684	                                        Box(
+  1685	                                            modifier = Modifier
+  1686	                                                .size(cornerSize)
+  1687	                                                .clip(RoundedCornerShape(6.dp))
+  1688	                                                .background(handleColor)
+  1689	                                        )
+  1690	                                    }
+  1691	                                    DragHandle(
+  1692	                                        offsetX = rightDp - cornerSize / 2,
+  1693	                                        offsetY = bottomDp - cornerSize / 2,
+  1694	                                        width = cornerSize,
+  1695	                                        height = cornerSize,
+  1696	                                        onDrag = { dx, dy ->
+  1697	                                            adjustHorizontalEnd(dx)
+  1698	                                            adjustVerticalEnd(dy)
+  1699	                                        }
+  1700	                                    ) {
+  1701	                                        Box(
+  1702	                                            modifier = Modifier
+  1703	                                                .size(cornerSize)
+  1704	                                                .clip(RoundedCornerShape(6.dp))
+  1705	                                                .background(handleColor)
+  1706	                                        )
+  1707	                                    }
+  1708	                                }
+  1709	                            }
+  1710	
+  1711	                            Column(
+  1712	                                modifier = Modifier
+  1713	                                    .width(controlsWidth)
+  1714	                                    .fillMaxHeight(),
+  1715	                                horizontalAlignment = Alignment.CenterHorizontally,
+  1716	                                verticalArrangement = Arrangement.spacedBy(8.dp)
+  1717	                            ) {
+  1718	                                Text(stringResource(R.string.vertical), style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
+  1719	                                VerticalRangeSlider(
+  1720	                                    value = verticalRange,
+  1721	                                    onValueChange = { range ->
+  1722	                                        val start = range.start.coerceIn(0f, 1f - minSpan)
+  1723	                                        val end = range.endInclusive.coerceIn(start + minSpan, 1f)
+  1724	                                        verticalRange = start..end
+  1725	                                    },
+  1726	                                    modifier = Modifier
+  1727	                                        .weight(1f)
+  1728	                                        .fillMaxWidth(),
+  1729	                                    valueRange = 0f..1f,
+  1730	                                    steps = 100
+  1731	                                )
+  1732	                                Text(
+  1733	                                    text = "${(verticalRange.start * 100).roundToInt()}% - ${(verticalRange.endInclusive * 100).roundToInt()}%",
+  1734	                                    style = MaterialTheme.typography.bodySmall,
+  1735	                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+  1736	                                    textAlign = TextAlign.Center
+  1737	                                )
+  1738	                            }
+  1739	                        }
+  1740	                    }
+  1741	                } else {
+  1742	                    Text(
+  1743	                        text = stringResource(R.string.select_an_image_to_crop),
+  1744	                        style = MaterialTheme.typography.bodyMedium,
+  1745	                        color = MaterialTheme.colorScheme.onSurfaceVariant
+  1746	                    )
+  1747	                }
+  1748	
+  1749	                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  1750	                    Text(stringResource(R.string.horizontal), style = MaterialTheme.typography.titleSmall)
+  1751	                    RangeSlider(
+  1752	                        value = horizontalRange,
+  1753	                        onValueChange = { range ->
+  1754	                            val start = range.start.coerceIn(0f, 1f - minSpan)
+  1755	                            val end = range.endInclusive.coerceIn(start + minSpan, 1f)
+  1756	                            horizontalRange = start..end
+  1757	                        },
+  1758	                        valueRange = 0f..1f,
+  1759	                        steps = 100
+  1760	                    )
+  1761	                    Text(
+  1762	                        text = "${(horizontalRange.start * 100).roundToInt()}% - ${(horizontalRange.endInclusive * 100).roundToInt()}%",
+  1763	                        style = MaterialTheme.typography.bodySmall,
+  1764	                        color = MaterialTheme.colorScheme.onSurfaceVariant
+  1765	                    )
+  1766	                }
+  1767	
+  1768	                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+  1769	                    TextButton(onClick = {
+  1770	                        horizontalRange = 0f..1f
+  1771	                        verticalRange = 0f..1f
+  1772	                    }) {
+  1773	                        Text(stringResource(R.string.reset))
+  1774	                    }
+  1775	                    Spacer(Modifier.weight(1f))
+  1776	                    TextButton(onClick = onDismiss) {
+  1777	                        Text(stringResource(R.string.cancel))
+  1778	                    }
+  1779	                    Button(onClick = {
+  1780	                        val normalized = currentBounds.normalized()
+  1781	                        val applied = normalized.takeUnless { it.isFull() }
+  1782	                        onCropBoundsChange(applied)
+  1783	                        onDismiss()
+  1784	                    }) {
+  1785	                        Text(stringResource(R.string.apply))
+  1786	                    }
+  1787	                }
+  1788	            }
+  1789	        }
+  1790	    }
+  1791	}
+  1792	
+  1793	@Composable
+  1794	private fun VerticalRangeSlider(
+  1795	    value: ClosedFloatingPointRange<Float>,
+  1796	    onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
+  1797	    modifier: Modifier = Modifier,
+  1798	    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+  1799	    steps: Int = 0,
+  1800	) {
+  1801	    RangeSlider(
+  1802	        value = value,
+  1803	        onValueChange = onValueChange,
+  1804	        valueRange = valueRange,
+  1805	        steps = steps,
+  1806	        modifier = modifier.rotate(-90f)
+  1807	    )
+  1808	}
+  1809	
+  1810	@Composable
+  1811	private fun rememberImageAspectRatio(imageUri: Uri?): Float? {
+  1812	    val context = LocalContext.current
+  1813	    var aspectRatio by remember(imageUri) { mutableStateOf<Float?>(null) }
+  1814	
+  1815	    LaunchedEffect(imageUri, context) {
+  1816	        aspectRatio = imageUri?.let { uri ->
+  1817	            withContext(Dispatchers.IO) {
+  1818	                runCatching {
+  1819	                    context.contentResolver.openInputStream(uri)?.use { stream ->
+  1820	                        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+  1821	                        BitmapFactory.decodeStream(stream, null, options)
+  1822	                        if (options.outWidth > 0 && options.outHeight > 0) {
+  1823	                            options.outWidth.toFloat() / options.outHeight.toFloat()
+  1824	                        } else {
+  1825	                            null
+  1826	                        }
+  1827	                    }
+  1828	                }.getOrNull()
+  1829	            }
+  1830	        }
+  1831	    }
+  1832	    return aspectRatio
+  1833	}
+  1834	
+  1835	@Composable
+  1836	fun ProgressCard(state: CompressionUiState) {
+  1837	    val progress = if (state.totalCount == 0) 0f else state.processedCount.toFloat() / max(1, state.totalCount)
+  1838	    val context = LocalContext.current
+  1839	    val title = if (state.isProcessing) stringResource(R.string.processing_dots) else stringResource(R.string.completed)
+  1840	    
+  1841	    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+  1842	        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  1843	            Text(title, style = MaterialTheme.typography.titleMedium)
+  1844	            LinearProgressIndicator(progress = { progress.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+  1845	            val fileLabel = if (state.totalCount == 1) "file" else "files"
+  1846	            Text("${state.processedCount}/${state.totalCount} $fileLabel processed", style = MaterialTheme.typography.bodySmall)
+  1847	            state.lastResult?.let { last ->
+  1848	                val lastItemName = remember(last.source) {
+  1849	                    DocumentFile.fromSingleUri(context, last.source)?.name ?: last.source.lastPathSegment ?: ""
+  1850	                }
+  1851	                Text("Last item: $lastItemName", style = MaterialTheme.typography.labelSmall)
+  1852	                Text(last.message, style = MaterialTheme.typography.labelSmall)
+  1853	            }
+  1854	        }
+  1855	    }
+  1856	}
+  1857	
+  1858	@Composable
+  1859	fun ResultsCard(results: List<CompressionResult>) {
+  1860	    val successfulResults = results.filter { it.success }
+  1861	    val totalOriginal = successfulResults.sumOf { it.originalSizeBytes }
+  1862	    val totalCompressed = successfulResults.sumOf { it.compressedSizeBytes }
+  1863	    var zoomTarget by remember { mutableStateOf<Uri?>(null) }
+  1864	    var zoomLabel by remember { mutableStateOf<String?>(null) }
+  1865	
+  1866	    Card {
+  1867	        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+  1868	            Text(stringResource(R.string.results), style = MaterialTheme.typography.titleMedium)
+  1869	            if (successfulResults.isNotEmpty()) {
+  1870	                Text("${stringResource(R.string.total_size_transition, totalOriginal.asReadableBytes(), totalCompressed.asReadableBytes())}", style = MaterialTheme.typography.bodyMedium)
+  1871	            }
+  1872	            LazyColumn(
+  1873	                modifier = Modifier.heightIn(max = 400.dp),
+  1874	                verticalArrangement = Arrangement.spacedBy(8.dp)
+  1875	            ) {
+  1876	                items(results.size) { index ->
+  1877	                    val result = results[index]
+  1878	                    ResultRow(
+  1879	                        result = result,
+  1880	                        onPreviewClick = { uri, label ->
+  1881	                            zoomTarget = uri
+  1882	                            zoomLabel = label
+  1883	                        }
+  1884	                    )
+  1885	                    if (index != results.lastIndex) {
+  1886	                        HorizontalDivider()
+  1887	                    }
+  1888	                }
+  1889	            }
+  1890	        }
+  1891	    }
+  1892	
+  1893	    if (zoomTarget != null) {
+  1894	        androidx.compose.ui.window.Dialog(onDismissRequest = {
+  1895	            zoomTarget = null
+  1896	            zoomLabel = null
+  1897	        }) {
+  1898	            Surface(shape = RoundedCornerShape(20.dp)) {
+  1899	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+  1900	                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+  1901	                        Text(zoomLabel ?: stringResource(R.string.preview), style = MaterialTheme.typography.titleMedium)
+  1902	                        IconButton(onClick = {
+  1903	                            zoomTarget = null
+  1904	                            zoomLabel = null
+  1905	                        }) {
+  1906	                            Icon(Icons.Default.Close, contentDescription = null)
+  1907	                        }
+  1908	                    }
+  1909	                    Box(
+  1910	                        modifier = Modifier
+  1911	                            .fillMaxWidth()
+  1912	                            .heightIn(min = 200.dp, max = 420.dp)
+  1913	                            .clip(RoundedCornerShape(12.dp))
+  1914	                    ) {
+  1915	                        ZoomableImage(uri = zoomTarget)
+  1916	                    }
+  1917	                    TextButton(onClick = {
+  1918	                        zoomTarget = null
+  1919	                        zoomLabel = null
+  1920	                    }, modifier = Modifier.align(Alignment.End)) {
+  1921	                        Text(stringResource(R.string.close))
+  1922	                    }
+  1923	                }
+  1924	            }
+  1925	        }
+  1926	    }
+  1927	}
+  1928	
+  1929	@Composable
+  1930	fun ResultRow(
+  1931	    result: CompressionResult,
+  1932	    onPreviewClick: (Uri, String) -> Unit,
+  1933	) {
+  1934	    val context = LocalContext.current
+  1935	    val showPreview = remember(result.source, result.output, result.success) {
+  1936	        result.success && result.output != null &&
+  1937	            (DocumentFile.fromSingleUri(context, result.source)?.type?.startsWith("image/") == true)
+  1938	    }
+  1939	    val sourceName = remember(result.source) {
+  1940	        DocumentFile.fromSingleUri(context, result.source)?.name ?: result.source.lastPathSegment ?: "File"
+  1941	    }
+  1942	    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  1943	        Text(sourceName, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+  1944	        if (showPreview) {
+  1945	            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+  1946	                // Before
+  1947	                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+  1948	                    Text(stringResource(R.string.before), style = MaterialTheme.typography.bodySmall)
+  1949	                    AsyncImage(
+  1950	                        model = result.source,
+  1951	                        contentDescription = null,
+  1952	                        modifier = Modifier
+  1953	                            .size(80.dp)
+  1954	                            .clip(RoundedCornerShape(4.dp))
+  1955	                            .clickable { onPreviewClick(result.source, "Original") },
+  1956	                        contentScale = ContentScale.Crop
+  1957	                    )
+  1958	                    Text(result.originalSizeBytes.asReadableBytes(), style = MaterialTheme.typography.bodySmall)
+  1959	                }
+  1960	                // After
+  1961	                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+  1962	                    Text(stringResource(R.string.after), style = MaterialTheme.typography.bodySmall)
+  1963	                    AsyncImage(
+  1964	                        model = result.output,
+  1965	                        contentDescription = null,
+  1966	                        modifier = Modifier
+  1967	                            .size(80.dp)
+  1968	                            .clip(RoundedCornerShape(4.dp))
+  1969	                            .clickable { result.output?.let { onPreviewClick(it, "Compressed") } },
+  1970	                        contentScale = ContentScale.Crop
+  1971	                    )
+  1972	                    Text(result.compressedSizeBytes.asReadableBytes(), style = MaterialTheme.typography.bodySmall)
+  1973	                }
+  1974	            }
+  1975	        } else {
+  1976	            Row(verticalAlignment = Alignment.CenterVertically) {
+  1977	                Icon(
+  1978	                    if (result.success) Icons.Default.CheckCircle else Icons.Default.Error,
+  1979	                    contentDescription = null,
+  1980	                    tint = if (result.success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+  1981	                )
+  1982	                Spacer(Modifier.width(8.dp))
+  1983	                Text(
+  1984	                    if (result.success) "Processed to ${result.compressedSizeBytes.asReadableBytes()}" else result.message,
+  1985	                    style = MaterialTheme.typography.bodySmall,
+  1986	                    color = if (result.success) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
+  1987	                )
+  1988	            }
+  1989	        }
+  1990	    }
+  1991	}
+  1992	
+  1993	@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+  1994	@Composable
+  1995	private fun PreviewKompact() {
+  1996	    KompactTheme {
+  1997	        KompactScreen(
+  1998	            state = CompressionUiState(),
+  1999	            onPickFiles = {},
+  2000	            onCompressClick = {},
+  2001	            onImageConfigChange = {},
+  2002	            onRemoveFile = {},
+  2003	            onClearSelection = {},
+  2004	            onPickDestination = {},
+  2005	            onClearDestination = {},
+  2006	            onExifDataChange = { _ -> },
+  2007	            onToggleExifEditor = {},
+  2008	            onToggleTextEditor = {},
+  2009	            onTextConfigChange = { _ -> },
+  2010	            onToggleCropEditor = {},
+  2011	            onCropBoundsChange = { _ -> },
+  2012	            onToggleResizeEditor = {},
+  2013	            onResizeConfigChange = { _ -> },
+  2014	            onBackgroundConfigChange = { _ -> },
+  2015	            onToggleColorFilterEditor = {},
+  2016	            onColorFilterChange = { _ -> },
+  2017	            onRotate = { _ -> },
+  2018	            onResetEditsClick = {},
+  2019	            onNavigateToSettings = {},
+  2020	            onNavigateToHome = {},
+  2021	            onNavigateToAbout = {},
+  2022	            onNavigateToDonate = {},
+  2023	            onThemeModeChange = {},
+  2024	            onPickDefaultDestination = {},
+  2025	            onClearDefaultDestination = {},
+  2026	        )
+  2027	    }
+  2028	}
+  2029	
+  2030	@Composable
+  2031	fun LivePreviewCard(
+  2032	    livePreview: LivePreviewState,
+  2033	    canCrop: Boolean,
+  2034	    isCropEditorVisible: Boolean,
+  2035	    isCropApplied: Boolean,
+  2036	    onCropClick: () -> Unit,
+  2037	    canResize: Boolean,
+  2038	    isResizeEditorVisible: Boolean,
+  2039	    isResizeApplied: Boolean,
+  2040	    onResizeClick: () -> Unit,
+  2041	    
+  2042	    onRotateClick: () -> Unit,
+  2043	    onColorFilterClick: () -> Unit,
+  2044	    onResetEditsClick: () -> Unit,
+  2045	    canText: Boolean = false,
+  2046	    isTextEditorVisible: Boolean = false,
+  2047	    isTextApplied: Boolean = false,
+  2048	    onTextClick: () -> Unit = {},
+  2049	    modifier: Modifier = Modifier,
+  2050	) {
+  2051	    var zoomTarget by remember { mutableStateOf<Uri?>(null) }
+  2052	    var zoomLabel by remember { mutableStateOf<String?>(null) }
+  2053	    Card(modifier) {
+  2054	        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+  2055	            Column(
+  2056	                verticalArrangement = Arrangement.spacedBy(8.dp)
+  2057	            ) {
+  2058	                Row(
+  2059	                    modifier = Modifier.fillMaxWidth(),
+  2060	                    horizontalArrangement = Arrangement.SpaceBetween,
+  2061	                    verticalAlignment = Alignment.CenterVertically
+  2062	                ) {
+  2063	                    Text(stringResource(R.string.live_preview), style = MaterialTheme.typography.titleMedium)
+  2064	                    TextButton(
+  2065	                        onClick = onResetEditsClick,
+  2066	                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+  2067	                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+  2068	                        )
+  2069	                    ) {
+  2070	                        androidx.compose.material3.Icon(
+  2071	                            imageVector = androidx.compose.material.icons.Icons.Default.Refresh,
+  2072	                            contentDescription = stringResource(R.string.reset),
+  2073	                            modifier = Modifier.size(16.dp)
+  2074	                        )
+  2075	                        Spacer(modifier = Modifier.width(4.dp))
+  2076	                        Text(stringResource(R.string.reset))
+  2077	                    }
+  2078	                }
+  2079	                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+  2080	                androidx.compose.foundation.layout.FlowRow(
+  2081	                    modifier = Modifier.fillMaxWidth(),
+  2082	                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+  2083	                ) {
+  2084	                    if (canCrop) {
+  2085	                        TextButton(onClick = onCropClick) {
+  2086	                            Icon(androidx.compose.material.icons.Icons.Default.Crop, contentDescription = null)
+  2087	                            Spacer(Modifier.width(8.dp))
+  2088	                            val label = when {
+  2089	                                isCropEditorVisible -> "Close Crop"
+  2090	                                isCropApplied -> "Edit Crop"
+  2091	                                else -> "Crop"
+  2092	                            }
+  2093	                            Text(label)
+  2094	                        }
+  2095	                    }
+  2096	                    if (canResize) {
+  2097	                        TextButton(onClick = onResizeClick) {
+  2098	                            Icon(androidx.compose.material.icons.Icons.Default.PhotoSizeSelectLarge, contentDescription = null)
+  2099	                            Spacer(Modifier.width(8.dp))
+  2100	                            val label = when {
+  2101	                                isResizeEditorVisible -> "Close Resize"
+  2102	                                isResizeApplied -> "Edit Resize"
+  2103	                                else -> stringResource(R.string.resize)
+  2104	                            }
+  2105	                            Text(label)
+  2106	                        }
+  2107	                    }
+  2108	                    TextButton(onClick = onRotateClick) {
+  2109	                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.RotateRight, contentDescription = null)
+  2110	                        Spacer(Modifier.width(8.dp))
+  2111	                        Text(stringResource(R.string.rotate))
+  2112	                    }
+  2113	                    TextButton(onClick = onColorFilterClick) {
+  2114	                        Icon(androidx.compose.material.icons.Icons.Default.Palette, contentDescription = null)
+  2115	                        Spacer(Modifier.width(8.dp))
+  2116	                        Text(stringResource(R.string.color_filter))
+  2117	                    }
+  2118	                    if (canText) {
+  2119	                        TextButton(onClick = onTextClick) {
+  2120	                            Icon(androidx.compose.material.icons.Icons.Default.TextFields, contentDescription = null)
+  2121	                            Spacer(Modifier.width(8.dp))
+  2122	                            val label = when {
+  2123	                                isTextEditorVisible -> "Close Text"
+  2124	                                isTextApplied -> "Edit Text"
+  2125	                                else -> "Text"
+  2126	                            }
+  2127	                            Text(label)
+  2128	                        }
+  2129	                    }
+  2130	                }
+  2131	            }
+  2132	            val hasPreviews = livePreview.kind == PreviewKind.IMAGE && livePreview.previews.isNotEmpty()
+  2133	            val showLoadingOnly = livePreview.isGenerating && !hasPreviews
+  2134	
+  2135	            Box {
+  2136	                when {
+  2137	                    hasPreviews -> {
+  2138	                        val totalOriginal = livePreview.previews.sumOf { it.originalBytes }
+  2139	                        val totalEstimated = livePreview.previews.sumOf { it.estimatedBytes }
+  2140	                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  2141	                            Text("${stringResource(R.string.total_size_transition, totalOriginal.asReadableBytes(), totalEstimated.asReadableBytes())}", style = MaterialTheme.typography.bodyMedium)
+  2142	                            LazyColumn(
+  2143	                                modifier = Modifier.heightIn(max = 400.dp),
+  2144	                                verticalArrangement = Arrangement.spacedBy(8.dp)
+  2145	                            ) {
+  2146	                                items(livePreview.previews.size) { index ->
+  2147	                                    val preview = livePreview.previews[index]
+  2148	                                    LivePreviewRow(
+  2149	                                        preview = preview,
+  2150	                                        onPreviewClick = { uri, label ->
+  2151	                                            zoomTarget = uri
+  2152	                                            zoomLabel = label
+  2153	                                        }
+  2154	                                    )
+  2155	                                }
+  2156	                            }
+  2157	                        }
+  2158	                    }
+  2159	                    livePreview.errorMessage != null -> {
+  2160	                        Text(livePreview.errorMessage, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+  2161	                    }
+  2162	                    showLoadingOnly -> {
+  2163	                        Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+  2164	                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+  2165	                                CircularProgressIndicator()
+  2166	                                Text(stringResource(R.string.generating_preview), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+  2167	                            }
+  2168	                        }
+  2169	                    }
+  2170	                }
+  2171	
+  2172	                if (livePreview.isGenerating && hasPreviews) {
+  2173	                    Box(
+  2174	                        Modifier
+  2175	                            .matchParentSize()
+  2176	                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.82f)),
+  2177	                        contentAlignment = Alignment.Center
+  2178	                    ) {
+  2179	                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+  2180	                            CircularProgressIndicator()
+  2181	                            Text(stringResource(R.string.updating_preview), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+  2182	                        }
+  2183	                    }
+  2184	                }
+  2185	            }
+  2186	        }
+  2187	    }
+  2188	    if (zoomTarget != null) {
+  2189	        androidx.compose.ui.window.Dialog(onDismissRequest = {
+  2190	            zoomTarget = null
+  2191	            zoomLabel = null
+  2192	        }) {
+  2193	            Surface(shape = RoundedCornerShape(20.dp)) {
+  2194	                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+  2195	                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+  2196	                        Text(zoomLabel ?: stringResource(R.string.preview), style = MaterialTheme.typography.titleMedium)
+  2197	                        IconButton(onClick = {
+  2198	                            zoomTarget = null
+  2199	                            zoomLabel = null
+  2200	                        }) {
+  2201	                            Icon(Icons.Default.Close, contentDescription = null)
+  2202	                        }
+  2203	                    }
+  2204	                    Box(
+  2205	                        modifier = Modifier
+  2206	                            .fillMaxWidth()
+  2207	                            .heightIn(min = 200.dp, max = 420.dp)
+  2208	                            .clip(RoundedCornerShape(12.dp))
+  2209	                    ) {
+  2210	                        ZoomableImage(uri = zoomTarget)
+  2211	                    }
+  2212	                    TextButton(onClick = {
+  2213	                        zoomTarget = null
+  2214	                        zoomLabel = null
+  2215	                    }, modifier = Modifier.align(Alignment.End)) {
+  2216	                        Text(stringResource(R.string.close))
+  2217	                    }
+  2218	                }
+  2219	            }
+  2220	        }
+  2221	    }
+  2222	}
+  2223	
+  2224	@Composable
+  2225	fun LivePreviewRow(
+  2226	    preview: ImagePreviewPayload,
+  2227	    onPreviewClick: (Uri, String) -> Unit,
+  2228	) {
+  2229	    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+  2230	        // Before
+  2231	        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+  2232	            Text(stringResource(R.string.before), style = MaterialTheme.typography.bodySmall)
+  2233	            AsyncImage(
+  2234	                model = preview.source,
+  2235	                contentDescription = null,
+  2236	                modifier = Modifier
+  2237	                    .size(80.dp)
+  2238	                    .clip(RoundedCornerShape(4.dp))
+  2239	                    .clickable { onPreviewClick(preview.source, str_original) },
+  2240	                contentScale = ContentScale.Crop
+  2241	            )
+  2242	            Text(preview.originalBytes.asReadableBytes(), style = MaterialTheme.typography.bodySmall)
+  2243	        }
+  2244	
+  2245	        // Cropped (Optional)
+  2246	        if (preview.croppedPreviewUri != null) {
+  2247	            val strCropped = stringResource(R.string.cropped)
+  2248	            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+  2249	                Text(stringResource(R.string.cropped), style = MaterialTheme.typography.bodySmall)
+  2250	                val context = androidx.compose.ui.platform.LocalContext.current
+  2251	                val croppedRequest = remember(preview) {
+  2252	                    coil.request.ImageRequest.Builder(context)
+  2253	                        .data(preview.croppedPreviewUri)
+  2254	                        .memoryCacheKey("crop_${System.identityHashCode(preview)}")
+  2255	                        .diskCacheKey("crop_${System.identityHashCode(preview)}")
+  2256	                        .build()
+  2257	                }
+  2258	                AsyncImage(
+  2259	                    model = croppedRequest,
+  2260	                    contentDescription = null,
+  2261	                    modifier = Modifier
+  2262	                        .size(80.dp)
+  2263	                        .clip(RoundedCornerShape(4.dp))
+  2264	                        .clickable { onPreviewClick(preview.croppedPreviewUri, strCropped) },
+  2265	                    contentScale = ContentScale.Crop
+  2266	                )
+  2267	                Text("-", style = MaterialTheme.typography.bodySmall)
+  2268	            }
+  2269	        }
+  2270	
+  2271	        // After
+  2272	        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+  2273	            Text(stringResource(R.string.after), style = MaterialTheme.typography.bodySmall)
+  2274	            val context = androidx.compose.ui.platform.LocalContext.current
+  2275	            val request = remember(preview) {
+  2276	                coil.request.ImageRequest.Builder(context)
+  2277	                    .data(preview.previewUri)
+  2278	                    .memoryCacheKey("after_${System.identityHashCode(preview)}")
+  2279	                    .diskCacheKey("after_${System.identityHashCode(preview)}")
+  2280	                    .build()
+  2281	            }
+  2282	            AsyncImage(
+  2283	                model = request,
+  2284	                contentDescription = null,
+  2285	                modifier = Modifier
+  2286	                    .size(80.dp)
+  2287	                    .clip(RoundedCornerShape(4.dp))
+  2288	                    .clickable { onPreviewClick(preview.previewUri, "Compressed (${preview.formatExtension.uppercase()})") },
+  2289	                contentScale = ContentScale.Crop
+  2290	            )
+  2291	            Text("${preview.estimatedBytes.asReadableBytes()} (${preview.formatExtension.uppercase()})", style = MaterialTheme.typography.bodySmall)
+  2292	        }
+  2293	    }
+  2294	}
+  2295	
+  2296	@Composable
+  2297	fun ZoomableImage(
+  2298	    uri: Uri?,
+  2299	    modifier: Modifier = Modifier,
+  2300	) {
+  2301	    var scale by remember { mutableStateOf(1f) }
+  2302	    var offset by remember { mutableStateOf(Offset.Zero) }
+  2303	    val state = rememberTransformableState { zoomChange, offsetChange, _ ->
+  2304	        scale *= zoomChange
+  2305	        scale = scale.coerceIn(0.5f, 3f)
+  2306	        offset += offsetChange
+  2307	    }
+  2308	
+  2309	    val context = androidx.compose.ui.platform.LocalContext.current
+  2310	    val request = remember(uri) {
+  2311	        coil.request.ImageRequest.Builder(context)
+  2312	            .data(uri)
+  2313	            .memoryCacheKey(uri?.toString() + "_" + System.currentTimeMillis())
+  2314	            .diskCacheKey(uri?.toString() + "_" + System.currentTimeMillis())
+  2315	            .build()
+  2316	    }
+  2317	
+  2318	    AsyncImage(
+  2319	        model = request,
+  2320	        contentDescription = null,
+  2321	        modifier = modifier
+  2322	            .graphicsLayer(
+  2323	                scaleX = scale,
+  2324	                scaleY = scale,
+  2325	                translationX = offset.x,
+  2326	                translationY = offset.y
+  2327	            )
+  2328	            .transformable(state = state)
+  2329	            .pointerInput(Unit) {
+  2330	                detectTapGestures(
+  2331	                    onDoubleTap = {
+  2332	                        scale = 1f
+  2333	                        offset = Offset.Zero
+  2334	                    }
+  2335	                )
+  2336	            },
+  2337	        contentScale = ContentScale.Fit
+  2338	    )
+  2339	}
+  2340	
+  2341	private fun inferOriginalFormat(file: SelectedFileDescriptor?): ImageOutputFormat? {
+  2342	    if (file == null) return null
+  2343	    val mime = file.mimeType?.lowercase(Locale.ROOT)
+  2344	    val extension = file.displayName.substringAfterLast('.', "").lowercase(Locale.ROOT)
+  2345	    val source = mime ?: extension
+  2346	    return when {
+  2347	        source.contains("jpeg") || source.contains("jpg") -> ImageOutputFormat.JPG
+  2348	        source.contains("png") -> ImageOutputFormat.PNG
+  2349	        source.contains("webp") -> ImageOutputFormat.WEBP
+  2350	        source.contains("bmp") -> ImageOutputFormat.BMP
+  2351	        source.contains("gif") -> ImageOutputFormat.GIF
+  2352	        source.contains("tif") || source.contains("tiff") -> ImageOutputFormat.TIF
+  2353	        source.contains("heif") -> ImageOutputFormat.HEIF
+  2354	        source.contains("heic") -> ImageOutputFormat.HEIC
+  2355	        source.contains("avif") -> ImageOutputFormat.AVIF
+  2356	        source.contains("jxl") -> ImageOutputFormat.JXL
+  2357	        else -> null
+  2358	    }
+  2359	}
+  2360	
+  2361	private fun inferDefaultFormatLabel(file: SelectedFileDescriptor?): String? {
+  2362	    return inferOriginalFormat(file)?.let { format ->
+  2363	        when (format) {
+  2364	            ImageOutputFormat.JPG -> "JPG"
+  2365	            ImageOutputFormat.PNG -> "PNG"
+  2366	            ImageOutputFormat.WEBP -> "WebP"
+  2367	            ImageOutputFormat.BMP -> "BMP"
+  2368	            ImageOutputFormat.GIF -> "GIF"
+  2369	            ImageOutputFormat.TIF -> "TIF"
+  2370	            ImageOutputFormat.HEIF -> "HEIF"
+  2371	            ImageOutputFormat.HEIC -> "HEIC"
+  2372	            ImageOutputFormat.AVIF -> "AVIF"
+  2373	            ImageOutputFormat.JXL -> "JXL"
+  2374	            else -> format.name
+  2375	        }
+  2376	    }
+  2377	}
+  2378	
+  2379	private fun formatDisplayLabel(format: ImageOutputFormat, defaultFormatLabel: String?): String {
+  2380	    return when (format) {
+  2381	        ImageOutputFormat.ORIGINAL -> defaultFormatLabel?.let { "Original ($it)" } ?: stringResource(R.string.original)
+  2382	        else -> format.name
+  2383	    }
+  2384	}
+  2385	
+  2386	private fun getFolderDisplayName(uri: Uri?): String {
+  2387	    return uri?.let { u ->
+  2388	        val path = u.path ?: ""
+  2389	        val cleanedPath = path.replace("primary:", "")
+  2390	        val segments = cleanedPath.split("/").filter { it.isNotEmpty() }
+  2391	        when {
+  2392	            segments.size >= 2 -> "${segments[segments.size - 2]}/${segments.last()}"
+  2393	            segments.size == 1 -> segments.first()
+  2394	            else -> "Selected folder"
+  2395	        }
+  2396	    } ?: "Not set"
+  2397	}
+  2398	
+  2399	@Composable
+  2400	fun ResizeEditorDialog(
+  2401	    config: com.kompact.model.ResizeConfig?,
+  2402	    previewUri: Uri?,
+  2403	    onConfigChange: (com.kompact.model.ResizeConfig?) -> Unit,
+  2404	    onDismiss: () -> Unit
+  2405	) {
+  2406	    var widthStr by remember { mutableStateOf(config?.width?.takeIf { it > 0 }?.toString() ?: "") }
+  2407	    var heightStr by remember { mutableStateOf(config?.height?.takeIf { it > 0 }?.toString() ?: "") }
+  2408	    var maintainAspect by remember { mutableStateOf(config?.maintainAspectRatio ?: true) }
+  2409	    var isPercentage by remember { mutableStateOf(config?.isPercentage ?: false) }
+  2410	
+  2411	    androidx.compose.ui.window.Dialog(
+  2412	        onDismissRequest = onDismiss,
+  2413	        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+  2414	    ) {
+  2415	        androidx.compose.material3.Surface(
+  2416	            modifier = Modifier
+  2417	                .fillMaxWidth(0.9f)
+  2418	                .fillMaxHeight(0.85f),
+  2419	            shape = RoundedCornerShape(16.dp)
+  2420	        ) {
+  2421	            Column(
+  2422	                modifier = Modifier.padding(16.dp)
+  2423	            ) {
+  2424	                Text(stringResource(R.string.resize), style = MaterialTheme.typography.titleLarge)
+  2425	                Spacer(Modifier.height(16.dp))
+  2426	
+  2427	                Box(
+  2428	                    modifier = Modifier
+  2429	                        .weight(1f)
+  2430	                        .fillMaxWidth(),
+  2431	                    contentAlignment = Alignment.Center
+  2432	                ) {
+  2433	                    if (previewUri != null) {
+  2434	                        coil.compose.AsyncImage(
+  2435	                            model = previewUri,
+  2436	                            contentDescription = stringResource(R.string.preview),
+  2437	                            modifier = Modifier.fillMaxSize(),
+  2438	                            contentScale = ContentScale.Fit
+  2439	                        )
+  2440	                    } else {
+  2441	                        Text(stringResource(R.string.no_preview_available))
+  2442	                    }
+  2443	                }
+  2444	
+  2445	                Spacer(Modifier.height(16.dp))
+  2446	                
+  2447	                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  2448	                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+  2449	                        OutlinedTextField(
+  2450	                            value = widthStr,
+  2451	                            onValueChange = { widthStr = it },
+  2452	                            label = { Text(if (isPercentage) "Scale %" else "Resize Width") },
+  2453	                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+  2454	                            modifier = Modifier.weight(1f)
+  2455	                        )
+  2456	                        if (!isPercentage) {
+  2457	                            OutlinedTextField(
+  2458	                                value = heightStr,
+  2459	                                onValueChange = { heightStr = it },
+  2460	                                label = { Text(stringResource(R.string.resize_height)) },
+  2461	                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+  2462	                                modifier = Modifier.weight(1f)
+  2463	                            )
+  2464	                        }
+  2465	                    }
+  2466	                    Row(verticalAlignment = Alignment.CenterVertically) {
+  2467	                        Checkbox(checked = isPercentage, onCheckedChange = { isPercentage = it })
+  2468	                        Text(stringResource(R.string.resize_percentage))
+  2469	                    }
+  2470	                    if (!isPercentage) {
+  2471	                        Row(verticalAlignment = Alignment.CenterVertically) {
+  2472	                            Checkbox(checked = maintainAspect, onCheckedChange = { maintainAspect = it })
+  2473	                            Text(stringResource(R.string.resize_keep_aspect))
+  2474	                        }
+  2475	                    }
+  2476	                }
+  2477	
+  2478	                Spacer(Modifier.height(16.dp))
+  2479	                Row(
+  2480	                    modifier = Modifier.fillMaxWidth(),
+  2481	                    horizontalArrangement = Arrangement.End
+  2482	                ) {
+  2483	                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+  2484	                    TextButton(onClick = {
+  2485	                        onConfigChange(null)
+  2486	                        onDismiss()
+  2487	                    }) { Text(stringResource(R.string.clear)) }
+  2488	                    Button(onClick = {
+  2489	                        val w = widthStr.toIntOrNull() ?: 0
+  2490	                        val h = heightStr.toIntOrNull() ?: 0
+  2491	                        if (w > 0 || h > 0) {
+  2492	                            onConfigChange(com.kompact.model.ResizeConfig(w, h, maintainAspect, isPercentage))
+  2493	                        }
+  2494	                        onDismiss()
+  2495	                    }) { Text(stringResource(R.string.apply)) }
+  2496	                }
+  2497	            }
+  2498	        }
+  2499	    }
+  2500	}
+  2501	
+  2502	@Composable
+  2503	fun FiltersEditorDialog(
+  2504	    currentColorConfig: com.kompact.model.ColorFilterConfig?,
+  2505	    currentBackgroundConfig: com.kompact.model.BackgroundConfig?,
+  2506	    previewUri: android.net.Uri?,
+  2507	    showJpegWarning: Boolean,
+  2508	    onConfirm: (com.kompact.model.ColorFilterConfig?, com.kompact.model.BackgroundConfig?) -> Unit,
+  2509	    onDismiss: () -> Unit
+  2510	) {
+  2511	    var localColorConfig by remember { androidx.compose.runtime.mutableStateOf(currentColorConfig ?: com.kompact.model.ColorFilterConfig()) }
+  2512	    var localBgConfig by remember { androidx.compose.runtime.mutableStateOf(currentBackgroundConfig ?: com.kompact.model.BackgroundConfig()) }
+  2513	    
+  2514	    var selectedTab by remember { androidx.compose.runtime.mutableStateOf(
+  2515	        if (currentColorConfig == null) "NONE"
+  2516	        else currentColorConfig.filterType.name
+  2517	    ) }
+  2518	
+  2519	    val filterTypes = com.kompact.model.ColorFilterType.values().toList()
+  2520	    
+  2521	    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+  2522	        androidx.compose.material3.Surface(
+  2523	            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f),
+  2524	            shape = RoundedCornerShape(16.dp),
+  2525	            color = MaterialTheme.colorScheme.surface,
+  2526	            tonalElevation = 8.dp
+  2527	        ) {
+  2528	            Column(
+  2529	                modifier = Modifier.fillMaxSize().padding(16.dp)
+  2530	            ) {
+  2531	                Text(
+  2532	                    text = stringResource(R.string.action_color_filter),
+  2533	                    style = MaterialTheme.typography.titleLarge,
+  2534	                    color = MaterialTheme.colorScheme.onSurface
+  2535	                )
+  2536	                
+  2537	                Spacer(Modifier.height(16.dp))
+  2538	
+  2539	                Box(
+  2540	                    modifier = Modifier
+  2541	                        .fillMaxWidth()
+  2542	                        .weight(1f)
+  2543	                        .clip(RoundedCornerShape(8.dp))
+  2544	                        .background(
+  2545	                            when (localBgConfig.type) {
+  2546	                                com.kompact.model.BackgroundType.TRANSPARENT -> androidx.compose.ui.graphics.Color.Transparent
+  2547	                                com.kompact.model.BackgroundType.CUSTOM -> androidx.compose.ui.graphics.Color(localBgConfig.customColor)
+  2548	                                else -> androidx.compose.ui.graphics.Color.Black
+  2549	                            }
+  2550	                        ),
+  2551	                    contentAlignment = Alignment.Center
+  2552	                ) {
+  2553	                    if (previewUri != null) {
+  2554	                        coil.compose.AsyncImage(
+  2555	                            model = previewUri,
+  2556	                            contentDescription = stringResource(R.string.preview),
+  2557	                            modifier = Modifier.fillMaxSize(),
+  2558	                            contentScale = ContentScale.Fit,
+  2559	                            colorFilter = localColorConfig.toComposeColorFilter()
+  2560	                        )
+  2561	                    } else {
+  2562	                        Text(stringResource(R.string.no_preview_available))
+  2563	                    }
+  2564	                }
+  2565	
+  2566	                Spacer(Modifier.height(16.dp))
+  2567	                
+  2568	                androidx.compose.foundation.lazy.LazyRow(
+  2569	                    modifier = Modifier.fillMaxWidth(),
+  2570	                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+  2571	                    contentPadding = PaddingValues(horizontal = 8.dp)
+  2572	                ) {
+  2573	                    val itemsList = filterTypes.map { it.name }.toMutableList()
+  2574	                    val customIdx = itemsList.indexOf("CUSTOM")
+  2575	                    if(customIdx != -1) {
+  2576	                        itemsList.add(customIdx + 1, "BACKGROUND")
+  2577	                    } else {
+  2578	                        itemsList.add("BACKGROUND")
+  2579	                    }
+  2580	                    
+  2581	                    items(itemsList.size) { index ->
+  2582	                        val item = itemsList[index]
+  2583	                        val isSelected = (selectedTab == item)
+  2584	                        
+  2585	                        Column(
+  2586	                            modifier = Modifier
+  2587	                                .width(64.dp)
+  2588	                                .clickable { 
+  2589	                                    selectedTab = item
+  2590	                                    if(item != "BACKGROUND") {
+  2591	                                        localColorConfig = localColorConfig.copy(filterType = com.kompact.model.ColorFilterType.valueOf(item))
+  2592	                                    }
+  2593	                                },
+  2594	                            horizontalAlignment = Alignment.CenterHorizontally
+  2595	                        ) {
+  2596	                            Box(
+  2597	                                modifier = Modifier
+  2598	                                    .size(64.dp)
+  2599	                                    .clip(RoundedCornerShape(8.dp))
+  2600	                                    .border(
+  2601	                                        width = if (isSelected) 3.dp else 1.dp,
+  2602	                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+  2603	                                        shape = RoundedCornerShape(8.dp)
+  2604	                                    )
+  2605	                                    .background(if (item == "BACKGROUND") MaterialTheme.colorScheme.surfaceVariant else androidx.compose.ui.graphics.Color.Transparent),
+  2606	                                contentAlignment = Alignment.Center
+  2607	                            ) {
+  2608	                                if (item == "BACKGROUND") {
+  2609	                                    val checkerColor1 = androidx.compose.ui.graphics.Color.LightGray.copy(alpha = 0.5f)
+  2610	                                    val checkerColor2 = androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.3f)
+  2611	                                    androidx.compose.foundation.Canvas(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(4.dp))) {
+  2612	                                        val squareSize = size.width / 4
+  2613	                                        for (row in 0 until 4) {
+  2614	                                            for (col in 0 until 4) {
+  2615	                                                val isEven = (row + col) % 2 == 0
+  2616	                                                drawRect(
+  2617	                                                    color = if (isEven) checkerColor1 else checkerColor2,
+  2618	                                                    topLeft = androidx.compose.ui.geometry.Offset(col * squareSize, row * squareSize),
+  2619	                                                    size = androidx.compose.ui.geometry.Size(squareSize, squareSize)
+  2620	                                                )
+  2621	                                            }
+  2622	                                        }
+  2623	                                    }
+  2624	                                } else {
+  2625	                                    val fType = com.kompact.model.ColorFilterType.valueOf(item)
+  2626	                                    coil.compose.AsyncImage(
+  2627	                                        model = previewUri ?: R.drawable.ic_launcher,
+  2628	                                        contentDescription = item,
+  2629	                                        modifier = Modifier.fillMaxSize(),
+  2630	                                        contentScale = ContentScale.Crop,
+  2631	                                        colorFilter = com.kompact.model.ColorFilterConfig(filterType = fType).toComposeColorFilter()
+  2632	                                    )
+  2633	                                }
+  2634	                            }
+  2635	                            Spacer(Modifier.height(8.dp))
+  2636	                            Text(
+  2637	                                text = if (item == "NONE") stringResource(R.string.default_text) else if (item == "CUSTOM") "Color" else item.lowercase().replaceFirstChar { it.uppercase() },
+  2638	                                style = MaterialTheme.typography.labelSmall,
+  2639	                                maxLines = 1,
+  2640	                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+  2641	                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+  2642	                            )
+  2643	                        }
+  2644	                    }
+  2645	                }
+  2646	                
+  2647	                Spacer(Modifier.height(16.dp))
+  2648	
+  2649	                if (selectedTab == "BACKGROUND") {
+  2650	                    Text(
+  2651	                        text = stringResource(R.string.background_type),
+  2652	                        style = MaterialTheme.typography.labelMedium,
+  2653	                        color = MaterialTheme.colorScheme.onSurfaceVariant
+  2654	                    )
+  2655	                    Spacer(Modifier.height(8.dp))
+  2656	                    
+  2657	                    if (showJpegWarning && localBgConfig.type == com.kompact.model.BackgroundType.TRANSPARENT) {
+  2658	                        Text(
+  2659	                            text = stringResource(R.string.warning_jpeg_does_not_support_transparency),
+  2660	                            style = MaterialTheme.typography.bodySmall,
+  2661	                            color = MaterialTheme.colorScheme.error,
+  2662	                            modifier = Modifier.padding(bottom = 8.dp)
+  2663	                        )
+  2664	                    }
+  2665	
+  2666	                    Row(
+  2667	                        modifier = Modifier.fillMaxWidth().horizontalScroll(androidx.compose.foundation.rememberScrollState()),
+  2668	                        horizontalArrangement = Arrangement.SpaceEvenly
+  2669	                    ) {
+  2670	                        BackgroundOption(
+  2671	                            label = "Transp.",
+  2672	                            color = androidx.compose.ui.graphics.Color.Transparent,
+  2673	                            isSelected = localBgConfig.type == com.kompact.model.BackgroundType.TRANSPARENT,
+  2674	                            onClick = { localBgConfig = localBgConfig.copy(type = com.kompact.model.BackgroundType.TRANSPARENT) }
+  2675	                        )
+  2676	                        Spacer(modifier = Modifier.width(8.dp))
+  2677	                        BackgroundOption(
+  2678	                            label = "Black",
+  2679	                            color = androidx.compose.ui.graphics.Color.Black,
+  2680	                            isSelected = localBgConfig.type == com.kompact.model.BackgroundType.CUSTOM && localBgConfig.customColor == android.graphics.Color.BLACK,
+  2681	                            onClick = {
+  2682	                                localBgConfig = localBgConfig.copy(
+  2683	                                    type = com.kompact.model.BackgroundType.CUSTOM,
+  2684	                                    customColor = android.graphics.Color.BLACK
+  2685	                                )
+  2686	                            }
+  2687	                        )
+  2688	                        Spacer(modifier = Modifier.width(8.dp))
+  2689	                        BackgroundOption(
+  2690	                            label = "White",
+  2691	                            color = androidx.compose.ui.graphics.Color.White,
+  2692	                            isSelected = localBgConfig.type == com.kompact.model.BackgroundType.CUSTOM && localBgConfig.customColor == android.graphics.Color.WHITE,
+  2693	                            onClick = {
+  2694	                                localBgConfig = localBgConfig.copy(
+  2695	                                    type = com.kompact.model.BackgroundType.CUSTOM,
+  2696	                                    customColor = android.graphics.Color.WHITE
+  2697	                                )
+  2698	                            }
+  2699	                        )
+  2700	                        Spacer(modifier = Modifier.width(8.dp))
+  2701	                        BackgroundOption(
+  2702	                            label = "Red",
+  2703	                            color = androidx.compose.ui.graphics.Color.Red,
+  2704	                            isSelected = localBgConfig.type == com.kompact.model.BackgroundType.CUSTOM && localBgConfig.customColor == android.graphics.Color.RED,
+  2705	                            onClick = {
+  2706	                                localBgConfig = localBgConfig.copy(
+  2707	                                    type = com.kompact.model.BackgroundType.CUSTOM,
+  2708	                                    customColor = android.graphics.Color.RED
+  2709	                                )
+  2710	                            }
+  2711	                        )
+  2712	                    }
+  2713	                } 
+  2714	                
+  2715	                if (selectedTab == "CUSTOM") {
+  2716	                    Text(
+  2717	                        text = stringResource(R.string.hue),
+  2718	                        style = MaterialTheme.typography.labelMedium,
+  2719	                        color = MaterialTheme.colorScheme.onSurfaceVariant
+  2720	                    )
+  2721	                    
+  2722	                    val gradientBrush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+  2723	                        colors = listOf(
+  2724	                            androidx.compose.ui.graphics.Color.Red,
+  2725	                            androidx.compose.ui.graphics.Color.Yellow,
+  2726	                            androidx.compose.ui.graphics.Color.Green,
+  2727	                            androidx.compose.ui.graphics.Color.Cyan,
+  2728	                            androidx.compose.ui.graphics.Color.Blue,
+  2729	                            androidx.compose.ui.graphics.Color.Magenta,
+  2730	                            androidx.compose.ui.graphics.Color.Red
+  2731	                        )
+  2732	                    )
+  2733	
+  2734	                    Box(modifier = Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center) {
+  2735	                        Spacer(modifier = Modifier.matchParentSize().padding(vertical = 8.dp).clip(RoundedCornerShape(8.dp)).background(gradientBrush))
+  2736	                        androidx.compose.material3.Slider(
+  2737	                            value = localColorConfig.hue,
+  2738	                            onValueChange = { localColorConfig = localColorConfig.copy(hue = it) },
+  2739	                            valueRange = 0f..360f,
+  2740	                            modifier = Modifier.fillMaxWidth(),
+  2741	                            colors = androidx.compose.material3.SliderDefaults.colors(
+  2742	                                thumbColor = androidx.compose.ui.graphics.Color.White,
+  2743	                                activeTrackColor = androidx.compose.ui.graphics.Color.Transparent,
+  2744	                                inactiveTrackColor = androidx.compose.ui.graphics.Color.Transparent
+  2745	                            )
+  2746	                        )
+  2747	                    }
+  2748	                } 
+  2749	                
+  2750	                if (selectedTab != "NONE" && selectedTab != "BACKGROUND") {
+  2751	                    Text(
+  2752	                        text = "Intensity: ${(localColorConfig.intensity * 100).toInt()}%",
+  2753	                        style = MaterialTheme.typography.labelMedium,
+  2754	                        color = MaterialTheme.colorScheme.onSurfaceVariant
+  2755	                    )
+  2756	                    androidx.compose.material3.Slider(
+  2757	                        value = localColorConfig.intensity,
+  2758	                        onValueChange = { localColorConfig = localColorConfig.copy(intensity = it) },
+  2759	                        modifier = Modifier.fillMaxWidth()
+  2760	                    )
+  2761	                }
+  2762	
+  2763	                Spacer(Modifier.height(24.dp))
+  2764	                Row(
+  2765	                    modifier = Modifier.fillMaxWidth(),
+  2766	                    horizontalArrangement = Arrangement.End
+  2767	                ) {
+  2768	                    TextButton(onClick = { localColorConfig = localColorConfig.copy(intensity = 0f) }) {
+  2769	                        Text(stringResource(R.string.reset))
+  2770	                    }
+  2771	                    TextButton(onClick = onDismiss) {
+  2772	                        Text(stringResource(android.R.string.cancel))
+  2773	                    }
+  2774	                    TextButton(
+  2775	                        onClick = {
+  2776	                            val colorRes = if (localColorConfig.filterType == com.kompact.model.ColorFilterType.NONE) null else localColorConfig
+  2777	                            val bgRes = if (localBgConfig.type == com.kompact.model.BackgroundType.TRANSPARENT) null else localBgConfig
+  2778	                            onConfirm(colorRes, bgRes)
+  2779	                            onDismiss()
+  2780	                        }
+  2781	                    ) {
+  2782	                        Text(stringResource(android.R.string.ok))
+  2783	                    }
+  2784	                }
+  2785	            }
+  2786	        }
+  2787	    }
+  2788	}
+  2789	
+  2790	@Composable
+  2791	fun RotateEditorDialog(
+  2792	    currentRotation: Float,
+  2793	    previewUri: Uri?,
+  2794	    colorFilter: com.kompact.model.ColorFilterConfig?,
+  2795	    onConfirm: (Float) -> Unit,
+  2796	    onDismiss: () -> Unit
+  2797	) {
+  2798	    var localRotation by remember { mutableFloatStateOf(if (currentRotation > 180f) currentRotation - 360f else currentRotation) }
+  2799	
+  2800	    androidx.compose.ui.window.Dialog(
+  2801	        onDismissRequest = onDismiss,
+  2802	        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+  2803	    ) {
+  2804	        androidx.compose.material3.Surface(
+  2805	            modifier = Modifier
+  2806	                .fillMaxWidth(0.9f)
+  2807	                .fillMaxHeight(0.85f),
+  2808	            shape = RoundedCornerShape(16.dp)
+  2809	        ) {
+  2810	            Column(
+  2811	                modifier = Modifier.padding(16.dp)
+  2812	            ) {
+  2813	                Text(stringResource(R.string.action_rotate), style = MaterialTheme.typography.titleLarge)
+  2814	                Spacer(Modifier.height(16.dp))
+  2815	
+  2816	                Box(
+  2817	                    modifier = Modifier
+  2818	                        .weight(1f)
+  2819	                        .fillMaxWidth(),
+  2820	                    contentAlignment = Alignment.Center
+  2821	                ) {
+  2822	                    if (previewUri != null) {
+  2823	                        coil.compose.AsyncImage(
+  2824	                            model = previewUri,
+  2825	                            contentDescription = stringResource(R.string.preview),
+  2826	                            modifier = Modifier
+  2827	                                .fillMaxSize()
+  2828	                                .rotate(localRotation),
+  2829	                            contentScale = ContentScale.Fit,
+  2830	                            colorFilter = colorFilter?.toComposeColorFilter()
+  2831	                        )
+  2832	                    } else {
+  2833	                        Text(stringResource(R.string.no_preview_available))
+  2834	                    }
+  2835	                }
+  2836	
+  2837	                Spacer(Modifier.height(16.dp))
+  2838	                
+  2839	                Text(text = "Degrees: ${localRotation.toInt()}°", style = MaterialTheme.typography.bodyMedium)
+  2840	                androidx.compose.material3.Slider(
+  2841	                    value = localRotation,
+  2842	                    onValueChange = { localRotation = it },
+  2843	                    valueRange = -180f..180f,
+  2844	                    steps = 35,
+  2845	                    modifier = Modifier.fillMaxWidth()
+  2846	                )
+  2847	                
+  2848	                Row(
+  2849	                    horizontalArrangement = Arrangement.Center,
+  2850	                    modifier = Modifier.fillMaxWidth()
+  2851	                ) {
+  2852	                    Button(onClick = { 
+  2853	                        val rem = kotlin.math.abs((localRotation % 90f).toInt())
+  2854	                        if (rem != 0) {
+  2855	                            localRotation = -90f
+  2856	                        } else {
+  2857	                            localRotation -= 90f
+  2858	                            if (localRotation < -180f) localRotation += 360f
+  2859	                        }
+  2860	                    }) { Text("-90°") }
+  2861	                    Spacer(Modifier.width(16.dp))
+  2862	                    Button(onClick = { localRotation = 0f }) { Text("0°") }
+  2863	                    Spacer(Modifier.width(16.dp))
+  2864	                    Button(onClick = { 
+  2865	                        val rem = kotlin.math.abs((localRotation % 90f).toInt())
+  2866	                        if (rem != 0) {
+  2867	                            localRotation = 90f
+  2868	                        } else {
+  2869	                            localRotation += 90f
+  2870	                            if (localRotation > 180f) localRotation -= 360f
+  2871	                        }
+  2872	                    }) { Text("+90°") }
+  2873	                }
+  2874	
+  2875	                Spacer(Modifier.height(16.dp))
+  2876	                Row(
+  2877	                    modifier = Modifier.fillMaxWidth(),
+  2878	                    horizontalArrangement = Arrangement.End
+  2879	                ) {
+  2880	                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+  2881	                    Button(onClick = {
+  2882	                        onConfirm(localRotation)
+  2883	                        onDismiss()
+  2884	                    }) { Text(stringResource(R.string.apply)) }
+  2885	                }
+  2886	            }
+  2887	        }
+  2888	    }
+  2889	}
+  2890	
+  2891	@Composable
+  2892	fun BackgroundOption(
+  2893	    label: String,
+  2894	    color: androidx.compose.ui.graphics.Color,
+  2895	    isSelected: Boolean,
+  2896	    onClick: () -> Unit
+  2897	) {
+  2898	    Column(
+  2899	        horizontalAlignment = Alignment.CenterHorizontally,
+  2900	        modifier = Modifier.clickable(onClick = onClick)
+  2901	    ) {
+  2902	        Box(
+  2903	            modifier = Modifier
+  2904	                .size(48.dp)
+  2905	                .clip(CircleShape)
+  2906	                .background(if (color == androidx.compose.ui.graphics.Color.Transparent) MaterialTheme.colorScheme.surfaceVariant else color)
+  2907	                .border(
+  2908	                    width = if (isSelected) 3.dp else 1.dp,
+  2909	                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+  2910	                    shape = CircleShape
+  2911	                ),
+  2912	            contentAlignment = Alignment.Center
+  2913	        ) {
+  2914	            if (color == androidx.compose.ui.graphics.Color.Transparent) {
+  2915	                Text("T", style = MaterialTheme.typography.bodySmall)
+  2916	            }
+  2917	        }
+  2918	        Spacer(modifier = Modifier.height(4.dp))
+  2919	        Text(text = label, style = MaterialTheme.typography.labelSmall)
+  2920	    }
+  2921	}

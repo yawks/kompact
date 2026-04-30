@@ -133,4 +133,9 @@
     <string name="rotate_left">-90°</string>
     <string name="rotate_right">+90°</string>
     <string name="text_tool">T</string>
+
+    <string name="delete_original_files">Ta bort ursprungliga filer</string>
+    <string name="delete_originals_title">Ta bort ursprungliga?</string>
+    <string name="delete_originals_message">Är du säker på att du vill ta bort de ursprungliga filerna efter bearbetning? Denna åtgärd kan inte ångras.</string>
+    <string name="yes_delete">Ja, ta bort</string>
 </resources>

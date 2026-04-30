@@ -133,4 +133,9 @@
     <string name="rotate_left">-90°</string>
     <string name="rotate_right">+90°</string>
     <string name="text_tool">T</string>
+
+    <string name="delete_original_files">Eliminar archivos originales</string>
+    <string name="delete_originals_title">¿Eliminar originales?</string>
+    <string name="delete_originals_message">¿Está seguro de que desea eliminar los archivos originales después de procesarlos? Esta acción no se puede deshacer.</string>
+    <string name="yes_delete">Sí, eliminar</string>
 </resources>

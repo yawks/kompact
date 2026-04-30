@@ -133,4 +133,9 @@
     <string name="rotate_left">-90°</string>
     <string name="rotate_right">+90°</string>
     <string name="text_tool">T</string>
+
+    <string name="delete_original_files">Eredeti fájlok törlése</string>
+    <string name="delete_originals_title">Eredetiek törlése?</string>
+    <string name="delete_originals_message">Biztosan törli az eredeti fájlokat a feldolgozás után? Ezt a műveletet nem lehet visszavonni.</string>
+    <string name="yes_delete">Igen, törlés</string>
 </resources>

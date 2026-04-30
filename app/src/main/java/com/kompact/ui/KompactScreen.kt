@@ -172,6 +172,7 @@ fun KompactScreen(
     onColorFilterChange: (com.kompact.model.ColorFilterConfig?) -> Unit,
     onRotate: (Float) -> Unit,
     onResetEditsClick: () -> Unit,
+    onDeleteOriginalsChange: (Boolean) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToAbout: () -> Unit,
@@ -307,6 +308,7 @@ fun KompactScreen(
                     onColorFilterChange = onColorFilterChange,
                     onRotate = onRotate,
                     onResetEditsClick = onResetEditsClick,
+                    onDeleteOriginalsChange = onDeleteOriginalsChange,
                     modifier = modifier.padding(innerPadding)
                 )
                 AppScreen.SETTINGS -> SettingsScreen(
@@ -351,6 +353,7 @@ fun HomeScreen(
     onColorFilterChange: (com.kompact.model.ColorFilterConfig?) -> Unit,
     onRotate: (Float) -> Unit,
     onResetEditsClick: () -> Unit,
+    onDeleteOriginalsChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isRotateEditorVisible by remember { mutableStateOf(false) }
@@ -492,7 +495,9 @@ fun HomeScreen(
                     PrimaryActionBar(
                         isProcessing = state.isProcessing,
                         canCompress = state.canProcessSelection && !state.isProcessing,
-                        onCompressClick = onCompressClick
+                        onCompressClick = onCompressClick,
+                        deleteOriginals = state.deleteOriginals,
+                        onDeleteOriginalsChange = onDeleteOriginalsChange,
                     )
                 }
             }
@@ -957,8 +962,35 @@ fun PrimaryActionBar(
     isProcessing: Boolean,
     canCompress: Boolean,
     onCompressClick: () -> Unit,
+    deleteOriginals: Boolean,
+    onDeleteOriginalsChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            title = { Text(stringResource(R.string.delete_originals_title)) },
+            text = { Text(stringResource(R.string.delete_originals_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteOriginalsChange(true)
+                        showDeleteConfirmDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.yes_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -977,6 +1009,30 @@ fun PrimaryActionBar(
                     text = if (isProcessing) processingText else readyText,
                     style = MaterialTheme.typography.titleMedium
                 )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .clickable(enabled = !isProcessing) {
+                            if (deleteOriginals) {
+                                onDeleteOriginalsChange(false)
+                            } else {
+                                showDeleteConfirmDialog = true
+                            }
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = deleteOriginals,
+                        onCheckedChange = null,
+                        enabled = !isProcessing,
+                    )
+                    Text(
+                        text = stringResource(R.string.delete_original_files),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             Button(
                 onClick = onCompressClick,
@@ -2151,6 +2207,7 @@ private fun PreviewKompact() {
             onThemeModeChange = {},
             onPickDefaultDestination = {},
             onClearDefaultDestination = {},
+            onDeleteOriginalsChange = {},
         )
     }
 }

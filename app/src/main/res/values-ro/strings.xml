@@ -133,4 +133,9 @@
     <string name="rotate_left">-90°</string>
     <string name="rotate_right">+90°</string>
     <string name="text_tool">T</string>
+
+    <string name="delete_original_files">Ștergeți fișierele originale</string>
+    <string name="delete_originals_title">Ștergeți originalele?</string>
+    <string name="delete_originals_message">Sunteți sigur că doriți să ștergeți fișierele originale după procesare? Această acțiune nu poate fi anulată.</string>
+    <string name="yes_delete">Da, ștergeți</string>
 </resources>

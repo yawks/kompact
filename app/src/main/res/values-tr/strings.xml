@@ -133,4 +133,9 @@
     <string name="rotate_left">-90°</string>
     <string name="rotate_right">+90°</string>
     <string name="text_tool">T</string>
+
+    <string name="delete_original_files">Orijinal dosyaları sil</string>
+    <string name="delete_originals_title">Orijinaller silinsin mi?</string>
+    <string name="delete_originals_message">İşlemden sonra orijinal dosyaları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</string>
+    <string name="yes_delete">Evet, sil</string>
 </resources>

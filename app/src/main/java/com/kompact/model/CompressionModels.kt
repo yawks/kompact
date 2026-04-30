@@ -185,4 +185,5 @@ data class CompressionUiState(
     val isResizeEditorVisible: Boolean = false,
     val isBackgroundEditorVisible: Boolean = false,
     val isColorFilterEditorVisible: Boolean = false,
+    val deleteOriginals: Boolean = false,
 )
