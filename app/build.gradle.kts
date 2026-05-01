@@ -18,8 +18,8 @@ android {
         applicationId = "com.kompact"
         minSdk = 24
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.0.2"
+        versionCode = 7
+        versionName = "1.0.3"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -54,9 +54,6 @@ android {
             if (hasUploadKey) {
                 signingConfig = signingConfigs.getByName("release")
             }
-        }
-        debug {
-            versionNameSuffix = "+1"
         }
     }
 

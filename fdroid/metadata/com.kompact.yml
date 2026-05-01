@@ -27,6 +27,15 @@ RepoType: git
 Repo: https://gitlab.com/naxodlab/kompact.git
 
 Builds:
+  - versionName: 1.0.3
+    versionCode: 7
+    commit: 1a2391b0ab659d2722707a8e09d49f311367fe90
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
   - versionName: 1.0.2
     versionCode: 6
     commit: 8b0bb71047754fdfe72f546e244d079ace61f9be
@@ -38,5 +47,5 @@ Builds:
 
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.2
-CurrentVersionCode: 6
+CurrentVersion: 1.0.3
+CurrentVersionCode: 7

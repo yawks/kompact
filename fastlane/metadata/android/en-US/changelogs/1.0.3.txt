@@ -1,0 +1,8 @@
+What’s new in 1.0.3
+
+- Removed the debug-only version suffix so release metadata stays aligned with F-Droid packaging.
+- Improved the file selector card so localized button labels no longer squeeze the title and counter.
+- Added consistent close buttons to the resize, rotate, and color filter editors.
+- Refined the EXIF editor placement and visibility to match the rest of the editing toolbar.
+
+This release also keeps the existing offline, on-device compression workflow intact.
