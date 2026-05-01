@@ -9,8 +9,8 @@ This note captures the minimum information required to release Kompact while kee
 
 ## F-Droid overview
 1. Update `fdroid/metadata/com.kompact.yml` with the new tag, versionCode, and public URLs.
-2. Run the standard `fdroid build` pipeline locally to prove that `./gradlew assembleRelease` reproduces the unsigned APK.
-3. Submit a merge request to `fdroiddata`, referencing the tag and checksum. The maintainer handles approvals to keep the supply chain centralized.
+2. Run `./gradlew assembleRelease` locally to prove the unsigned APK is reproducible from the tagged source.
+3. Keep F-Droid metadata and release notes in this repository only; there is no separate `fdroiddata` project to maintain.
 4. Whenever a new version ships, repeat the same metadata bump. F-Droid signs the resulting APK with its own keys; upstream does not distribute that binary directly.
 
 ## Google Play overview
