@@ -29,7 +29,7 @@ Repo: https://gitlab.com/naxodlab/kompact.git
 Builds:
   - versionName: 1.0.3
     versionCode: 7
-    commit: 1a2391b0ab659d2722707a8e09d49f311367fe90
+    commit: dfe99f0a55d42193039f6e07629e0407d9839b89
     timeout: 7200
     subdir: .
     gradle:
