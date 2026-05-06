@@ -118,7 +118,7 @@
     <string name="processing_dots">S\'està processant...</string>
     <string name="ready_to_process">A punt per processar</string>
     <string name="completed">Completat</string>
-    <string name="processing_completed">Processament completat: %1$s → %2$s</string>
+    <string name="processing_completed">Mida: %1$s → %2$s</string>
     <string name="smart_editing">• Edició intel·ligent: retalla les imatges i gestiona les metadades EXIF ​​(visualitza, edita o elimina) abans de processar-les.&#10;</string>
     <string name="remove">Eliminar</string>
     <string name="original">Original</string>

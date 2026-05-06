@@ -114,7 +114,7 @@
     <string name="processing_dots">处理中...</string>
     <string name="ready_to_process">准备处理</string>
     <string name="completed">已完成</string>
-    <string name="processing_completed">处理完成：%1$s → %2$s</string>
+    <string name="processing_completed">大小：%1$s → %2$s</string>
     <string name="smart_editing">• 智能编辑：在处理之前裁剪图像并管理 EXIF 元数据（查看、编辑或剥离）。&#10;</string>
     <string name="remove">删除</string>
     <string name="original">原创</string>

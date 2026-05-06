@@ -118,7 +118,7 @@
     <string name="processing_dots">Käsitellään...</string>
     <string name="ready_to_process">Valmis käsiteltäväksi</string>
     <string name="completed">Valmis</string>
-    <string name="processing_completed">Käsittely valmis: %1$s → %2$s</string>
+    <string name="processing_completed">Koko: %1$s → %2$s</string>
     <string name="smart_editing">• Älykäs muokkaus: Rajaa kuvia ja hallitse EXIF-metatietoja (tarkastele, muokkaa tai poista) ennen käsittelyä.&#10;</string>
     <string name="remove">Poistaa</string>
     <string name="original">Alkuperäinen</string>

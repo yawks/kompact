@@ -435,6 +435,9 @@ fun HomeScreen(
                         onTextClick = onToggleTextEditor,
                         onRotateClick = { isRotateEditorVisible = true },
                         onColorFilterClick = onToggleColorFilterEditor,
+                        exifEditingEnabled = state.sourceCategory == SourceCategory.IMAGE,
+                        isEditingExif = state.isExifEditorVisible,
+                        onToggleExifEditor = onToggleExifEditor,
                         onResetEditsClick = onResetEditsClick,
                     )
                 }
@@ -510,7 +513,7 @@ fun HomeScreen(
         }
     }
 
-    if (state.isExifEditorVisible && exifEditingEnabled) {
+    if (state.isExifEditorVisible && (exifEditingEnabled || state.selectedFiles.isEmpty())) {
         ExifEditorDialog(
             exifData = state.exifData,
             originalExifData = state.originalExifData,
@@ -856,12 +859,16 @@ fun SourceCard(
 ) {
     Card {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            androidx.compose.foundation.layout.FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(
+                    modifier = Modifier.padding(end = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Text(stringResource(R.string.files), style = MaterialTheme.typography.titleMedium)
                     if (files.isNotEmpty()) {
                         Text(
@@ -871,18 +878,25 @@ fun SourceCard(
                         )
                     }
                 }
-                if (files.isNotEmpty()) {
-                    OutlinedButton(onClick = onPickFiles) {
-                        Icon(Icons.Default.CloudUpload, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.add_more))
-                    }
-                }
-                TextButton(
-                    onClick = onClearSelection,
-                    enabled = files.isNotEmpty()
+                
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(stringResource(R.string.clear_all))
+                    if (files.isNotEmpty()) {
+                        OutlinedButton(onClick = onPickFiles) {
+                            Icon(Icons.Default.CloudUpload, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.add_more), textAlign = TextAlign.Center)
+                        }
+                    }
+                    TextButton(
+                        onClick = onClearSelection,
+                        enabled = files.isNotEmpty()
+                    ) {
+                        Text(stringResource(R.string.clear_all), textAlign = TextAlign.Center)
+                    }
                 }
             }
             if (errorMessage != null) {
@@ -1080,13 +1094,6 @@ fun OutputCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(stringResource(R.string.output), style = MaterialTheme.typography.titleMedium)
-                if (exifEditingEnabled) {
-                    TextButton(onClick = onToggleExifEditor) {
-                        Icon(Icons.Default.Settings, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(if (isEditingExif) "Close EXIF" else "Edit EXIF")
-                    }
-                }
             }
             if (category == SourceCategory.IMAGE) {
                 ImageConfigSection(
@@ -2226,6 +2233,9 @@ fun LivePreviewCard(
     
     onRotateClick: () -> Unit,
     onColorFilterClick: () -> Unit,
+    exifEditingEnabled: Boolean = false,
+    isEditingExif: Boolean = false,
+    onToggleExifEditor: () -> Unit = {},
     onResetEditsClick: () -> Unit,
     canText: Boolean = false,
     isTextEditorVisible: Boolean = false,
@@ -2299,6 +2309,11 @@ fun LivePreviewCard(
                         Icon(androidx.compose.material.icons.Icons.Default.Palette, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.color_filter))
+                    }
+                    TextButton(onClick = onToggleExifEditor) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Settings, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("EXIF")
                     }
                     TextButton(
                         onClick = onTextClick,
@@ -2628,7 +2643,16 @@ fun ResizeEditorDialog(
             Column(
                 modifier = Modifier.padding(16.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())
             ) {
-                Text(stringResource(R.string.resize), style = MaterialTheme.typography.titleLarge)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.resize), style = MaterialTheme.typography.titleLarge)
+                    androidx.compose.material3.IconButton(onClick = onDismiss) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
                 Spacer(Modifier.height(16.dp))
 
                 Box(
@@ -2775,11 +2799,20 @@ fun FiltersEditorDialog(
             Column(
                 modifier = Modifier.padding(16.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())
             ) {
-                Text(
-                    text = stringResource(R.string.action_color_filter),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.action_color_filter),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    androidx.compose.material3.IconButton(onClick = onDismiss) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
                 
                 Spacer(Modifier.height(16.dp))
 
@@ -3062,7 +3095,16 @@ fun RotateEditorDialog(
             Column(
                 modifier = Modifier.padding(16.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())
             ) {
-                Text(stringResource(R.string.action_rotate), style = MaterialTheme.typography.titleLarge)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.action_rotate), style = MaterialTheme.typography.titleLarge)
+                    androidx.compose.material3.IconButton(onClick = onDismiss) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
                 Spacer(Modifier.height(16.dp))
 
                 Box(

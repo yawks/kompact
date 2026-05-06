@@ -118,7 +118,7 @@
     <string name="processing_dots">Verwerken...</string>
     <string name="ready_to_process">Klaar om te verwerken</string>
     <string name="completed">Voltooid</string>
-    <string name="processing_completed">Verwerking voltooid: %1$s → %2$s</string>
+    <string name="processing_completed">Grootte: %1$s → %2$s</string>
     <string name="smart_editing">• Slim bewerken: snijd afbeeldingen bij en beheer EXIF-metagegevens (bekijken, bewerken of verwijderen) voordat ze worden verwerkt.&#10;</string>
     <string name="remove">Verwijderen</string>
     <string name="original">Origineel</string>

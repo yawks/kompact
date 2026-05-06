@@ -18,7 +18,11 @@ import com.kompact.model.CompressionType
 import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
 import com.kompact.util.DefaultDestinationResolver
+import com.kompact.util.applyBackground
+import com.kompact.util.applyColorFilter
 import com.kompact.util.applyCrop
+import com.kompact.util.applyResize
+import com.kompact.util.applyRotation
 import com.kompact.util.applyTextOverlay
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
@@ -105,8 +109,12 @@ class LocalCompressionRepository(
                 }
             } else {
                 var bitmap = decodeBitmap(resolver, uri) ?: error("Invalid bitmap")
-                bitmap = bitmap.applyCrop(config.cropBounds)
-                bitmap = bitmap.applyTextOverlay(config.textConfig)
+                bitmap = bitmap.applyRotation(config.rotationDegrees)
+                    .applyCrop(config.cropBounds)
+                    .applyResize(config.resizeConfig)
+                    .applyColorFilter(config.colorFilterConfig)
+                    .applyBackground(config.backgroundConfig)
+                    .applyTextOverlay(config.textConfig)
                 val targetBytes = resolveTargetBytes(config, originalSize)
                 val (compressedBytes, _) = encodeBitmapWithTarget(
                     bitmap = bitmap,

@@ -118,7 +118,7 @@
     <string name="processing_dots">Bearbetar...</string>
     <string name="ready_to_process">Klar att bearbeta</string>
     <string name="completed">Avslutad</string>
-    <string name="processing_completed">Bearbetning slutförd: %1$s → %2$s</string>
+    <string name="processing_completed">Storlek: %1$s → %2$s</string>
     <string name="smart_editing">• Smart redigering: Beskär bilder och hantera EXIF-metadata (visa, redigera eller ta bort) innan bearbetning.&#10;</string>
     <string name="remove">Ta bort</string>
     <string name="original">Original</string>

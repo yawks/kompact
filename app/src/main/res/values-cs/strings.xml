@@ -118,7 +118,7 @@
     <string name="processing_dots">Zpracovává se...</string>
     <string name="ready_to_process">Připraveno ke zpracování</string>
     <string name="completed">Dokončeno</string>
-    <string name="processing_completed">Zpracování dokončeno: %1$s → %2$s</string>
+    <string name="processing_completed">Velikost: %1$s → %2$s</string>
     <string name="smart_editing">• Inteligentní úpravy: Před zpracováním ořízněte obrázky a spravujte metadata EXIF ​​(zobrazení, úpravy nebo odstranění).&#10;</string>
     <string name="remove">Odstranit</string>
     <string name="original">Originál</string>

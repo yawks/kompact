@@ -118,7 +118,7 @@
     <string name="processing_dots">Obrada...</string>
     <string name="ready_to_process">Spremno za obradu</string>
     <string name="completed">Završeno</string>
-    <string name="processing_completed">Obrada završena: %1$s → %2$s</string>
+    <string name="processing_completed">Veličina: %1$s → %2$s</string>
     <string name="smart_editing">• Pametno uređivanje: izrežite slike i upravljajte EXIF ​​metapodacima (pregledajte, uredite ili skinite) prije obrade.&#10;</string>
     <string name="remove">Ukloniti</string>
     <string name="original">Izvornik</string>

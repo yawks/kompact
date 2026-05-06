@@ -118,7 +118,7 @@
     <string name="processing_dots">Feldolgozás...</string>
     <string name="ready_to_process">Feldolgozásra kész</string>
     <string name="completed">Befejezve</string>
-    <string name="processing_completed">Feldolgozás befejezve: %1$s → %2$s</string>
+    <string name="processing_completed">Méret: %1$s → %2$s</string>
     <string name="smart_editing">• Intelligens szerkesztés: Vágja le a képeket és kezelje az EXIF-metaadatokat (megtekintés, szerkesztés vagy kivágás) a feldolgozás előtt.&#10;</string>
     <string name="remove">Távolítsa el</string>
     <string name="original">Eredeti</string>

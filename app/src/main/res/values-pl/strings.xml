@@ -118,7 +118,7 @@
     <string name="processing_dots">Przetwarzanie...</string>
     <string name="ready_to_process">Gotowe do przetworzenia</string>
     <string name="completed">Zakończony</string>
-    <string name="processing_completed">Przetwarzanie zakończone: %1$s → %2$s</string>
+    <string name="processing_completed">Rozmiar: %1$s → %2$s</string>
     <string name="smart_editing">• Inteligentna edycja: przycinaj obrazy i zarządzaj metadanymi EXIF ​​(przeglądaj, edytuj lub usuwaj) przed przetworzeniem.&#10;</string>
     <string name="remove">Usunąć</string>
     <string name="original">Oryginalny</string>

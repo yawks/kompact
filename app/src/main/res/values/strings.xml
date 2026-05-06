@@ -118,7 +118,7 @@
     <string name="processing_dots">Processing...</string>
     <string name="ready_to_process">Ready to process</string>
     <string name="completed">Completed</string>
-    <string name="processing_completed">Processing completed: %1$s → %2$s</string>
+    <string name="processing_completed">Size: %1$s → %2$s</string>
     <string name="smart_editing"></string>
     <string name="remove">Remove</string>
     <string name="original">Original</string>

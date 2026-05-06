@@ -118,7 +118,7 @@
     <string name="processing_dots">Xử lý...</string>
     <string name="ready_to_process">Sẵn sàng xử lý</string>
     <string name="completed">Hoàn thành</string>
-    <string name="processing_completed">Quá trình xử lý đã hoàn tất: %1$s → %2$s</string>
+    <string name="processing_completed">Kích thước: %1$s → %2$s</string>
     <string name="smart_editing">• Chỉnh sửa thông minh: Cắt hình ảnh và quản lý siêu dữ liệu EXIF ​​​​(xem, chỉnh sửa hoặc tách) trước khi xử lý.&#10;</string>
     <string name="remove">Di dời</string>
     <string name="original">Nguyên bản</string>

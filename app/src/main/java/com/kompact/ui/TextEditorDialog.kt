@@ -251,11 +251,6 @@ fun TextEditorDialog(
                             style = MaterialTheme.typography.titleMedium
                         ) 
                     },
-                    navigationIcon = {
-                        IconButton(onClick = onDismiss) {
-                            Icon(Icons.Default.Close, contentDescription = "Cancel", tint = Color.White)
-                        }
-                    },
                     actions = {
                         IconButton(
                             onClick = {
@@ -312,6 +307,9 @@ fun TextEditorDialog(
                                 tint = if (text.isNotBlank()) Color.Green else Color.Gray,
                                 modifier = Modifier.size(26.dp)
                             )
+                        }
+                        IconButton(onClick = onDismiss) {
+                            Icon(Icons.Default.Close, contentDescription = "Cancel", tint = Color.White)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

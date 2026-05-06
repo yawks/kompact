@@ -1,0 +1,7 @@
+What's new in 1.0.4
+
+- Added extensive localization support with translations for 20+ languages (Bulgarian, Catalan, Czech, German, Greek, Spanish, Finnish, French, Croatian, Hungarian, Indonesian, Italian, Japanese, Dutch, Polish, Portuguese, Romanian, Russian, Serbian, Swedish, Turkish, Ukrainian, Vietnamese, Chinese).
+- Enhanced text editor with improved UI and functionality.
+- Updated compression repository for better performance and reliability.
+- Improved main screen layout and user experience.
+- Maintained full offline, on-device compression workflow.

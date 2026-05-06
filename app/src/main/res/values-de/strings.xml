@@ -118,7 +118,7 @@
     <string name="processing_dots">Verarbeitung...</string>
     <string name="ready_to_process">Bereit zur Verarbeitung</string>
     <string name="completed">Vollendet</string>
-    <string name="processing_completed">Verarbeitung abgeschlossen: %1$s → %2$s</string>
+    <string name="processing_completed">Größe: %1$s → %2$s</string>
     <string name="smart_editing">• Intelligente Bearbeitung: Bilder zuschneiden und EXIF-Metadaten vor der Verarbeitung verwalten (Anzeigen, Bearbeiten oder Entfernen).&#10;</string>
     <string name="remove">Entfernen</string>
     <string name="original">Original</string>

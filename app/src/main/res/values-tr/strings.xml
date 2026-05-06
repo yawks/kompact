@@ -118,7 +118,7 @@
     <string name="processing_dots">İşleme...</string>
     <string name="ready_to_process">İşleme hazır</string>
     <string name="completed">Tamamlanmış</string>
-    <string name="processing_completed">İşleme tamamlandı: %1$s → %2$s</string>
+    <string name="processing_completed">Boyut: %1$s → %2$s</string>
     <string name="smart_editing">• Akıllı Düzenleme: İşlemeden önce görüntüleri kırpın ve EXIF ​​meta verilerini yönetin (görüntüleyin, düzenleyin veya şeritleyin).&#10;</string>
     <string name="remove">Kaldırmak</string>
     <string name="original">Orijinal</string>

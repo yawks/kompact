@@ -118,7 +118,7 @@
     <string name="processing_dots">Pengolahan...</string>
     <string name="ready_to_process">Siap untuk diproses</string>
     <string name="completed">Selesai</string>
-    <string name="processing_completed">Pemrosesan selesai: %1$s → %2$s</string>
+    <string name="processing_completed">Ukuran: %1$s → %2$s</string>
     <string name="smart_editing">• Pengeditan Cerdas: Pangkas gambar dan kelola metadata EXIF ​​(lihat, edit, atau hapus) sebelum diproses.&#10;</string>
     <string name="remove">Menghapus</string>
     <string name="original">Asli</string>

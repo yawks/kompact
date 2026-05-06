@@ -118,7 +118,7 @@
     <string name="processing_dots">Prelucrare...</string>
     <string name="ready_to_process">Gata de procesat</string>
     <string name="completed">Terminat</string>
-    <string name="processing_completed">Procesare finalizată: %1$s → %2$s</string>
+    <string name="processing_completed">Dimensiune: %1$s → %2$s</string>
     <string name="smart_editing">• Editare inteligentă: decupați imaginile și gestionați metadatele EXIF ​​(vizualizați, editați sau decupați) înainte de procesare.&#10;</string>
     <string name="remove">Elimina</string>
     <string name="original">Original</string>

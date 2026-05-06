@@ -118,7 +118,7 @@
     <string name="processing_dots">Επεξεργασία...</string>
     <string name="ready_to_process">Έτοιμο για επεξεργασία</string>
     <string name="completed">Ολοκληρώθηκε το</string>
-    <string name="processing_completed">Η επεξεργασία ολοκληρώθηκε: %1$s → %2$s</string>
+    <string name="processing_completed">Μέγεθος: %1$s → %2$s</string>
     <string name="smart_editing">• Έξυπνη επεξεργασία: Περικοπή εικόνων και διαχείριση μεταδεδομένων EXIF ​​(προβολή, επεξεργασία ή λωρίδα) πριν από την επεξεργασία.&#10;</string>
     <string name="remove">Αφαιρώ</string>
     <string name="original">Πρωτότυπο</string>
