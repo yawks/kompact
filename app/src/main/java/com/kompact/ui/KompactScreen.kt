@@ -769,8 +769,7 @@ fun AboutScreen(modifier: Modifier = Modifier) {
                     Text(stringResource(R.string.current_features), style = MaterialTheme.typography.titleMedium)
                     Text(
                         stringResource(R.string.precision_compression_target_specific_file_sizes_or_quality_percentages_n) +
-                        "• Format Conversion: Switch easily between JPG, PNG, WebP, and more.
-" +
+                        "• Format Conversion: Switch easily between JPG, PNG, WebP, and more.\n" +
                         "• Live Preview: Compare original vs. compressed results in real-time.",
                         style = MaterialTheme.typography.bodyMedium
                     )
