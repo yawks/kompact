@@ -1,0 +1,6 @@
+What's new in 1.0.5
+
+- Fixed UI layout and formatting issues in the About screen.
+- Updated license to GNU AGPL v3.0 only.
+- Added missing translations for color filter options and rotation degrees.
+- Improved F-Droid metadata links for donations, website, and support email.
