@@ -53,4 +53,4 @@ Artifacts must be signed with your own keys when testing private builds because 
 - Community contributions are welcome, but merging or publishing decisions always stay under upstream control to preserve a single trust source.
 
 ## License
-Kompact is distributed under the **GNU Affero General Public License v3.0 or later**. Refer to `LICENSE` for details and always include a link to the source when redistributing binaries or forks.
+Kompact is distributed under the **GNU Affero General Public License v3.0 only**. Refer to `LICENSE` for details and always include a link to the source when redistributing binaries or forks.

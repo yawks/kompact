@@ -1,13 +1,15 @@
 Categories:
   - Graphics
   - Multimedia
-License: AGPL-3.0-or-later
+License: AGPL-3.0-only
 SourceCode: https://gitlab.com/naxodlab/kompact
 IssueTracker: https://gitlab.com/naxodlab/kompact/-/issues
 Changelog: https://gitlab.com/naxodlab/kompact/-/releases
 Donate: https://liberapay.com/Naxod/
+
+Liberapay: Naxod
 AuthorEmail: lab@naxod.com
-WebSite: https://naxod.com/kompact/
+WebSite: https://naxod.com
 AuthorName: Naxod
 Name: Kompact
 AutoName: Kompact

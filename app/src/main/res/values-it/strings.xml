@@ -25,7 +25,7 @@
     <string name="roadmap">Roadmap</string>
     <string name="we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files">Il supporto per video, PDF e audio è pianificato per le versioni future.</string>
     <string name="open_source">Open Source</string>
-    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Questo progetto è open source secondo la licenza Apache 2.0. Puoi ispezionare il codice, segnalare problemi o contribuire sul nostro repository.</string>
+    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Questo progetto è open source secondo la licenza AGPLv3. Puoi ispezionare il codice, segnalare problemi o contribuire sul nostro repository.</string>
     <string name="visit_repository">Visita il Repository</string>
     <string name="support_development">Supporta lo Sviluppo</string>
     <string name="a_personal_note">Nota Personale</string>
@@ -138,4 +138,25 @@
     <string name="delete_originals_title">Eliminare gli originali?</string>
     <string name="delete_originals_message">Sei sicuro di voler eliminare i file originali dopo l\'elaborazione? Questa azione non può essere annullata.</string>
     <string name="yes_delete">Sì, elimina</string>
+
+    <string name="crop">Ritaglia</string>
+    <string name="edit_crop">Modifica Ritaglio</string>
+    <string name="edit_resize">Modifica Ridimensionamento</string>
+    <string name="text_label">Testo</string>
+    <string name="edit_text">Modifica Testo</string>
+
+    <string name="filter_grayscale">Scala di grigi</string>
+    <string name="filter_sepia">Seppia</string>
+    <string name="filter_vintage">Vintage</string>
+    <string name="filter_cool">Freddo</string>
+    <string name="filter_warm">Caldo</string>
+    <string name="filter_custom">Colore</string>
+    <string name="filter_background">Sfondo</string>
+
+    <string name="intensity">Intensità</string>
+    <string name="transp">Trasp.</string>
+    <string name="black">Nero</string>
+    <string name="white">Bianco</string>
+    <string name="red">Rosso</string>
+    <string name="degrees_format">Gradi: %d°</string>
 </resources>

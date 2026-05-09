@@ -769,8 +769,8 @@ fun AboutScreen(modifier: Modifier = Modifier) {
                     Text(stringResource(R.string.current_features), style = MaterialTheme.typography.titleMedium)
                     Text(
                         stringResource(R.string.precision_compression_target_specific_file_sizes_or_quality_percentages_n) +
-                        "• Format Conversion: Switch easily between JPG, PNG, WebP, and more.\n" +
-                        "• Smart Editing: Crop images and manage EXIF metadata (view, edit, or strip) before processing.\n" +
+                        "• Format Conversion: Switch easily between JPG, PNG, WebP, and more.
+" +
                         "• Live Preview: Compare original vs. compressed results in real-time.",
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -2281,9 +2281,9 @@ fun LivePreviewCard(
                             Icon(androidx.compose.material.icons.Icons.Default.Crop, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
                             val label = when {
-                                isCropEditorVisible -> "Close Crop"
-                                isCropApplied -> "Edit Crop"
-                                else -> "Crop"
+                                isCropEditorVisible -> stringResource(R.string.crop)
+                                isCropApplied -> stringResource(R.string.edit_crop)
+                                else -> stringResource(R.string.crop)
                             }
                             Text(label)
                         }
@@ -2293,8 +2293,8 @@ fun LivePreviewCard(
                             Icon(androidx.compose.material.icons.Icons.Default.PhotoSizeSelectLarge, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
                             val label = when {
-                                isResizeEditorVisible -> "Close Resize"
-                                isResizeApplied -> "Edit Resize"
+                                isResizeEditorVisible -> stringResource(R.string.resize)
+                                isResizeApplied -> stringResource(R.string.edit_resize)
                                 else -> stringResource(R.string.resize)
                             }
                             Text(label)
@@ -2322,9 +2322,9 @@ fun LivePreviewCard(
                         Icon(androidx.compose.material.icons.Icons.Default.TextFields, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         val label = when {
-                            isTextEditorVisible -> "Close Text"
-                            isTextApplied -> "Edit Text"
-                            else -> "Text"
+                            isTextEditorVisible -> stringResource(R.string.text_label)
+                            isTextApplied -> stringResource(R.string.edit_text)
+                            else -> stringResource(R.string.text_label)
                         }
                         Text(label)
                     }
@@ -2916,7 +2916,17 @@ fun FiltersEditorDialog(
                             }
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                text = if (item == "NONE") stringResource(R.string.default_text) else if (item == "CUSTOM") "Color" else item.lowercase().replaceFirstChar { it.uppercase() },
+                                text = when (item) {
+                                    "NONE" -> stringResource(R.string.default_text)
+                                    "CUSTOM" -> stringResource(R.string.filter_custom)
+                                    "GRAYSCALE" -> stringResource(R.string.filter_grayscale)
+                                    "SEPIA" -> stringResource(R.string.filter_sepia)
+                                    "VINTAGE" -> stringResource(R.string.filter_vintage)
+                                    "COOL" -> stringResource(R.string.filter_cool)
+                                    "WARM" -> stringResource(R.string.filter_warm)
+                                    "BACKGROUND" -> stringResource(R.string.filter_background)
+                                    else -> item.lowercase().replaceFirstChar { it.uppercase() }
+                                },
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -2950,14 +2960,14 @@ fun FiltersEditorDialog(
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         BackgroundOption(
-                            label = "Transp.",
+                            label = stringResource(R.string.transp),
                             color = androidx.compose.ui.graphics.Color.Transparent,
                             isSelected = localBgConfig.type == com.kompact.model.BackgroundType.TRANSPARENT,
                             onClick = { localBgConfig = localBgConfig.copy(type = com.kompact.model.BackgroundType.TRANSPARENT) }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         BackgroundOption(
-                            label = "Black",
+                            label = stringResource(R.string.black),
                             color = androidx.compose.ui.graphics.Color.Black,
                             isSelected = localBgConfig.type == com.kompact.model.BackgroundType.CUSTOM && localBgConfig.customColor == android.graphics.Color.BLACK,
                             onClick = {
@@ -2969,7 +2979,7 @@ fun FiltersEditorDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         BackgroundOption(
-                            label = "White",
+                            label = stringResource(R.string.white),
                             color = androidx.compose.ui.graphics.Color.White,
                             isSelected = localBgConfig.type == com.kompact.model.BackgroundType.CUSTOM && localBgConfig.customColor == android.graphics.Color.WHITE,
                             onClick = {
@@ -2981,7 +2991,7 @@ fun FiltersEditorDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         BackgroundOption(
-                            label = "Red",
+                            label = stringResource(R.string.red),
                             color = androidx.compose.ui.graphics.Color.Red,
                             isSelected = localBgConfig.type == com.kompact.model.BackgroundType.CUSTOM && localBgConfig.customColor == android.graphics.Color.RED,
                             onClick = {
@@ -3031,7 +3041,7 @@ fun FiltersEditorDialog(
                 
                 if (selectedTab != "NONE" && selectedTab != "BACKGROUND") {
                     Text(
-                        text = "Intensity: ${(localColorConfig.intensity * 100).toInt()}%",
+                        text = "${stringResource(R.string.intensity)}: ${(localColorConfig.intensity * 100).toInt()}%",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -3130,7 +3140,7 @@ fun RotateEditorDialog(
 
                 Spacer(Modifier.height(16.dp))
                 
-                Text(text = "Degrees: ${localRotation.toInt()}°", style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(R.string.degrees_format, localRotation.toInt()), style = MaterialTheme.typography.bodyMedium)
                 androidx.compose.material3.Slider(
                     value = localRotation,
                     onValueChange = { localRotation = it },
