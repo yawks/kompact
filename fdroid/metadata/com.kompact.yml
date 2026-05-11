@@ -7,9 +7,10 @@ IssueTracker: https://gitlab.com/naxodlab/kompact/-/issues
 Changelog: https://gitlab.com/naxodlab/kompact/-/releases
 Donate: https://liberapay.com/Naxod/
 
-Liberapay: Naxod
+Liberapay: ~Naxod
 AuthorEmail: lab@naxod.com
 WebSite: https://naxod.com
+AuthorWebSite: https://naxod.com
 AuthorName: Naxod
 Name: Kompact
 AutoName: Kompact
@@ -29,6 +30,24 @@ RepoType: git
 Repo: https://gitlab.com/naxodlab/kompact.git
 
 Builds:
+  - versionName: 1.0.6
+    versionCode: 10
+    commit: 4f0c1d1943334c882bfa85325bbb96c599a3eb2e
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
+  - versionName: 1.0.5
+    versionCode: 9
+    commit: 32a3088eeaa8ec3c2dd424623c3d3a444d94de08
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
   - versionName: 1.0.4
     versionCode: 8
     commit: e1634b08aa
@@ -58,5 +77,5 @@ Builds:
 
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.4
-CurrentVersionCode: 8
+CurrentVersion: 1.0.6
+CurrentVersionCode: 10
