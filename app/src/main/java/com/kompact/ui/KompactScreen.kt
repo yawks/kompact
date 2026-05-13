@@ -2623,8 +2623,9 @@ fun ResizeEditorDialog(
 
     LaunchedEffect(imageDimensions) {
         if (imageDimensions != null && widthStr.isEmpty() && heightStr.isEmpty()) {
-            widthStr = imageDimensions.width.toString()
-            heightStr = imageDimensions.height.toString()
+            val scale = if (isPercentage) currentPct / 100f else 1f
+            widthStr = (imageDimensions.width * scale).roundToInt().toString()
+            heightStr = (imageDimensions.height * scale).roundToInt().toString()
         }
     }
 
@@ -2700,11 +2701,13 @@ fun ResizeEditorDialog(
                         OutlinedTextField(
                             value = widthStr,
                             onValueChange = { 
-                                isPercentage = false // Lock percentage
-                                widthStr = it 
-                                if (maintainAspect && aspectRatio != null && it.isNotEmpty()) {
-                                    it.toIntOrNull()?.let { w ->
-                                        heightStr = (w / aspectRatio).roundToInt().toString()
+                                if (widthStr != it) {
+                                    isPercentage = false // Lock percentage
+                                    widthStr = it 
+                                    if (maintainAspect && aspectRatio != null && it.isNotEmpty()) {
+                                        it.toIntOrNull()?.let { w ->
+                                            heightStr = (w / aspectRatio).roundToInt().toString()
+                                        }
                                     }
                                 }
                             },
@@ -2715,11 +2718,13 @@ fun ResizeEditorDialog(
                         OutlinedTextField(
                             value = heightStr,
                             onValueChange = { 
-                                isPercentage = false // Lock percentage
-                                heightStr = it 
-                                if (maintainAspect && aspectRatio != null && it.isNotEmpty()) {
-                                    it.toIntOrNull()?.let { h ->
-                                        widthStr = (h * aspectRatio).roundToInt().toString()
+                                if (heightStr != it) {
+                                    isPercentage = false // Lock percentage
+                                    heightStr = it 
+                                    if (maintainAspect && aspectRatio != null && it.isNotEmpty()) {
+                                        it.toIntOrNull()?.let { h ->
+                                            widthStr = (h * aspectRatio).roundToInt().toString()
+                                        }
                                     }
                                 }
                             },
