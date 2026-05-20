@@ -25,7 +25,7 @@
     <string name="roadmap">Roadmap</string>
     <string name="we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files">Video, PDF, and audio support are planned for future versions.</string>
     <string name="open_source">Open Source</string>
-    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">This project is open-source under the AGPLv3 license. You can inspect the code, report issues, or contribute on our repository.</string>
+    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">This project is open-source under the AGPL 3.0 Only license. You can inspect the code, report issues, or contribute on our repository.</string>
     <string name="visit_repository">Visit Repository</string>
     <string name="support_development">Support Development</string>
     <string name="a_personal_note">A Personal Note</string>

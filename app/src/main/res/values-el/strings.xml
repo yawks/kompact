@@ -25,7 +25,7 @@
     <string name="roadmap">Οδικός Χάρτης</string>
     <string name="we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files">Υποστήριξη για βίντεο, PDF και ήχο σχεδιάζεται για μελλοντικές εκδόσεις.</string>
     <string name="open_source">Ανοιχτού κώδικα</string>
-    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Αυτό το έργο είναι ανοιχτού κώδικα με την άδεια Apache 2.0. Μπορείτε να επιθεωρήσετε τον κώδικα, να αναφέρετε προβλήματα ή να συνεισφέρετε στο αποθετήριο μας.</string>
+    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Αυτό το έργο είναι ανοιχτού κώδικα με την άδεια AGPL 3.0. Μπορείτε να επιθεωρήσετε τον κώδικα, να αναφέρετε προβλήματα ή να συνεισφέρετε στο αποθετήριο μας.</string>
     <string name="visit_repository">Επισκεφτείτε το Αποθετήριο</string>
     <string name="support_development">Υποστήριξη Ανάπτυξης</string>
     <string name="a_personal_note">Προσωπικό Σημείωμα</string>

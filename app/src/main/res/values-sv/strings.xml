@@ -25,7 +25,7 @@
     <string name="roadmap">Färdkarta</string>
     <string name="we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files">Stöd för video, PDF och ljud är planerat för framtida versioner.</string>
     <string name="open_source">Öppen källkod</string>
-    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Detta projekt är öppen källkod under Apache 2.0-licensen. Du kan inspektera koden, rapportera problem eller bidra på vårt arkiv.</string>
+    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Detta projekt är öppen källkod under AGPL 3.0-licensen. Du kan inspektera koden, rapportera problem eller bidra på vårt arkiv.</string>
     <string name="visit_repository">Besök Repository</string>
     <string name="support_development">Stöd utveckling</string>
     <string name="a_personal_note">En personlig anteckning</string>

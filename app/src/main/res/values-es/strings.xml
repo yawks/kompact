@@ -25,7 +25,7 @@
     <string name="roadmap">Hoja de ruta</string>
     <string name="we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files">Se planea compatibilidad con vídeo, PDF y audio para futuras versiones.</string>
     <string name="open_source">Código abierto</string>
-    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Este proyecto es de código abierto bajo la licencia Apache 2.0. Puede inspeccionar el código, informar problemas o contribuir en nuestro repositorio.</string>
+    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Este proyecto es de código abierto bajo la licencia AGPL 3.0. Puede inspeccionar el código, informar problemas o contribuir en nuestro repositorio.</string>
     <string name="visit_repository">Visitar repositorio</string>
     <string name="support_development">Desarrollo de soporte</string>
     <string name="a_personal_note">Una nota personal</string>

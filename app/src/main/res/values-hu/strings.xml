@@ -25,7 +25,7 @@
     <string name="roadmap">Útiterv</string>
     <string name="we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files">A videó, PDF és audio támogatás a jövőbeli verziók terveit tartalmazza.</string>
     <string name="open_source">Nyílt forráskód</string>
-    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Ez a projekt nyílt forráskódú, az Apache 2.0 licenc alatt. Megnézheti a kódot, jelentheti a problémákat, vagy hozzájárulhat az adattárunkhoz.</string>
+    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Ez a projekt nyílt forráskódú, az AGPL 3.0 licenc alatt. Megnézheti a kódot, jelentheti a problémákat, vagy hozzájárulhat az adattárunkhoz.</string>
     <string name="visit_repository">Látogassa meg a Repository-t</string>
     <string name="support_development">Fejlesztés támogatása</string>
     <string name="a_personal_note">Személyes megjegyzés</string>

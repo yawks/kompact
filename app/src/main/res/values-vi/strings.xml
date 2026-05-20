@@ -25,7 +25,7 @@
     <string name="roadmap">Lộ trình</string>
     <string name="we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files">Hỗ trợ video, PDF và âm thanh được lên kế hoạch cho các phiên bản trong tương lai.</string>
     <string name="open_source">Nguồn mở</string>
-    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Dự án này là nguồn mở theo giấy phép Apache 2.0. Bạn có thể kiểm tra mã, báo cáo sự cố hoặc đóng góp trên kho lưu trữ của chúng tôi.</string>
+    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Dự án này là nguồn mở theo giấy phép AGPL 3.0. Bạn có thể kiểm tra mã, báo cáo sự cố hoặc đóng góp trên kho lưu trữ của chúng tôi.</string>
     <string name="visit_repository">Truy cập kho lưu trữ</string>
     <string name="support_development">Hỗ trợ phát triển</string>
     <string name="a_personal_note">Ghi chú cá nhân</string>

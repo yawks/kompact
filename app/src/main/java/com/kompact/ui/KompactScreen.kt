@@ -435,7 +435,7 @@ fun HomeScreen(
                         onTextClick = onToggleTextEditor,
                         onRotateClick = { isRotateEditorVisible = true },
                         onColorFilterClick = onToggleColorFilterEditor,
-                        exifEditingEnabled = state.sourceCategory == SourceCategory.IMAGE,
+                        exifEditingEnabled = singleImageSelected,
                         isEditingExif = state.isExifEditorVisible,
                         onToggleExifEditor = onToggleExifEditor,
                         onResetEditsClick = onResetEditsClick,
@@ -1310,13 +1310,16 @@ fun ExifEditorDialog(
                 .padding(horizontal = 8.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 600.dp)
-                    .verticalScroll(scrollState)
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp)
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .verticalScroll(scrollState)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(R.string.edit_exif_metadata),
@@ -1451,7 +1454,14 @@ fun ExifEditorDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                }
+                androidx.compose.material3.HorizontalDivider()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1461,7 +1471,7 @@ fun ExifEditorDialog(
                             Text(stringResource(R.string.remove_metadata))
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        TextButton(onClick = onDismiss) {
+                        Button(onClick = onDismiss) {
                             Text(stringResource(R.string.done))
                         }
                     }
@@ -1490,6 +1500,7 @@ fun CropEditorDialog(
     var verticalRange by remember(imageUri, cropBounds) {
         mutableStateOf(initialBounds.top..initialBounds.bottom)
     }
+    var fixedAspectRatio by remember(imageUri) { mutableStateOf<Float?>(null) }
     val currentBounds = remember(horizontalRange, verticalRange) {
         CropBounds(
             left = horizontalRange.start,
@@ -1500,25 +1511,87 @@ fun CropEditorDialog(
     }
     val minSpan = 0.05f
     fun adjustHorizontalStart(delta: Float) {
+        fixedAspectRatio = null
         if (delta == 0f) return
         val newStart = (horizontalRange.start + delta).coerceIn(0f, horizontalRange.endInclusive - minSpan)
         horizontalRange = newStart..horizontalRange.endInclusive
     }
     fun adjustHorizontalEnd(delta: Float) {
+        fixedAspectRatio = null
         if (delta == 0f) return
         val newEnd = (horizontalRange.endInclusive + delta).coerceIn(horizontalRange.start + minSpan, 1f)
         horizontalRange = horizontalRange.start..newEnd
     }
     fun adjustVerticalStart(delta: Float) {
+        fixedAspectRatio = null
         if (delta == 0f) return
         val newStart = (verticalRange.start + delta).coerceIn(0f, verticalRange.endInclusive - minSpan)
         verticalRange = newStart..verticalRange.endInclusive
     }
     fun adjustVerticalEnd(delta: Float) {
+        fixedAspectRatio = null
         if (delta == 0f) return
         val newEnd = (verticalRange.endInclusive + delta).coerceIn(verticalRange.start + minSpan, 1f)
         verticalRange = verticalRange.start..newEnd
     }
+
+    fun adjustCorner(dx: Float, dy: Float, isLeft: Boolean, isTop: Boolean) {
+        val currentAspect = fixedAspectRatio
+        if (currentAspect == null || aspectRatio == null) {
+            if (isLeft) adjustHorizontalStart(dx) else adjustHorizontalEnd(dx)
+            if (isTop) adjustVerticalStart(dy) else adjustVerticalEnd(dy)
+            return
+        }
+
+        val signX = if (isLeft) -1f else 1f
+        val signY = if (isTop) -1f else 1f
+        val dW = dx * signX
+        val dH = dy * signY
+        
+        val dW_px = dW * aspectRatio
+        val dH_px = dH * 1f
+        val drivesWidth = kotlin.math.abs(dW_px) > kotlin.math.abs(dH_px)
+
+        var finalDx = 0f
+        var finalDy = 0f
+
+        if (drivesWidth) {
+            finalDx = dx
+            val spanX = horizontalRange.endInclusive - horizontalRange.start
+            val spanY = verticalRange.endInclusive - verticalRange.start
+            val newSpanX = spanX + dW
+            val newSpanY = newSpanX * aspectRatio / currentAspect
+            val diffY = newSpanY - spanY
+            finalDy = diffY * signY
+        } else {
+            finalDy = dy
+            val spanX = horizontalRange.endInclusive - horizontalRange.start
+            val spanY = verticalRange.endInclusive - verticalRange.start
+            val newSpanY = spanY + dH
+            val newSpanX = newSpanY * currentAspect / aspectRatio
+            val diffX = newSpanX - spanX
+            finalDx = diffX * signX
+        }
+
+        val startH = horizontalRange.start
+        val endH = horizontalRange.endInclusive
+        val startV = verticalRange.start
+        val endV = verticalRange.endInclusive
+
+        val tempStartH = if (isLeft) startH + finalDx else startH
+        val tempEndH = if (!isLeft) endH + finalDx else endH
+        val tempStartV = if (isTop) startV + finalDy else startV
+        val tempEndV = if (!isTop) endV + finalDy else endV
+
+        if (tempStartH < 0f || tempEndH > 1f || (tempEndH - tempStartH) < minSpan ||
+            tempStartV < 0f || tempEndV > 1f || (tempEndV - tempStartV) < minSpan) {
+            return
+        }
+
+        horizontalRange = tempStartH..tempEndH
+        verticalRange = tempStartV..tempEndV
+    }
+
     fun moveSelection(deltaX: Float, deltaY: Float) {
         if (deltaX == 0f && deltaY == 0f) return
         val width = horizontalRange.endInclusive - horizontalRange.start
@@ -1771,8 +1844,7 @@ fun CropEditorDialog(
                                         width = cornerSize,
                                         height = cornerSize,
                                         onDrag = { dx, dy ->
-                                            adjustHorizontalStart(dx)
-                                            adjustVerticalStart(dy)
+                                            adjustCorner(dx, dy, isLeft = true, isTop = true)
                                         }
                                     ) {
                                         Box(
@@ -1788,8 +1860,7 @@ fun CropEditorDialog(
                                         width = cornerSize,
                                         height = cornerSize,
                                         onDrag = { dx, dy ->
-                                            adjustHorizontalEnd(dx)
-                                            adjustVerticalStart(dy)
+                                            adjustCorner(dx, dy, isLeft = false, isTop = true)
                                         }
                                     ) {
                                         Box(
@@ -1805,8 +1876,7 @@ fun CropEditorDialog(
                                         width = cornerSize,
                                         height = cornerSize,
                                         onDrag = { dx, dy ->
-                                            adjustHorizontalStart(dx)
-                                            adjustVerticalEnd(dy)
+                                            adjustCorner(dx, dy, isLeft = true, isTop = false)
                                         }
                                     ) {
                                         Box(
@@ -1822,8 +1892,7 @@ fun CropEditorDialog(
                                         width = cornerSize,
                                         height = cornerSize,
                                         onDrag = { dx, dy ->
-                                            adjustHorizontalEnd(dx)
-                                            adjustVerticalEnd(dy)
+                                            adjustCorner(dx, dy, isLeft = false, isTop = false)
                                         }
                                     ) {
                                         Box(
@@ -1847,6 +1916,7 @@ fun CropEditorDialog(
                                     value = verticalRange,
                                     length = finalPreviewHeight,
                                     onValueChange = { range ->
+                                        fixedAspectRatio = null
                                         val start = range.start.coerceIn(0f, 1f - minSpan)
                                         val end = range.endInclusive.coerceIn(start + minSpan, 1f)
                                         verticalRange = start..end
@@ -1878,6 +1948,7 @@ fun CropEditorDialog(
                     RangeSlider(
                         value = horizontalRange,
                         onValueChange = { range ->
+                            fixedAspectRatio = null
                             val start = range.start.coerceIn(0f, 1f - minSpan)
                             val end = range.endInclusive.coerceIn(start + minSpan, 1f)
                             horizontalRange = start..end
@@ -1905,23 +1976,34 @@ fun CropEditorDialog(
                     )
                     items(presets.size) { idx ->
                         val (label, ratio) = presets[idx]
-                        androidx.compose.material3.OutlinedButton(onClick = {
+                        val isSelected = fixedAspectRatio == ratio
+                        val onClickAction: () -> Unit = {
                             aspectRatio?.let { imgAR ->
+                                fixedAspectRatio = ratio
                                 val targetSpanRatio = ratio / imgAR
                                 val hSpan = if (targetSpanRatio > 1f) 1f else targetSpanRatio
                                 val vSpan = if (targetSpanRatio > 1f) 1f / targetSpanRatio else 1f
                                 horizontalRange = ((0.5f - hSpan/2f).coerceAtLeast(0f))..((0.5f + hSpan/2f).coerceAtMost(1f))
                                 verticalRange = ((0.5f - vSpan/2f).coerceAtLeast(0f))..((0.5f + vSpan/2f).coerceAtMost(1f))
                             }
-                        }) {
-                            Icon(Icons.Default.Crop, contentDescription = null, modifier = Modifier.size(18.dp).padding(end=4.dp))
-                            Text(label)
+                        }
+                        if (isSelected) {
+                            androidx.compose.material3.Button(onClick = onClickAction) {
+                                Icon(Icons.Default.Crop, contentDescription = null, modifier = Modifier.size(18.dp).padding(end=4.dp))
+                                Text(label)
+                            }
+                        } else {
+                            androidx.compose.material3.OutlinedButton(onClick = onClickAction) {
+                                Icon(Icons.Default.Crop, contentDescription = null, modifier = Modifier.size(18.dp).padding(end=4.dp))
+                                Text(label)
+                            }
                         }
                     }
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     TextButton(onClick = {
+                        fixedAspectRatio = null
                         horizontalRange = 0f..1f
                         verticalRange = 0f..1f
                     }) {
@@ -2309,7 +2391,7 @@ fun LivePreviewCard(
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.color_filter))
                     }
-                    TextButton(onClick = onToggleExifEditor) {
+                    TextButton(onClick = onToggleExifEditor, enabled = exifEditingEnabled) {
                         Icon(androidx.compose.material.icons.Icons.Default.Settings, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text("EXIF")

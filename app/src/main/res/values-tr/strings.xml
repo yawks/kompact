@@ -25,7 +25,7 @@
     <string name="roadmap">Yol Haritası</string>
     <string name="we_are_working_to_make_kompact_the_ultimate_optimizer_future_updates_will_bring_support_for_pdf_documents_audio_tracks_and_video_files">Video, PDF ve ses desteği gelecek sürümler için planlanmıştır.</string>
     <string name="open_source">Açık Kaynak</string>
-    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Bu proje Apache 2.0 lisansı altında açık kaynaktır. Kodu inceleyebilir, sorunları bildirebilir veya depomuza katkıda bulunabilirsiniz.</string>
+    <string name="this_project_is_open_source_under_the_apache_2_0_license_you_can_inspect_the_code_report_issues_or_contribute_on_our_repository">Bu proje AGPL 3.0 lisansı altında açık kaynaktır. Kodu inceleyebilir, sorunları bildirebilir veya depomuza katkıda bulunabilirsiniz.</string>
     <string name="visit_repository">Depoyu Ziyaret Edin</string>
     <string name="support_development">Geliştirmeyi Destekleyin</string>
     <string name="a_personal_note">Kişisel Not</string>
