@@ -122,10 +122,14 @@ class LocalCompressionRepository(
                     requestedQuality = config.percentage,
                     targetBytes = targetBytes,
                 )
-                val originalExif = if (supportsExif(config.format)) readExifData(resolver, uri) else null
-                val exifToWrite = if (config.exifData != config.originalExifData) config.exifData else originalExif
                 val finalBytes = if (supportsExif(config.format)) {
-                    writeExifData(compressedBytes, exifToWrite, resolver, uri)
+                    if (config.stripExif) {
+                        writeExifData(compressedBytes, null, null, null)
+                    } else {
+                        val originalExif = readExifData(resolver, uri)
+                        val exifToWrite = if (config.exifData != config.originalExifData) config.exifData else originalExif
+                        writeExifData(compressedBytes, exifToWrite, resolver, uri)
+                    }
                 } else {
                     compressedBytes
                 }

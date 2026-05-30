@@ -46,7 +46,9 @@ class ImagePreviewGenerator(context: Context) {
             requestedQuality = config.percentage,
             targetBytes = targetBytes,
         )
-        val exifBytes = if (supportsExif(config.format)) writeExifData(previewBytes, config.exifData) else previewBytes
+        val exifBytes = if (supportsExif(config.format)) {
+            if (config.stripExif) writeExifData(previewBytes, null) else writeExifData(previewBytes, config.exifData)
+        } else previewBytes
         bitmap.recycle()
         val previewFile = cachePreviewFile(source, extension)
         FileOutputStream(previewFile).use { it.write(exifBytes) }

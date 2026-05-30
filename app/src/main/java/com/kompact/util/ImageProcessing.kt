@@ -18,7 +18,7 @@ import com.kompact.model.ResizeConfig
 import java.io.ByteArrayOutputStream
 import kotlin.math.roundToInt
 
-private const val MAX_IMAGE_EDGE = 4096
+private const val MAX_IMAGE_EDGE = 16384
 private const val MIN_JPG_QUALITY = 10
 private const val QUALITY_STEP = 5
 

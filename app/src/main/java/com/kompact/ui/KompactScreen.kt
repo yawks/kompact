@@ -513,13 +513,26 @@ fun HomeScreen(
         }
     }
 
-    if (state.isExifEditorVisible && (exifEditingEnabled || state.selectedFiles.isEmpty())) {
-        ExifEditorDialog(
-            exifData = state.exifData,
-            originalExifData = state.originalExifData,
-            onExifDataChange = onExifDataChange,
-            onDismiss = onToggleExifEditor,
-        )
+    if (state.isExifEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+        if (state.selectedFiles.size > 1) {
+            RemoveExifDialog(
+                stripExif = state.imageConfig.stripExif,
+                onStripExifChange = { strip -> 
+                    onImageConfigChange(state.imageConfig.copy(stripExif = strip))
+                    onToggleExifEditor() 
+                },
+                onDismiss = onToggleExifEditor
+            )
+        } else {
+            ExifEditorDialog(
+                exifData = state.exifData,
+                originalExifData = state.originalExifData,
+                onExifDataChange = onExifDataChange,
+                stripExif = state.imageConfig.stripExif,
+                onStripExifChange = { strip -> onImageConfigChange(state.imageConfig.copy(stripExif = strip)) },
+                onDismiss = onToggleExifEditor,
+            )
+        }
     }
 
     if (state.isCropEditorVisible && singleImageSelected) {
@@ -1289,10 +1302,42 @@ fun ImageConfigSection(
 }
 
 @Composable
+fun RemoveExifDialog(
+    stripExif: Boolean,
+    onStripExifChange: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(stringResource(R.string.edit_exif_metadata), style = MaterialTheme.typography.titleMedium)
+                Text("Do you want to strip all EXIF metadata from the selected images for privacy?")
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Switch(checked = stripExif, onCheckedChange = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Strip EXIF data")
+                }
+                
+                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = { onStripExifChange(!stripExif) }) { 
+                        Text(if (stripExif) "Restore EXIF" else "Strip EXIF") 
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ExifEditorDialog(
     exifData: ExifData?,
     originalExifData: ExifData?,
     onExifDataChange: (ExifData?) -> Unit,
+    stripExif: Boolean = false,
+    onStripExifChange: (Boolean) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
