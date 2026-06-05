@@ -7,7 +7,7 @@ IssueTracker: https://gitlab.com/naxodlab/kompact/-/issues
 Changelog: https://gitlab.com/naxodlab/kompact/-/releases
 Donate: https://liberapay.com/naxodlab/
 
-Liberapay: naxodlab
+Liberapay: ~naxodlab
 AuthorEmail: lab@naxod.com
 WebSite: https://naxod.com
 AuthorWebSite: https://naxod.com
@@ -86,5 +86,5 @@ Builds:
 
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.7
-CurrentVersionCode: 11
+CurrentVersion: 1.1.0
+CurrentVersionCode: 14

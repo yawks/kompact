@@ -1297,6 +1297,19 @@ fun ImageConfigSection(
                     }
                 }
             }
+
+            AnimatedVisibility(visible = selectedFilesCount > 0, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { onConfigChange(config.copy(stripExif = !config.stripExif)) }
+                ) {
+                    Checkbox(
+                        checked = config.stripExif,
+                        onCheckedChange = { onConfigChange(config.copy(stripExif = it)) }
+                    )
+                    Text("Strip all EXIF metadata (Privacy)", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
         }
     }
 }
