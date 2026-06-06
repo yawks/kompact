@@ -197,7 +197,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
 
     fun toggleExifEditor() {
         _state.update { state ->
-            val canEdit = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1
+            val canEdit = state.sourceCategory == SourceCategory.IMAGE 
             val nextVisible = if (canEdit) !state.isExifEditorVisible else false
             state.copy(isExifEditorVisible = nextVisible)
         }
@@ -492,6 +492,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         val backgroundConfig: com.kompact.model.BackgroundConfig?,
         val textConfig: com.kompact.model.TextOverlayConfig?,
         val rotationDegrees: Float,
+        val stripExif: Boolean,
     )
 
     private fun ImageCompressionConfig.previewFingerprint(): PreviewFingerprint = PreviewFingerprint(
@@ -506,6 +507,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         backgroundConfig = backgroundConfig,
         textConfig = textConfig,
         rotationDegrees = rotationDegrees,
+        stripExif = stripExif
     )
 
     private fun classifySelection(files: List<SelectedFileDescriptor>): SelectionClassification {

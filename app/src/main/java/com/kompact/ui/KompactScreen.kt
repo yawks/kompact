@@ -3,6 +3,7 @@ package com.kompact.ui
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -364,7 +365,7 @@ fun HomeScreen(
         inferDefaultFormatLabel(firstImageDescriptor)
     }
     val singleImageSelected = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1
-    val exifEditingEnabled = singleImageSelected
+    val exifEditingEnabled = state.sourceCategory == SourceCategory.IMAGE // Modificato per abilitare il tasto in batch
     val originalFormat = remember(firstImageDescriptor) {
         inferOriginalFormat(firstImageDescriptor)
     }
@@ -435,10 +436,12 @@ fun HomeScreen(
                         onTextClick = onToggleTextEditor,
                         onRotateClick = { isRotateEditorVisible = true },
                         onColorFilterClick = onToggleColorFilterEditor,
-                        exifEditingEnabled = singleImageSelected,
+                        exifEditingEnabled = exifEditingEnabled,
                         isEditingExif = state.isExifEditorVisible,
                         onToggleExifEditor = onToggleExifEditor,
                         onResetEditsClick = onResetEditsClick,
+                        isMultipleImages = state.selectedFiles.size > 1, // Passa se sono multiple
+                        stripExif = state.imageConfig.stripExif,         // Passa lo stato attuale
                     )
                 }
                 if (state.selectedFiles.isEmpty()) {
@@ -1320,28 +1323,37 @@ fun RemoveExifDialog(
     onStripExifChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Surface(shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(stringResource(R.string.edit_exif_metadata), style = MaterialTheme.typography.titleMedium)
-                Text("Do you want to strip all EXIF metadata from the selected images for privacy?")
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.material3.Switch(checked = stripExif, onCheckedChange = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Strip EXIF data")
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { 
+            Text(
+                text = stringResource(R.string.edit_exif_metadata), 
+                style = MaterialTheme.typography.titleMedium
+            ) 
+        },
+        text = { 
+            Text(
+                text = if (stripExif) 
+                    "Do you want to restore EXIF metadata for the selected images?" 
+                else 
+                    "Do you want to strip all EXIF metadata from the selected images?"
+            ) 
+        },
+        confirmButton = {
+            Button(
+                onClick = { 
+                    onStripExifChange(!stripExif) 
                 }
-                
-                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = { onStripExifChange(!stripExif) }) { 
-                        Text(if (stripExif) "Restore EXIF" else "Strip EXIF") 
-                    }
-                }
+            ) { 
+                Text(if (stripExif) "Restore EXIF" else "Remove all EXIF") 
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { 
+                Text(stringResource(R.string.cancel)) 
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -2376,6 +2388,8 @@ fun LivePreviewCard(
     isEditingExif: Boolean = false,
     onToggleExifEditor: () -> Unit = {},
     onResetEditsClick: () -> Unit,
+    isMultipleImages: Boolean = false, // NUOVO
+    stripExif: Boolean = false,        // NUOVO
     canText: Boolean = false,
     isTextEditorVisible: Boolean = false,
     isTextApplied: Boolean = false,
@@ -2452,7 +2466,12 @@ fun LivePreviewCard(
                     TextButton(onClick = onToggleExifEditor, enabled = exifEditingEnabled) {
                         Icon(androidx.compose.material.icons.Icons.Default.Settings, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("EXIF")
+                        val exifLabel = if (isMultipleImages) {
+                            if (stripExif) "Restore EXIF" else "Remove EXIF"
+                        } else {
+                            "EXIF"
+                        }
+                        Text(exifLabel)
                     }
                     TextButton(
                         onClick = onTextClick,

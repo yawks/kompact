@@ -107,6 +107,9 @@ class LocalCompressionRepository(
                         }
                     } ?: error("Unable to read original file")
                 }
+                if (config.stripExif) {
+                    stripExifLossless(outFile)
+                }
             } else {
                 var bitmap = decodeBitmap(resolver, uri) ?: error("Invalid bitmap")
                 bitmap = bitmap.applyRotation(config.rotationDegrees)
@@ -165,6 +168,40 @@ class LocalCompressionRepository(
                 success = false,
                 message = error.message ?: "Unknown error",
             )
+        }
+    }
+
+    private fun stripExifLossless(file: File) {
+        try {
+            // Usa AndroidX ExifInterface se disponibile nel tuo progetto, altrimenti android.media.ExifInterface
+            val exif = android.media.ExifInterface(file.absolutePath)
+            
+            val tagsToRemove = arrayOf(
+                android.media.ExifInterface.TAG_DATETIME,
+                android.media.ExifInterface.TAG_DATETIME_DIGITIZED,
+                android.media.ExifInterface.TAG_DATETIME_ORIGINAL,
+                android.media.ExifInterface.TAG_GPS_LATITUDE,
+                android.media.ExifInterface.TAG_GPS_LONGITUDE,
+                android.media.ExifInterface.TAG_GPS_ALTITUDE,
+                android.media.ExifInterface.TAG_MAKE,
+                android.media.ExifInterface.TAG_MODEL,
+                android.media.ExifInterface.TAG_SOFTWARE,
+                android.media.ExifInterface.TAG_ARTIST,
+                android.media.ExifInterface.TAG_COPYRIGHT,
+                android.media.ExifInterface.TAG_USER_COMMENT,
+                android.media.ExifInterface.TAG_IMAGE_DESCRIPTION
+            )
+
+            for (tag in tagsToRemove) {
+                exif.setAttribute(tag, null)
+            }
+            
+            // saveAttributes() sovrascrive solo l'header EXIF, non ri-comprime l'immagine!
+            exif.saveAttributes() 
+            
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Se fallisce, il file rimane intatto
         }
     }
 

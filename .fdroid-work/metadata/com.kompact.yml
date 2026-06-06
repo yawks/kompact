@@ -1,0 +1,51 @@
+Categories:
+  - Graphics
+  - Multimedia
+License: AGPL-3.0-or-later
+SourceCode: https://gitlab.com/naxodlab/kompact
+IssueTracker: https://gitlab.com/naxodlab/kompact/-/issues
+Changelog: https://gitlab.com/naxodlab/kompact/-/releases
+Donate: https://liberapay.com/Naxod/
+AuthorEmail: lab@naxod.com
+WebSite: https://naxod.com/kompact/
+AuthorName: Naxod
+Name: Kompact
+AutoName: Kompact
+Description: |-
+  Kompact compresses JPEG/PNG/WebP images directly on-device using Kotlin +
+  Jetpack Compose. It avoids proprietary services, works fully offline, and
+  exposes fine-grained controls for quality, maximum size, and output format.
+
+  - SAF picker with multi-selection
+  - User-configurable quality presets
+  - Detailed report for every processed file
+  - Material You light/dark theme support
+  - Roadmap items for PDFs, audio, and video once the imaging pipeline is solid
+  - Official releases are published solely by the upstream maintainer to preserve a single trusted key
+
+RepoType: git
+Repo: https://gitlab.com/naxodlab/kompact.git
+
+Builds:
+  - versionName: 1.0.3
+    versionCode: 7
+    commit: dfe99f0a55d42193039f6e07629e0407d9839b89
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
+  - versionName: 1.0.2
+    versionCode: 6
+    commit: 8b0bb71047754fdfe72f546e244d079ace61f9be
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.3
+CurrentVersionCode: 7
