@@ -52,6 +52,7 @@
     <string name="lat">лат.</string>
     <string name="lon">Лон</string>
     <string name="alt">Альтернативный вариант</string>
+    <string name="position">Позиция</string>
     <string name="camera_settings">Настройки камеры</string>
     <string name="exp_time">Время опыта</string>
     <string name="f">Ф#</string>

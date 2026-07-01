@@ -52,6 +52,7 @@
     <string name="lat">Lạt</string>
     <string name="lon">Lon</string>
     <string name="alt">thay thế</string>
+    <string name="position">Position</string>
     <string name="camera_settings">Cài đặt máy ảnh</string>
     <string name="exp_time">Thời gian hết hạn</string>
     <string name="f">F#</string>

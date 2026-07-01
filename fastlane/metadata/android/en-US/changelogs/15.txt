@@ -1,0 +1,7 @@
+What's new in 1.1.1
+
+- Added Position field to EXIF editor for better location management
+- Added support for GPS area information in EXIF metadata
+- Full localization support for the new Position field in all supported languages
+
+This release adds the ability to view and edit the Position field (GPS area information) in the EXIF editor, making it easier to organize and find images by location on interactive maps.

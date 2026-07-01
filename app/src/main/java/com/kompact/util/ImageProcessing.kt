@@ -34,6 +34,7 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
                 latitude = exif.latLong?.get(0),
                 longitude = exif.latLong?.get(1),
                 altitude = exif.getAltitude(0.0),
+                position = exif.getAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION),
                 exposureTime = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME),
                 fNumber = exif.getAttribute(ExifInterface.TAG_F_NUMBER),
                 iso = exif.getAttributeInt(ExifInterface.TAG_ISO_SPEED_RATINGS, 0).takeIf { it > 0 },
@@ -272,6 +273,7 @@ internal fun writeExifData(bytes: ByteArray, exifData: ExifData?, resolver: Cont
             exif.setAttribute(ExifInterface.TAG_SOFTWARE, exifData.software)
             exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, exifData.description)
             exif.setAttribute(ExifInterface.TAG_USER_COMMENT, exifData.userComment)
+            exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, exifData.position)
         }
         exif.saveAttributes()
         tempFile.readBytes().also { tempFile.delete() }

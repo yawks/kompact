@@ -52,6 +52,7 @@
     <string name="lat">Lat</string>
     <string name="lon">Lon</string>
     <string name="alt">Alt</string>
+    <string name="position">Pozíció</string>
     <string name="camera_settings">Kamera beállítások</string>
     <string name="exp_time">Lejárati idő</string>
     <string name="f">F#</string>

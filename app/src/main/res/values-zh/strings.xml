@@ -48,6 +48,7 @@
     <string name="lat">纬度</string>
     <string name="lon">朗</string>
     <string name="alt">替代</string>
+    <string name="position">位置</string>
     <string name="camera_settings">相机设置</string>
     <string name="exp_time">到期时间</string>
     <string name="f">F#</string>

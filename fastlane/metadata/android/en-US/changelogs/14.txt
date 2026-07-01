@@ -1,0 +1,8 @@
+What's new in 1.1.0
+
+- Fixed EXIF strip UI for better metadata management
+- Fixed high-resolution scaling issue
+- Fixed Liberapay ID
+- Updated store metadata
+
+This release improves image compression stability and fixes UI issues with EXIF metadata handling.

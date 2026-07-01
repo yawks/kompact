@@ -1453,6 +1453,12 @@ fun ExifEditorDialog(
                     label = { Text(stringResource(R.string.alt)) },
                     modifier = Modifier.fillMaxWidth()
                 )
+                OutlinedTextField(
+                    value = currentExif.position ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(position = it.takeIf { it.isNotBlank() })) },
+                    label = { Text(stringResource(R.string.position)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Text(stringResource(R.string.camera_settings), style = MaterialTheme.typography.titleSmall)
                 OutlinedTextField(

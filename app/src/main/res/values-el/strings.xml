@@ -52,6 +52,7 @@
     <string name="lat">Lat</string>
     <string name="lon">Lon</string>
     <string name="alt">Alt</string>
+    <string name="position">Θέση</string>
     <string name="camera_settings">Ρυθμίσεις κάμερας</string>
     <string name="exp_time">Χρόνος Λήξης</string>
     <string name="f">ΦΑ#</string>

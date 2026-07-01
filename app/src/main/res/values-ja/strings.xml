@@ -48,6 +48,7 @@
     <string name="lat">緯度</string>
     <string name="lon">ロン</string>
     <string name="alt">オルタナティブ</string>
+    <string name="position">位置</string>
     <string name="camera_settings">カメラの設定</string>
     <string name="exp_time">経験値タイム</string>
     <string name="f">F#</string>

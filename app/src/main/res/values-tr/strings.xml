@@ -52,6 +52,7 @@
     <string name="lat">Enlem</string>
     <string name="lon">boylam</string>
     <string name="alt">Alternatif</string>
+    <string name="position">Konum</string>
     <string name="camera_settings">Kamera Ayarları</string>
     <string name="exp_time">Exp Süresi</string>
     <string name="f">F#</string>

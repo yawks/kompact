@@ -70,6 +70,7 @@ data class ExifData(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val altitude: Double? = null,
+    val position: String? = null,
     val exposureTime: String? = null,
     val fNumber: String? = null,
     val iso: Int? = null,

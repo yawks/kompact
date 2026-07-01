@@ -52,6 +52,7 @@
     <string name="lat">Лат</string>
     <string name="lon">Лон</string>
     <string name="alt">Алт</string>
+    <string name="position">Позиција</string>
     <string name="camera_settings">Подешавања камере</string>
     <string name="exp_time">Екп Тиме</string>
     <string name="f">Ф#</string>

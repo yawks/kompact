@@ -52,6 +52,7 @@
     <string name="lat">Lat.</string>
     <string name="lon">Lon</string>
     <string name="alt">Alt.</string>
+    <string name="position">Posição</string>
     <string name="camera_settings">Configurações da câmera</string>
     <string name="exp_time">Tempo de Exp.</string>
     <string name="f">Fá#</string>
