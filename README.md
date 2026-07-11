@@ -52,5 +52,8 @@ Artifacts must be signed with your own keys when testing private builds because 
 - Official packages are distributed exclusively through the maintainer-operated channels (Git tags, eventual F-Droid entry, Google Play listing).
 - Community contributions are welcome, but merging or publishing decisions always stay under upstream control to preserve a single trust source.
 
+## F-Droid publication
+The official source repository for F-Droid inclusion is https://git.naxod.com/luca/Kompact. A mirror at https://gitlab.com/naxodlab/kompact is maintained solely to facilitate F-Droid's CI pipeline. All official releases, tags, and source of truth remain in the primary repository. F-Droid's auto-update mechanism tracks tags from the official repo.
+
 ## License
 Kompact is distributed under the **GNU Affero General Public License v3.0 only**. Refer to `LICENSE` for details and always include a link to the source when redistributing binaries or forks.
