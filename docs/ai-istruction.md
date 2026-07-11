@@ -116,7 +116,7 @@ fdroid build -v com.kompact
 ### Punti Chiave da Ricordare
 5. **Metadata F-Droid punta al repo ufficiale**: `https://git.naxod.com/luca/Kompact`
 6. **GitLab mirror per CI F-Droid**: `https://gitlab.com/naxodlab/kompact` (solo per pipeline)
-6. **Nessun file di firma nel repo**: i build ufficiali sono firmati solo dal maintainer
+7. **Nessun file di firma nel repo**: i build ufficiali sono firmati solo dal maintainer
 
 ### Pattern Ricorrenti
 - Tutte le funzioni `apply*` in `ImageProcessing.kt` seguono lo schema: `Bitmap -> Bitmap`
