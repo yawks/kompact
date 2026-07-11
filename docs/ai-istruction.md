@@ -49,7 +49,7 @@ app/src/main/java/com/kompact/
 ### Repository Ufficiali
 | Piattaforma | URL | Note |
 |------------|-----|------|
-| **Forgejo (Naxod)** | `https://git.naxod.com/luca/kompact` | Repository principale |
+| **Forgejo (Naxod)** | `https://git.naxod.com/luca/Kompact` | Repository principale |
 | **GitLab (Mirror)** | `https://gitlab.com/naxodlab/kompact` | Mirror per F-Droid |
 | **GitLab (NaxodLab)** | `https://gitlab.com/naxodlab` | Organizzazione |
 
@@ -58,7 +58,7 @@ app/src/main/java/com/kompact/
 |---------|-----|
 | Metadata | `./fdroid/metadata/com.kompact.yml` | Configurazione build F-Droid |
 | F-Droid Data Repo | `https://gitlab.com/fdroid/fdroiddata` | Repository metadata F-Droid |
-| App Page | `https://f-droid.org/packages/com.kompact/` | Pagina app (da creare) |
+| App Page | `https://f-droid.org/packages/com.kompact/` | Pagina app (in pubblicazione) |
 
 ### Documentazione
 | File | Descrizione |
@@ -114,7 +114,8 @@ fdroid build -v com.kompact
 ## Mantenersi il Contesto tra Sessioni
 
 ### Punti Chiave da Ricordare
-5. **Il repository F-Droid usa il mirror GitLab**: `https://gitlab.com/naxodlab/kompact`
+5. **Metadata F-Droid punta al repo ufficiale**: `https://git.naxod.com/luca/Kompact`
+6. **GitLab mirror per CI F-Droid**: `https://gitlab.com/naxodlab/kompact` (solo per pipeline)
 6. **Nessun file di firma nel repo**: i build ufficiali sono firmati solo dal maintainer
 
 ### Pattern Ricorrenti
@@ -134,5 +135,5 @@ fdroid build -v com.kompact
 6. **ai-istruction.md NON va in Git** - Contiene info di contesto private per AI assistant
 
 ---
-*Ultimo aggiornamento: 2026-05-01*
+*Ultimo aggiornamento: 2026-07-11*
 *Mantainer: Naxod (lab@naxod.com)*
