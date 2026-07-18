@@ -26,15 +26,23 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
     return try {
         resolver.openInputStream(uri)?.use { input ->
             val exif = ExifInterface(input)
+            val lat = exif.latLong?.get(0)
+            val lon = exif.latLong?.get(1)
+            val alt = exif.getAltitude(0.0)
+            
+            // Generate position string from GPS coordinates if available
+            val position = exif.getAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION) 
+                ?: (if (lat != null && lon != null) formatGpsPosition(lat, lon) else null)
+            
             ExifData(
                 dateTime = exif.getAttribute(ExifInterface.TAG_DATETIME),
                 make = exif.getAttribute(ExifInterface.TAG_MAKE),
                 model = exif.getAttribute(ExifInterface.TAG_MODEL),
                 orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL),
-                latitude = exif.latLong?.get(0),
-                longitude = exif.latLong?.get(1),
-                altitude = exif.getAltitude(0.0),
-                position = exif.getAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION),
+                latitude = lat,
+                longitude = lon,
+                altitude = alt,
+                position = position,
                 exposureTime = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME),
                 fNumber = exif.getAttribute(ExifInterface.TAG_F_NUMBER),
                 iso = exif.getAttributeInt(ExifInterface.TAG_ISO_SPEED_RATINGS, 0).takeIf { it > 0 },
@@ -51,6 +59,14 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
     } catch (e: Exception) {
         null
     }
+}
+
+/**
+ * Formats GPS coordinates as a human-readable position string.
+ * Format: "latitude, longitude" (e.g., "45.4642, 9.1900")
+ */
+private fun formatGpsPosition(latitude: Double, longitude: Double): String {
+    return "%1$.6f, %2$.6f".format(latitude, longitude)
 }
 
 
@@ -246,13 +262,23 @@ internal fun writeExifData(bytes: ByteArray, exifData: ExifData?, resolver: Cont
             exif.setAttribute(ExifInterface.TAG_MODEL, exifData.model)
             exif.setAttribute(ExifInterface.TAG_ORIENTATION, exifData.orientation?.toString())
             
+            // Handle GPS coordinates - write both using setLatLong for compatibility
+            // and also set individual tags for completeness
             if (exifData.latitude != null && exifData.longitude != null) {
                 exif.setLatLong(exifData.latitude, exifData.longitude)
+                // Also write the position string if coordinates are available
+                if (exifData.position.isNullOrBlank()) {
+                    exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, 
+                        formatGpsPosition(exifData.latitude, exifData.longitude))
+                } else {
+                    exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, exifData.position)
+                }
             } else {
                 exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, null)
                 exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, null)
                 exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, null)
                 exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, null)
+                exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, null)
             }
             
             if (exifData.altitude != null) {
@@ -273,7 +299,11 @@ internal fun writeExifData(bytes: ByteArray, exifData: ExifData?, resolver: Cont
             exif.setAttribute(ExifInterface.TAG_SOFTWARE, exifData.software)
             exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, exifData.description)
             exif.setAttribute(ExifInterface.TAG_USER_COMMENT, exifData.userComment)
-            exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, exifData.position)
+            
+            // Ensure position is written even if it was set directly
+            if (!exifData.position.isNullOrBlank()) {
+                exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, exifData.position)
+            }
         }
         exif.saveAttributes()
         tempFile.readBytes().also { tempFile.delete() }
