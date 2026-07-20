@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        handleIncomingIntent(intent)
         setContent {
             val state by viewModel.state.collectAsState()
             KompactTheme(themeMode = state.themeMode) {
@@ -89,6 +90,28 @@ class MainActivity : AppCompatActivity() {
                     onClearDefaultDestination = { viewModel.clearDefaultDestinationFolder() },
                     onDeleteOriginalsChange = { viewModel.updateDeleteOriginals(it) }
                 )
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIncomingIntent(intent)
+    }
+
+    private fun handleIncomingIntent(intent: Intent) {
+        when (intent.action) {
+            Intent.ACTION_SEND -> {
+                intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)?.let { uri ->
+                    viewModel.onUrisSelected(listOf(uri))
+                }
+            }
+            Intent.ACTION_SEND_MULTIPLE -> {
+                intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.let { uris ->
+                    if (uris.isNotEmpty()) {
+                        viewModel.onUrisSelected(uris)
+                    }
+                }
             }
         }
     }
