@@ -504,6 +504,8 @@ fun HomeScreen(
                         onCompressClick = onCompressClick,
                         deleteOriginals = state.deleteOriginals,
                         onDeleteOriginalsChange = onDeleteOriginalsChange,
+                        imageConfig = state.imageConfig,
+                        onImageConfigChange = onImageConfigChange,
                     )
                 }
             }
@@ -993,6 +995,8 @@ fun PrimaryActionBar(
     onCompressClick: () -> Unit,
     deleteOriginals: Boolean,
     onDeleteOriginalsChange: (Boolean) -> Unit,
+    imageConfig: com.kompact.model.ImageCompressionConfig,
+    onImageConfigChange: (com.kompact.model.ImageCompressionConfig) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
@@ -1058,6 +1062,26 @@ fun PrimaryActionBar(
                     )
                     Text(
                         text = stringResource(R.string.delete_original_files),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .clickable(enabled = !isProcessing) {
+                            onImageConfigChange(imageConfig.copy(preserveSourceDate = !imageConfig.preserveSourceDate))
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = imageConfig.preserveSourceDate,
+                        onCheckedChange = null,
+                        enabled = !isProcessing,
+                    )
+                    Text(
+                        text = stringResource(R.string.preserve_source_date),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -2372,6 +2396,7 @@ private fun PreviewKompact() {
             onPickDefaultDestination = {},
             onClearDefaultDestination = {},
             onDeleteOriginalsChange = {},
+
         )
     }
 }

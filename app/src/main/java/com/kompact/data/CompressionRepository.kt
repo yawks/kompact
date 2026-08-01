@@ -129,8 +129,35 @@ class LocalCompressionRepository(
                     if (config.stripExif) {
                         writeExifData(compressedBytes, null, null, null)
                     } else {
-                        val originalExif = readExifData(resolver, uri)
-                        val exifToWrite = if (config.exifData != config.originalExifData) config.exifData else originalExif
+                        val originalExifFromFile = readExifData(resolver, uri)
+                        val baseExif = config.originalExifData ?: originalExifFromFile
+                        val userExif = config.exifData
+                        
+                        val exifToWrite = if (userExif != null && userExif != baseExif) {
+                            baseExif?.copy(
+                                dateTime = userExif.dateTime ?: baseExif.dateTime,
+                                make = userExif.make ?: baseExif.make,
+                                model = userExif.model ?: baseExif.model,
+                                orientation = userExif.orientation ?: baseExif.orientation,
+                                latitude = userExif.latitude ?: baseExif.latitude,
+                                longitude = userExif.longitude ?: baseExif.longitude,
+                                altitude = userExif.altitude ?: baseExif.altitude,
+                                position = userExif.position ?: baseExif.position,
+                                exposureTime = userExif.exposureTime ?: baseExif.exposureTime,
+                                fNumber = userExif.fNumber ?: baseExif.fNumber,
+                                iso = userExif.iso ?: baseExif.iso,
+                                focalLength = userExif.focalLength ?: baseExif.focalLength,
+                                flash = userExif.flash ?: baseExif.flash,
+                                whiteBalance = userExif.whiteBalance ?: baseExif.whiteBalance,
+                                artist = userExif.artist ?: baseExif.artist,
+                                copyright = userExif.copyright ?: baseExif.copyright,
+                                software = userExif.software ?: baseExif.software,
+                                description = userExif.description ?: baseExif.description,
+                                userComment = userExif.userComment ?: baseExif.userComment
+                            ) ?: userExif
+                        } else {
+                            baseExif ?: originalExifFromFile
+                        }
                         writeExifData(compressedBytes, exifToWrite, resolver, uri)
                     }
                 } else {
@@ -235,18 +262,25 @@ class LocalCompressionRepository(
         val targetName = buildOutputName(sourceUri, extension, config)
         val mimeType = mimeFromExtension(extension)
         val tempSize = tempFile.length()
+        
+        // Get source file date if preserveSourceDate is enabled
+        val sourceDate = if (config.preserveSourceDate) getSourceFileDate(sourceUri) else null
+        
         destinationFolder?.let { folderUri ->
             DocumentFile.fromTreeUri(context, folderUri)
                 ?.createOrReplaceFile(mimeType, targetName)
                 ?.let { target ->
                     if (copyTempToDocument(tempFile, target)) {
                         tempFile.delete()
+                        if (config.preserveSourceDate) {
+                            setOutputFileDate(target.uri, sourceDate)
+                        }
                         return target.uri to tempSize
                     }
                 }
         }
 
-        createDefaultMediaStoreEntry(targetName, mimeType)?.let { targetUri ->
+        createDefaultMediaStoreEntry(targetName, mimeType, sourceDate)?.let { targetUri ->
             if (copyTempToUri(tempFile, targetUri)) {
                 finalizePendingEntry(targetUri)
                 tempFile.delete()
@@ -261,11 +295,17 @@ class LocalCompressionRepository(
             ?.let { target ->
                 if (copyTempToDocument(tempFile, target)) {
                     tempFile.delete()
+                    if (config.preserveSourceDate) {
+                        setOutputFileDate(target.uri, sourceDate)
+                    }
                     return target.uri to tempSize
                 }
             }
         val cacheTarget = File(tempFile.parentFile, targetName)
         return if (tempFile.renameTo(cacheTarget)) {
+            if (config.preserveSourceDate && sourceDate != null) {
+                cacheTarget.setLastModified(sourceDate)
+            }
             Uri.fromFile(cacheTarget) to cacheTarget.length()
         } else {
             Uri.fromFile(tempFile) to tempSize
@@ -294,7 +334,7 @@ class LocalCompressionRepository(
         }.getOrElse { false }
     }
 
-    private fun createDefaultMediaStoreEntry(name: String, mimeType: String): Uri? {
+    private fun createDefaultMediaStoreEntry(name: String, mimeType: String, sourceDate: Long? = null): Uri? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
         val (collection, relativePath) = when {
             mimeType.startsWith("image/") -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY) to
@@ -306,6 +346,9 @@ class LocalCompressionRepository(
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
             put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
             put(MediaStore.MediaColumns.IS_PENDING, 1)
+            sourceDate?.let { 
+                put(MediaStore.MediaColumns.DATE_MODIFIED, sourceDate / 1000)
+            }
         }
         return runCatching { resolver.insert(collection, values) }.getOrNull()
     }
@@ -370,5 +413,32 @@ class LocalCompressionRepository(
             counter++
         }
         return createFile(mimeType, candidate)
+    }
+
+    private fun getSourceFileDate(sourceUri: Uri): Long? {
+        return runCatching {
+            DocumentFile.fromSingleUri(context, sourceUri)?.lastModified()
+        }.getOrNull() ?: runCatching {
+            val projection = arrayOf(OpenableColumns.SIZE, MediaStore.MediaColumns.DATE_MODIFIED)
+            resolver.query(sourceUri, projection, null, null, null)?.use { cursor ->
+                val dateIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DATE_MODIFIED)
+                if (dateIndex >= 0 && cursor.moveToFirst()) {
+                    val dateSeconds = cursor.getLong(dateIndex)
+                    if (dateSeconds > 0) dateSeconds * 1000 else null
+                } else {
+                    null
+                }
+            }
+        }.getOrNull()
+    }
+
+    private fun setOutputFileDate(targetUri: Uri, sourceDate: Long?) {
+        if (sourceDate == null) return
+        runCatching {
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DATE_MODIFIED, sourceDate / 1000)
+            }
+            resolver.update(targetUri, values, null, null)
+        }
     }
 }

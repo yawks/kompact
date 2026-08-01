@@ -107,6 +107,7 @@ data class ImageCompressionConfig(
     val backgroundConfig: BackgroundConfig? = null,
     val rotationDegrees: Float = 0f,
     val colorFilterConfig: ColorFilterConfig? = null,
+    val preserveSourceDate: Boolean = false,
 )
 
 data class CompressionResult(
@@ -189,4 +190,5 @@ data class CompressionUiState(
     val isBackgroundEditorVisible: Boolean = false,
     val isColorFilterEditorVisible: Boolean = false,
     val deleteOriginals: Boolean = false,
+    val preserveSourceDate: Boolean = false,
 )

@@ -85,6 +85,16 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         _state.update { it.copy(deleteOriginals = delete) }
     }
 
+    fun updatePreserveSourceDate(preserve: Boolean) {
+        _state.update { 
+            val updatedConfig = it.imageConfig.copy(preserveSourceDate = preserve)
+            it.copy(
+                imageConfig = updatedConfig,
+                preserveSourceDate = preserve
+            )
+        }
+    }
+
     fun updateImageConfig(config: ImageCompressionConfig) {
         val previous = _state.value.imageConfig
         val prevFingerprint = previous.previewFingerprint()
@@ -493,6 +503,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         val textConfig: com.kompact.model.TextOverlayConfig?,
         val rotationDegrees: Float,
         val stripExif: Boolean,
+        val preserveSourceDate: Boolean,
     )
 
     private fun ImageCompressionConfig.previewFingerprint(): PreviewFingerprint = PreviewFingerprint(
@@ -507,7 +518,8 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         backgroundConfig = backgroundConfig,
         textConfig = textConfig,
         rotationDegrees = rotationDegrees,
-        stripExif = stripExif
+        stripExif = stripExif,
+        preserveSourceDate = preserveSourceDate
     )
 
     private fun classifySelection(files: List<SelectedFileDescriptor>): SelectionClassification {

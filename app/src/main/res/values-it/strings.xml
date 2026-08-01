@@ -113,6 +113,7 @@
     <string name="theme_dark">Scuro</string>
     <string name="select_images">Seleziona immagini</string>
     <string name="select_files">Seleziona file</string>
+    <string name="select_from_gallery">Seleziona dalla galleria</string>
     <string name="items_selected">elementi selezionati</string>
     <string name="add_more">Aggiungi altro</string>
     <string name="select_files_same_type">Seleziona file dello stesso tipo</string>
@@ -139,6 +140,7 @@
     <string name="delete_originals_title">Eliminare gli originali?</string>
     <string name="delete_originals_message">Sei sicuro di voler eliminare i file originali dopo l\'elaborazione? Questa azione non può essere annullata.</string>
     <string name="yes_delete">Sì, elimina</string>
+    <string name="preserve_source_date">Mantieni data file originale</string>
 
     <string name="crop">Ritaglia</string>
     <string name="edit_crop">Modifica Ritaglio</string>

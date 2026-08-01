@@ -113,6 +113,7 @@
     <string name="theme_dark">Dark</string>
     <string name="select_images">Select images</string>
     <string name="select_files">Select files</string>
+    <string name="select_from_gallery">Select from gallery</string>
     <string name="items_selected">item(s) selected</string>
     <string name="add_more">Add more</string>
     <string name="select_files_same_type">Select files of the same type</string>
@@ -139,6 +140,7 @@
     <string name="delete_originals_title">Delete originals?</string>
     <string name="delete_originals_message">Are you sure you want to delete the original files after processing? This action cannot be undone.</string>
     <string name="yes_delete">Yes, delete</string>
+    <string name="preserve_source_date">Preserve source file date</string>
 
     <string name="crop">Crop</string>
     <string name="edit_crop">Edit Crop</string>

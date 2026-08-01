@@ -32,9 +32,21 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val state by viewModel.state.collectAsState()
             KompactTheme(themeMode = state.themeMode) {
-                val pickLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-                    if (uris.isNotEmpty()) {
-                        viewModel.onUrisSelected(uris)
+                val pickLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                    if (result.resultCode == RESULT_OK) {
+                        result.data?.clipData?.let { clipData ->
+                            val uris = mutableListOf<Uri>()
+                            for (i in 0 until clipData.itemCount) {
+                                clipData.getItemAt(i)?.uri?.let { uris.add(it) }
+                            }
+                            if (uris.isNotEmpty()) {
+                                viewModel.onUrisSelected(uris)
+                            }
+                        } ?: run {
+                            result.data?.data?.let { uri ->
+                                viewModel.onUrisSelected(listOf(uri))
+                            }
+                        }
                     }
                 }
                 val folderLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -57,7 +69,16 @@ class MainActivity : AppCompatActivity() {
                 }
                 KompactScreen(
                     state = state,
-                    onPickFiles = { pickLauncher.launch(SUPPORTED_MIME_TYPES) },
+                    onPickFiles = { 
+                        // Use ACTION_GET_CONTENT with chooser to allow selection from gallery apps
+                        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                            type = "image/*"
+                            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                            addCategory(Intent.CATEGORY_OPENABLE)
+                        }
+                        val chooser = Intent.createChooser(intent, "Select images from...")
+                        pickLauncher.launch(chooser)
+                    },
                     onCompressClick = { viewModel.compress() },
                     onImageConfigChange = { viewModel.updateImageConfig(it) },
                     onRemoveFile = { viewModel.removeFile(it) },
@@ -88,7 +109,7 @@ class MainActivity : AppCompatActivity() {
                     onThemeModeChange = { viewModel.setThemeMode(it) },
                     onPickDefaultDestination = { defaultDestinationLauncher.launch(null) },
                     onClearDefaultDestination = { viewModel.clearDefaultDestinationFolder() },
-                    onDeleteOriginalsChange = { viewModel.updateDeleteOriginals(it) }
+                    onDeleteOriginalsChange = { viewModel.updateDeleteOriginals(it) },
                 )
             }
         }
