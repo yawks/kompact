@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Kompact</string>
     <string name="permission_rationale">Kompact requer acesso de armazenamento para compactar arquivos locais.</string>
-    <string name="nav_home">Lar</string>
+    <string name="nav_home">Início</string>
     <string name="nav_settings">Configurações</string>
     <string name="nav_about">Sobre</string>
     <string name="nav_contact_us">Contate-nos</string>
@@ -35,7 +35,7 @@
     <string name="files">Arquivos</string>
     <string name="clear_all">Limpar tudo</string>
     <string name="select_images_to_compress">Selecione a imagem para editar</string>
-    <string name="working">Trabalhando…</string>
+    <string name="working">Processando…</string>
     <string name="start">Começar</string>
     <string name="output">Saída</string>
     <string name="default_text">Padrão</string>
@@ -43,23 +43,23 @@
     <string name="quality">Qualidade</string>
     <string name="output_filename">Nome do arquivo de saída</string>
     <string name="basic_info">Informações básicas</string>
-    <string name="make">Fazer</string>
+    <string name="make">Marca</string>
     <string name="model">Modelo</string>
-    <string name="software">Programas</string>
+    <string name="software">Software</string>
     <string name="date_and_time">Data e hora</string>
     <string name="date_time">Data Hora</string>
     <string name="location">Localização</string>
-    <string name="lat">Lat.</string>
-    <string name="lon">Lon</string>
-    <string name="alt">Alt.</string>
+    <string name="lat">Latitude</string>
+    <string name="lon">Longitude</string>
+    <string name="alt">Altitude</string>
     <string name="position">Posição</string>
     <string name="camera_settings">Configurações da câmera</string>
-    <string name="exp_time">Tempo de Exp.</string>
-    <string name="f">Fá#</string>
+    <string name="exp_time">Tempo de exposição</string>
+    <string name="f">Abertura</string>
     <string name="iso">ISO</string>
-    <string name="focal_len">Len Focal</string>
-    <string name="flash">Clarão</string>
-    <string name="wb">Banco Mundial</string>
+    <string name="focal_len">Distância focal</string>
+    <string name="flash">Flash</string>
+    <string name="wb">Balanço de brancos</string>
     <string name="orientation">Orientação</string>
     <string name="metadata">Metadados</string>
     <string name="artist">Artista</string>
@@ -89,14 +89,14 @@
     <string name="resize_height">Redimensionar altura</string>
     <string name="resize_percentage">Porcentagem de redimensionamento</string>
     <string name="resize_keep_aspect">Redimensionar Manter Aspecto</string>
-    <string name="clear">Claro</string>
-    <string name="action_rotate">Ação Girar</string>
+    <string name="clear">Limpar</string>
+    <string name="action_rotate">Girar</string>
     <string name="edit_exif_metadata">Editar metadados EXIF</string>
     <string name="changes_apply_instantly_to_the_selected_image">As alterações são aplicadas instantaneamente à imagem selecionada.</string>
     <string name="crop_image">Cortar imagem</string>
     <string name="drag_the_guides_or_use_the_sliders_to_define_what_stays_before_compression">Arraste as guias ou use os controles deslizantes para definir o que resta antes da compactação.</string>
     <string name="select_an_image_to_crop">Selecione uma imagem para recortar</string>
-    <string name="action_color_filter">Filtro de cores de ação</string>
+    <string name="action_color_filter">Filtro de cores</string>
     <string name="background_type">Tipo de plano de fundo</string>
     <string name="warning_jpeg_does_not_support_transparency">Aviso: JPEG não oferece suporte a transparência.</string>
     <string name="hue">Matiz</string>
@@ -109,10 +109,11 @@
     <string name="items_processed">processado</string>
     <string name="last_item">Último item</string>
     <string name="theme_system">Sistema</string>
-    <string name="theme_light">Luz</string>
+    <string name="theme_light">Claro</string>
     <string name="theme_dark">Escuro</string>
     <string name="select_images">Selecione imagens</string>
     <string name="select_files">Selecione os arquivos</string>
+    <string name="select_from_gallery">Selecione da galeria</string>
     <string name="items_selected">itens selecionados</string>
     <string name="add_more">Adicionar mais</string>
     <string name="select_files_same_type">Selecione arquivos do mesmo tipo</string>
@@ -120,7 +121,7 @@
     <string name="ready_to_process">Pronto para processar</string>
     <string name="completed">Concluído</string>
     <string name="processing_completed">Tamanho: %1$s → %2$s</string>
-    <string name="smart_editing">• Edição inteligente: corte imagens e gerencie metadados EXIF ​​(visualize, edite ou remova) antes do processamento.&#10;</string>
+    <string name="smart_editing">• Edição inteligente: corte imagens e gerencie metadados EXIF (visualize, edite ou remova) antes do processamento.&#10;</string>
     <string name="remove">Remover</string>
     <string name="original">Original</string>
     <string name="preview">Visualização</string>
@@ -139,4 +140,26 @@
     <string name="delete_originals_title">Excluir originais?</string>
     <string name="delete_originals_message">Tem certeza de que deseja excluir os arquivos originais após o processamento? Esta ação não pode ser desfeita.</string>
     <string name="yes_delete">Sim, excluir</string>
+    <string name="preserve_source_date">Preservar data do arquivo original</string>
+
+    <string name="crop">Cortar</string>
+    <string name="edit_crop">Editar corte</string>
+    <string name="edit_resize">Editar redimensionamento</string>
+    <string name="text_label">Texto</string>
+    <string name="edit_text">Editar texto</string>
+
+    <string name="filter_grayscale">Tons de cinza</string>
+    <string name="filter_sepia">Sépia</string>
+    <string name="filter_vintage">Vintage</string>
+    <string name="filter_cool">Frio</string>
+    <string name="filter_warm">Quente</string>
+    <string name="filter_custom">Cor</string>
+    <string name="filter_background">Fundo</string>
+
+    <string name="intensity">Intensidade</string>
+    <string name="transp">Transp.</string>
+    <string name="black">Preto</string>
+    <string name="white">Branco</string>
+    <string name="red">Vermelho</string>
+    <string name="degrees_format">Graus: %d°</string>
 </resources>

@@ -139,4 +139,26 @@
     <string name="delete_originals_title">Izbrisati izvorne?</string>
     <string name="delete_originals_message">Jeste li sigurni da želite izbrisati izvorne datoteke nakon obrade? Ova se radnja ne može poništiti.</string>
     <string name="yes_delete">Da, izbriši</string>
+    <string name="preserve_source_date">Sačuvaj datum izvorne datoteke</string>
+
+    <string name="crop">Isječi</string>
+    <string name="edit_crop">Uredi isjecanje</string>
+    <string name="edit_resize">Uredi promjenu veličine</string>
+    <string name="text_label">Tekst</string>
+    <string name="edit_text">Uredi tekst</string>
+
+    <string name="filter_grayscale">Siva skala</string>
+    <string name="filter_sepia">Sepia</string>
+    <string name="filter_vintage">Vintage</string>
+    <string name="filter_cool">Hladno</string>
+    <string name="filter_warm">Toplo</string>
+    <string name="filter_custom">Boja</string>
+    <string name="filter_background">Pozadina</string>
+
+    <string name="intensity">Intenzitet</string>
+    <string name="transp">Transp.</string>
+    <string name="black">Црн</string>
+    <string name="white">Bijela</string>
+    <string name="red">Crvena</string>
+    <string name="degrees_format">Stupnjevi: %d°</string>
 </resources>

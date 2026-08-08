@@ -2,9 +2,9 @@
 <resources>
     <string name="app_name">Kompact</string>
     <string name="permission_rationale">Kompact vaatii tallennustilan pääsyn paikallisten tiedostojen pakkaamiseen.</string>
-    <string name="nav_home">Kotiin</string>
+    <string name="nav_home">Koti</string>
     <string name="nav_settings">Asetukset</string>
-    <string name="nav_about">Noin</string>
+    <string name="nav_about">Tietoja</string>
     <string name="nav_contact_us">Ota yhteyttä</string>
     <string name="contact_title">Ota yhteyttä</string>
     <string name="contact_description">Onko sinulla kysymyksiä, palautetta tai löysit virheitä? Ota yhteyttä.</string>
@@ -43,7 +43,7 @@
     <string name="quality">Laatu</string>
     <string name="output_filename">Tulostustiedoston nimi</string>
     <string name="basic_info">Perustiedot</string>
-    <string name="make">Tehdä</string>
+    <string name="make">Valmistaja</string>
     <string name="model">Malli</string>
     <string name="software">Ohjelmisto</string>
     <string name="date_and_time">Päivämäärä ja aika</string>
@@ -54,12 +54,12 @@
     <string name="alt">Alt</string>
     <string name="position">Sijainti</string>
     <string name="camera_settings">Kameran asetukset</string>
-    <string name="exp_time">Exp aika</string>
+    <string name="exp_time">Valotusaika</string>
     <string name="f">F#</string>
     <string name="iso">ISO</string>
-    <string name="focal_len">Focal Len</string>
+    <string name="focal_len">Polttovälimate</string>
     <string name="flash">Salama</string>
-    <string name="wb">WB</string>
+    <string name="wb">Valkobalanssi</string>
     <string name="orientation">Suuntautuminen</string>
     <string name="metadata">Metatiedot</string>
     <string name="artist">Taiteilija</string>
@@ -75,7 +75,7 @@
     <string name="cancel">Peruuttaa</string>
     <string name="apply">Käytä</string>
     <string name="results">Tulokset</string>
-    <string name="close">Lähellä</string>
+    <string name="close">Sulje</string>
     <string name="before">Ennen</string>
     <string name="after">Jälkeen</string>
     <string name="live_preview">Live-esikatselu</string>
@@ -88,15 +88,15 @@
     <string name="no_preview_available">Esikatselua ei ole saatavilla</string>
     <string name="resize_height">Muuta korkeutta</string>
     <string name="resize_percentage">Muuta prosenttiosuutta</string>
-    <string name="resize_keep_aspect">Muuta kokoa Säilytä kuvasuhde</string>
-    <string name="clear">Selkeä</string>
-    <string name="action_rotate">Toiminta Kierrä</string>
+    <string name="resize_keep_aspect">Muuta kokoa – Säilytä kuvasuhde</string>
+    <string name="clear">Tyhjennä</string>
+    <string name="action_rotate">Kierrä</string>
     <string name="edit_exif_metadata">Muokkaa EXIF-metatietoja</string>
     <string name="changes_apply_instantly_to_the_selected_image">Muutokset tulevat voimaan välittömästi valittuun kuvaan.</string>
     <string name="crop_image">Rajaa kuva</string>
     <string name="drag_the_guides_or_use_the_sliders_to_define_what_stays_before_compression">Vedä ohjaimia tai käytä liukusäätimiä määrittääksesi, mikä jää ennen pakkausta.</string>
     <string name="select_an_image_to_crop">Valitse rajattava kuva</string>
-    <string name="action_color_filter">Toiminnan värisuodatin</string>
+    <string name="action_color_filter">Värisuodatin</string>
     <string name="background_type">Taustatyyppi</string>
     <string name="warning_jpeg_does_not_support_transparency">Varoitus: JPEG ei tue läpinäkyvyyttä.</string>
     <string name="hue">Värisävy</string>
@@ -113,6 +113,7 @@
     <string name="theme_dark">Tumma</string>
     <string name="select_images">Valitse kuvat</string>
     <string name="select_files">Valitse tiedostot</string>
+    <string name="select_from_gallery">Valitse galleriasta</string>
     <string name="items_selected">kohde(t) valittu</string>
     <string name="add_more">Lisää lisää</string>
     <string name="select_files_same_type">Valitse samantyyppiset tiedostot</string>
@@ -125,7 +126,7 @@
     <string name="original">Alkuperäinen</string>
     <string name="preview">Esikatselu</string>
     <string name="enter_text">Kirjoita teksti</string>
-    <string name="default_dir">Oletusohj</string>
+    <string name="default_dir">Oletuskansio</string>
     <string name="total_size_transition">Yhteensä: %1$s → %2$s</string>
     <string name="estimated_total">Arvioitu yhteensä:</string>
     <string name="total_label">Yhteensä:</string>
@@ -139,4 +140,26 @@
     <string name="delete_originals_title">Poistetaanko alkuperäiset?</string>
     <string name="delete_originals_message">Oletko varma, että haluat poistaa alkuperäiset tiedostot käsittelyn jälkeen? Tätä toimintoa ei voi peruuttaa.</string>
     <string name="yes_delete">Kyllä, poista</string>
+    <string name="preserve_source_date">Säilytä lähdetiedoston päivämäärä</string>
+
+    <string name="crop">Rajaa</string>
+    <string name="edit_crop">Muokkaa rajaamista</string>
+    <string name="edit_resize">Muokkaa kokoa</string>
+    <string name="text_label">Teksti</string>
+    <string name="edit_text">Muokkaa tekstiä</string>
+
+    <string name="filter_grayscale">Harmaa</string>
+    <string name="filter_sepia">Sepia</string>
+    <string name="filter_vintage">Vintage</string>
+    <string name="filter_cool">Viileä</string>
+    <string name="filter_warm">Lämmin</string>
+    <string name="filter_custom">Väri</string>
+    <string name="filter_background">Tausta</string>
+
+    <string name="intensity">Intensiteetti</string>
+    <string name="transp">Transp.</string>
+    <string name="black">Musta</string>
+    <string name="white">Valkoinen</string>
+    <string name="red">Punainen</string>
+    <string name="degrees_format">Asteet: %d°</string>
 </resources>

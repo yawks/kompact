@@ -139,4 +139,26 @@
     <string name="delete_originals_title">Διαγραφή αρχικών;</string>
     <string name="delete_originals_message">Είστε βέβαιοι ότι θέλετε να διαγράψετε τα αρχικά αρχεία μετά την επεξεργασία; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</string>
     <string name="yes_delete">Ναι, διαγραφή</string>
+    <string name="preserve_source_date">Διατήρηση ημερομηνίας αρχείου πηγής</string>
+
+    <string name="crop">Καλλιέργεια</string>
+    <string name="edit_crop">Επεξεργασία καλλιέργειας</string>
+    <string name="edit_resize">Επεξεργασία μεγέθους</string>
+    <string name="text_label">Κείμενο</string>
+    <string name="edit_text">Επεξεργασία κειμένου</string>
+
+    <string name="filter_grayscale">Κλίμακα γκρι</string>
+    <string name="filter_sepia">Σέπια</string>
+    <string name="filter_vintage">Vintage</string>
+    <string name="filter_cool">Δροσερός</string>
+    <string name="filter_warm">Ζεστή</string>
+    <string name="filter_custom">Χρώμα</string>
+    <string name="filter_background">Φόντο</string>
+
+    <string name="intensity">Ένταση</string>
+    <string name="transp">Transp.</string>
+    <string name="black">Μαύρος</string>
+    <string name="white">Λευκός</string>
+    <string name="red">Κόκκινος</string>
+    <string name="degrees_format">Μοίρες: %d°</string>
 </resources>

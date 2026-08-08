@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.kompact"
-    compileSdk = 35
+    compileSdk = 36
 
     val keystorePath = System.getenv("KS_PATH")
     val keystorePassword = System.getenv("KS_PASS")
@@ -17,9 +17,9 @@ android {
     defaultConfig {
         applicationId = "com.kompact"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 18
-        versionName = "1.1.4"
+        targetSdk = 36
+        versionCode = 19
+        versionName = "1.1.5"
 
         vectorDrawables {
             useSupportLibrary = true

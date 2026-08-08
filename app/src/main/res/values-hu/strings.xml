@@ -139,4 +139,26 @@
     <string name="delete_originals_title">Eredetiek törlése?</string>
     <string name="delete_originals_message">Biztosan törli az eredeti fájlokat a feldolgozás után? Ezt a műveletet nem lehet visszavonni.</string>
     <string name="yes_delete">Igen, törlés</string>
+    <string name="preserve_source_date">Forrás fájl dátumának megőrzése</string>
+
+    <string name="crop">Kivágás</string>
+    <string name="edit_crop">Kivágás szerkesztése</string>
+    <string name="edit_resize">Méretezés szerkesztése</string>
+    <string name="text_label">Szöveg</string>
+    <string name="edit_text">Szöveg szerkesztése</string>
+
+    <string name="filter_grayscale">Szürke skála</string>
+    <string name="filter_sepia">Szepia</string>
+    <string name="filter_vintage">Vintage</string>
+    <string name="filter_cool">Hűvös</string>
+    <string name="filter_warm">Meleg</string>
+    <string name="filter_custom">Szín</string>
+    <string name="filter_background">Háttér</string>
+
+    <string name="intensity">Intenzitás</string>
+    <string name="transp">Transp.</string>
+    <string name="black">Fekete</string>
+    <string name="white">Fehér</string>
+    <string name="red">Piros</string>
+    <string name="degrees_format">Fok: %d°</string>
 </resources>

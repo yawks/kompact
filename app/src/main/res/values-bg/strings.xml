@@ -139,4 +139,26 @@
     <string name="delete_originals_title">Изтриване на оригиналите?</string>
     <string name="delete_originals_message">Сигурни ли сте, че искате да изтриете оригиналните файлове след обработката? Това действие не може да бъде отменено.</string>
     <string name="yes_delete">Да, изтрий</string>
+    <string name="preserve_source_date">Запазване на датата на исходния файл</string>
+
+    <string name="crop">Отрязване</string>
+    <string name="edit_crop">Редактирайте отрязване</string>
+    <string name="edit_resize">Редактирайте преоразмеряване</string>
+    <string name="text_label">Текст</string>
+    <string name="edit_text">Редактирайте текста</string>
+
+    <string name="filter_grayscale">Сива скала</string>
+    <string name="filter_sepia">Сепия</string>
+    <string name="filter_vintage">Винтидж</string>
+    <string name="filter_cool">Хладно</string>
+    <string name="filter_warm">Топло</string>
+    <string name="filter_custom">Цвят</string>
+    <string name="filter_background">Фон</string>
+
+    <string name="intensity">Интензивност</string>
+    <string name="transp">Transp.</string>
+    <string name="black">Черен</string>
+    <string name="white">Бял</string>
+    <string name="red">Червен</string>
+    <string name="degrees_format">Градуси: %d°</string>
 </resources>

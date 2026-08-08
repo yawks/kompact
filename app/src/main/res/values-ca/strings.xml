@@ -139,4 +139,26 @@
     <string name="delete_originals_title">Suprimir els originals?</string>
     <string name="delete_originals_message">Esteu segurs que voleu suprimir els fitxers originals després de processar-los? Aquesta acció no es pot desfer.</string>
     <string name="yes_delete">Sí, suprimeix</string>
+    <string name="preserve_source_date">Conservar la data del fitxer original</string>
+
+    <string name="crop">Retallar</string>
+    <string name="edit_crop">Editar retall</string>
+    <string name="edit_resize">Editar redimensionament</string>
+    <string name="text_label">Text</string>
+    <string name="edit_text">Editar text</string>
+
+    <string name="filter_grayscale">Escala de grisos</string>
+    <string name="filter_sepia">Sepia</string>
+    <string name="filter_vintage">Vintage</string>
+    <string name="filter_cool">Freda</string>
+    <string name="filter_warm">Càlida</string>
+    <string name="filter_custom">Color</string>
+    <string name="filter_background">Fons</string>
+
+    <string name="intensity">Intensitat</string>
+    <string name="transp">Transp.</string>
+    <string name="black">Negre</string>
+    <string name="white">Blanc</string>
+    <string name="red">Vermell</string>
+    <string name="degrees_format">Graus: %d°</string>
 </resources>

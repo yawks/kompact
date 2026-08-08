@@ -139,4 +139,26 @@
     <string name="delete_originals_title">Hapus asli?</string>
     <string name="delete_originals_message">Apakah Anda yakin ingin menghapus file asli setelah diproses? Tindakan ini tidak dapat dibatalkan.</string>
     <string name="yes_delete">Ya, hapus</string>
+    <string name="preserve_source_date">Pertahankan tanggal file sumber</string>
+
+    <string name="crop">Potong</string>
+    <string name="edit_crop">Edit pemotongan</string>
+    <string name="edit_resize">Edit pengubahan ukuran</string>
+    <string name="text_label">Teks</string>
+    <string name="edit_text">Edit teks</string>
+
+    <string name="filter_grayscale">Skala abu-abu</string>
+    <string name="filter_sepia">Sepia</string>
+    <string name="filter_vintage">Vintage</string>
+    <string name="filter_cool">Sejuk</string>
+    <string name="filter_warm">Hangat</string>
+    <string name="filter_custom">Warna</string>
+    <string name="filter_background">Latar belakang</string>
+
+    <string name="intensity">Intensitas</string>
+    <string name="transp">Transp.</string>
+    <string name="black">Hitam</string>
+    <string name="white">Putih</string>
+    <string name="red">Merah</string>
+    <string name="degrees_format">Derajat: %d°</string>
 </resources>

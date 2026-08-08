@@ -10,7 +10,7 @@
     <string name="contact_description">Sorularınız, geri bildiriminiz var mı yoksa hatalar mı buldunuz? Lütfen bizimle iletişime geçin.</string>
     <string name="contact_send_email">E-posta Gönder</string>
     <string name="nav_report_issue">Sorunu Bildir</string>
-    <string name="nav_donate">Bağış yapmak</string>
+        <string name="nav_donate">Bağış yap</string>
     <string name="subtitle">Sıkıştırma Aracı</string>
     <string name="language">Dil</string>
     <string name="default_dest">Varsayılan Hedef</string>
@@ -47,7 +47,7 @@
     <string name="model">Modeli</string>
     <string name="software">Yazılım</string>
     <string name="date_and_time">Tarih ve Saat</string>
-    <string name="date_time">Tarih Saat</string>
+        <string name="date_time">Tarih ve saat</string>
     <string name="location">Konum</string>
     <string name="lat">Enlem</string>
     <string name="lon">boylam</string>
@@ -67,7 +67,7 @@
     <string name="description">Tanım</string>
     <string name="user_comment">Kullanıcı Yorumu</string>
     <string name="remove_metadata">Meta verileri kaldır</string>
-    <string name="done">Tamamlamak</string>
+        <string name="done">Tamamlandı</string>
     <string name="restore_original">Orijinali geri yükle</string>
     <string name="vertical">Dikey</string>
     <string name="horizontal">Yatay</string>
@@ -101,7 +101,7 @@
     <string name="warning_jpeg_does_not_support_transparency">Uyarı: JPEG şeffaflığı desteklemez.</string>
     <string name="hue">renk tonu</string>
     <string name="add_text">Metin Ekle</string>
-    <string name="save">Kaydetmek</string>
+        <string name="save">Kaydet</string>
     <string name="text_content">Metin içeriği</string>
     <string name="file_singular">dosya</string>
     <string name="file_plural">dosyalar</string>
@@ -139,4 +139,23 @@
     <string name="delete_originals_title">Orijinaller silinsin mi?</string>
     <string name="delete_originals_message">İşlemden sonra orijinal dosyaları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</string>
     <string name="yes_delete">Evet, sil</string>
+        <string name="select_from_gallery">Galeriden seç</string>
+        <string name="crop">Kırp</string>
+        <string name="edit_crop">Kırpmayı düzenle</string>
+        <string name="edit_resize">Yeniden boyutlandırmayı düzenle</string>
+        <string name="text_label">Metin</string>
+        <string name="edit_text">Metni düzenle</string>
+        <string name="filter_grayscale">Gri tonlama</string>
+        <string name="filter_sepia">Sepya</string>
+        <string name="filter_vintage">Vintage</string>
+        <string name="filter_cool">Soğuk</string>
+        <string name="filter_warm">Sıcak</string>
+        <string name="filter_custom">Renk</string>
+        <string name="filter_background">Arka plan</string>
+        <string name="intensity">Yoğunluk</string>
+        <string name="transp">Şeff.</string>
+        <string name="black">Siyah</string>
+        <string name="white">Beyaz</string>
+        <string name="red">Kırmızı</string>
+        <string name="degrees_format">Derece: %d°</string>
 </resources>
