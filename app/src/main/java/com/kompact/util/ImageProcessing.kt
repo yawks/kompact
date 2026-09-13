@@ -26,9 +26,30 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
     return try {
         resolver.openInputStream(uri)?.use { input ->
             val exif = ExifInterface(input)
-            val lat = exif.latLong?.get(0)
-            val lon = exif.latLong?.get(1)
-            val alt = exif.getAltitude(0.0)
+            
+            // Read GPS coordinates more reliably by checking individual tags
+            val latLong = exif.latLong
+            val lat = latLong?.getOrNull(0)
+            val lon = latLong?.getOrNull(1)
+            
+            // Check if altitude tag exists - only return non-null if the tag actually exists
+            val altitude = if (exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE) != null) {
+                val altValue = exif.getAltitude(0.0)
+                // Only return altitude if it's a valid value (not just the default 0.0)
+                // We consider 0.0 as valid if the altitude reference tag exists
+                if (exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF) != null) {
+                    altValue
+                } else {
+                    // Check if latitude/longitude exist - if they do, altitude of 0.0 might be valid
+                    if (lat != null && lon != null) {
+                        altValue
+                    } else {
+                        null
+                    }
+                }
+            } else {
+                null
+            }
             
             // Generate position string from GPS coordinates if available
             val position = exif.getAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION) 
@@ -41,7 +62,7 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
                 orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL),
                 latitude = lat,
                 longitude = lon,
-                altitude = alt,
+                altitude = altitude,
                 position = position,
                 exposureTime = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME),
                 fNumber = exif.getAttribute(ExifInterface.TAG_F_NUMBER),
@@ -281,8 +302,12 @@ internal fun writeExifData(bytes: ByteArray, exifData: ExifData?, resolver: Cont
                 exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, null)
             }
             
+            // Handle altitude - set it if provided, otherwise clear GPS altitude tags
             if (exifData.altitude != null) {
                 exif.setAltitude(exifData.altitude)
+                // Ensure altitude reference is set (0 = above sea level, 1 = below sea level)
+                exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF, 
+                    if (exifData.altitude >= 0) "0" else "1")
             } else {
                 exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, null)
                 exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF, null)

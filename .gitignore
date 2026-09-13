@@ -18,5 +18,9 @@ fdroiddata/
 fdroiddata/
 
 keys/
+!docs/ai-instruction.md
 docs/
 promt.md
+
+upload_certificate.pem
+upload-key.jks

@@ -567,25 +567,36 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     private fun describeFile(uri: Uri): SelectedFileDescriptor {
         val app = getApplication<Application>()
         val resolver = app.contentResolver
-        val document = DocumentFile.fromSingleUri(app, uri)
-        val displayName = document?.name ?: uri.lastPathSegment ?: "File"
-        val size = document?.length()?.takeIf { it >= 0 } ?: resolver.query(
-            uri,
-            arrayOf(OpenableColumns.SIZE),
-            null,
-            null,
-            null
-        )?.use { cursor ->
-            val index = cursor.getColumnIndex(OpenableColumns.SIZE)
-            if (index >= 0 && cursor.moveToFirst()) cursor.getLong(index) else 0L
-        } ?: 0L
-        val mimeType = document?.type ?: resolver.getType(uri)
-        return SelectedFileDescriptor(
-            uri = uri,
-            displayName = displayName,
-            sizeBytes = size,
-            mimeType = mimeType,
-        )
+        
+        return try {
+            val document = DocumentFile.fromSingleUri(app, uri)
+            val displayName = document?.name ?: uri.lastPathSegment ?: "File"
+            val size = document?.length()?.takeIf { it >= 0 } ?: resolver.query(
+                uri,
+                arrayOf(OpenableColumns.SIZE),
+                null,
+                null,
+                null
+            )?.use { cursor ->
+                val index = cursor.getColumnIndex(OpenableColumns.SIZE)
+                if (index >= 0 && cursor.moveToFirst()) cursor.getLong(index) else 0L
+            } ?: 0L
+            val mimeType = document?.type ?: resolver.getType(uri)
+            SelectedFileDescriptor(
+                uri = uri,
+                displayName = displayName,
+                sizeBytes = size,
+                mimeType = mimeType,
+            )
+        } catch (e: Exception) {
+            // Fallback for URIs that can't be described via DocumentFile
+            SelectedFileDescriptor(
+                uri = uri,
+                displayName = uri.lastPathSegment ?: "File",
+                sizeBytes = 0L,
+                mimeType = null,
+            )
+        }
     }
 
     private fun loadPreferences() {

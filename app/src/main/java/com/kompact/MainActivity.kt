@@ -124,12 +124,34 @@ class MainActivity : AppCompatActivity() {
         when (intent.action) {
             Intent.ACTION_SEND -> {
                 intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)?.let { uri ->
+                    // Grant read permission for the URI received via intent
+                    try {
+                        intent.flags = intent.flags or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    } catch (e: Exception) {
+                        // Ignore if permission already granted or not supported
+                    }
                     viewModel.onUrisSelected(listOf(uri))
                 }
             }
             Intent.ACTION_SEND_MULTIPLE -> {
                 intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.let { uris ->
                     if (uris.isNotEmpty()) {
+                        // Grant read permission for all URIs received via intent
+                        uris.forEach { uri ->
+                            try {
+                                intent.flags = intent.flags or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                contentResolver.takePersistableUriPermission(
+                                    uri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                )
+                            } catch (e: Exception) {
+                                // Ignore if permission already granted or not supported
+                            }
+                        }
                         viewModel.onUrisSelected(uris)
                     }
                 }

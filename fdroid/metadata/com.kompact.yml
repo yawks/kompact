@@ -84,7 +84,34 @@ Builds:
       - yes
     output: app/build/outputs/apk/release/app-release-unsigned.apk
 
+  - versionName: 1.1.4
+    versionCode: 17
+    commit: ae55153989
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
+  - versionName: 1.1.5
+    versionCode: 19
+    commit: 0c70dbd70f
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
+  - versionName: 1.1.6
+    versionCode: 20
+    commit: HEAD
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 1.1.0
-CurrentVersionCode: 14
+CurrentVersion: 1.1.6
+CurrentVersionCode: 20
