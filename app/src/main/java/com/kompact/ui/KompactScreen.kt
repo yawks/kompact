@@ -1086,6 +1086,26 @@ fun PrimaryActionBar(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .clickable(enabled = !isProcessing) {
+                            onImageConfigChange(imageConfig.copy(stripExif = !imageConfig.stripExif))
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = imageConfig.stripExif,
+                        onCheckedChange = null,
+                        enabled = !isProcessing,
+                    )
+                    Text(
+                        text = stringResource(R.string.remove_metadata),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             Button(
                 onClick = onCompressClick,
@@ -1322,19 +1342,6 @@ fun ImageConfigSection(
                     if (normalized != config.outputFileName) {
                         onConfigChange(config.copy(outputFileName = normalized))
                     }
-                }
-            }
-
-            AnimatedVisibility(visible = selectedFilesCount > 0, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onConfigChange(config.copy(stripExif = !config.stripExif)) }
-                ) {
-                    Checkbox(
-                        checked = config.stripExif,
-                        onCheckedChange = { onConfigChange(config.copy(stripExif = it)) }
-                    )
-                    Text("Strip all EXIF metadata (Privacy)", style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
@@ -1913,7 +1920,7 @@ fun CropEditorDialog(
                                         offsetY = topDp - handleThickness / 2,
                                         width = handleLength,
                                         height = handleThickness,
-                                        onDrag = { _, dy -> adjustVerticalStart(dy) }
+                                        onDrag = { _, dy -> adjustVerticalStart(-dy) }
                                     ) {
                                         Box(
                                             modifier = Modifier
@@ -1928,7 +1935,7 @@ fun CropEditorDialog(
                                         offsetY = bottomDp - handleThickness / 2,
                                         width = handleLength,
                                         height = handleThickness,
-                                        onDrag = { _, dy -> adjustVerticalEnd(dy) }
+                                        onDrag = { _, dy -> adjustVerticalEnd(-dy) }
                                     ) {
                                         Box(
                                             modifier = Modifier
@@ -2827,11 +2834,15 @@ fun ResizeEditorDialog(
         androidx.compose.material3.Surface(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .padding(vertical = 24.dp),
+                .padding(vertical = 24.dp)
+                .navigationBarsPadding(),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())
+                modifier = Modifier
+                    .padding(16.dp)
+                    .navigationBarsPadding()
+                    .verticalScroll(androidx.compose.foundation.rememberScrollState())
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
