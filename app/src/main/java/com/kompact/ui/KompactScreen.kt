@@ -1920,7 +1920,7 @@ fun CropEditorDialog(
                                         offsetY = topDp - handleThickness / 2,
                                         width = handleLength,
                                         height = handleThickness,
-                                        onDrag = { _, dy -> adjustVerticalStart(-dy) }
+                                        onDrag = { _, dy -> adjustVerticalStart(dy) }
                                     ) {
                                         Box(
                                             modifier = Modifier
@@ -1935,7 +1935,7 @@ fun CropEditorDialog(
                                         offsetY = bottomDp - handleThickness / 2,
                                         width = handleLength,
                                         height = handleThickness,
-                                        onDrag = { _, dy -> adjustVerticalEnd(-dy) }
+                                        onDrag = { _, dy -> adjustVerticalEnd(dy) }
                                     ) {
                                         Box(
                                             modifier = Modifier
