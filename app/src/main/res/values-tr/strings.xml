@@ -158,4 +158,14 @@
         <string name="white">Beyaz</string>
         <string name="red">Kırmızı</string>
         <string name="degrees_format">Derece: %d°</string>
+    <string name="draw">Çizim</string>
+    <string name="edit_draw">Çizimi Düzenle</string>
+    <string name="adjust">Ayarla</string>
+    <string name="edit_adjust">Ayarları Düzenle</string>
+    <string name="brightness">Parlaklık</string>
+    <string name="contrast">Kontrast</string>
+    <string name="saturation">Doygunluk</string>
+    <string name="warmth">Sıcaklık</string>
+    <string name="shadows">Gölgeler</string>
+    <string name="highlights">Işıklar</string>
 </resources>

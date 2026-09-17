@@ -161,4 +161,14 @@
     <string name="white">Λευκός</string>
     <string name="red">Κόκκινος</string>
     <string name="degrees_format">Μοίρες: %d°</string>
+    <string name="draw">Σχέδιο</string>
+    <string name="edit_draw">Επεξεργασία Σχεδίου</string>
+    <string name="adjust">Ρύθμιση</string>
+    <string name="edit_adjust">Επεξεργασία Ρυθμίσεων</string>
+    <string name="brightness">Φωτεινότητα</string>
+    <string name="contrast">Αντίθεση</string>
+    <string name="saturation">Κορεσμός</string>
+    <string name="warmth">Θερμότητα</string>
+    <string name="shadows">Σκιάσεις</string>
+    <string name="highlights">Φώτα</string>
 </resources>

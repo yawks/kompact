@@ -162,4 +162,14 @@
     <string name="white">Weiß</string>
     <string name="red">Rot</string>
     <string name="degrees_format">Grad: %d°</string>
+    <string name="draw">Zeichnen</string>
+    <string name="edit_draw">Zeichnung Bearbeiten</string>
+    <string name="adjust">Anpassen</string>
+    <string name="edit_adjust">Anpassungen Bearbeiten</string>
+    <string name="brightness">Helligkeit</string>
+    <string name="contrast">Kontrast</string>
+    <string name="saturation">Sättigung</string>
+    <string name="warmth">Wärme</string>
+    <string name="shadows">Schatten</string>
+    <string name="highlights">Lichter</string>
 </resources>

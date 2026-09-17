@@ -147,6 +147,16 @@
     <string name="edit_resize">Edit Resize</string>
     <string name="text_label">Text</string>
     <string name="edit_text">Edit Text</string>
+    <string name="draw">Draw</string>
+    <string name="edit_draw">Edit Draw</string>
+    <string name="adjust">Adjust</string>
+    <string name="edit_adjust">Edit Adjust</string>
+    <string name="brightness">Brightness</string>
+    <string name="contrast">Contrast</string>
+    <string name="saturation">Saturation</string>
+    <string name="warmth">Warmth</string>
+    <string name="shadows">Shadows</string>
+    <string name="highlights">Highlights</string>
 
     <string name="filter_grayscale">Grayscale</string>
     <string name="filter_sepia">Sepia</string>

@@ -501,6 +501,8 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         val colorFilterConfig: com.kompact.model.ColorFilterConfig?,
         val backgroundConfig: com.kompact.model.BackgroundConfig?,
         val textConfig: com.kompact.model.TextOverlayConfig?,
+        val drawConfig: com.kompact.model.DrawConfig?,
+        val adjustConfig: com.kompact.model.AdjustConfig?,
         val rotationDegrees: Float,
         val stripExif: Boolean,
         val preserveSourceDate: Boolean,
@@ -517,6 +519,8 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         colorFilterConfig = colorFilterConfig,
         backgroundConfig = backgroundConfig,
         textConfig = textConfig,
+        drawConfig = drawConfig,
+        adjustConfig = adjustConfig,
         rotationDegrees = rotationDegrees,
         stripExif = stripExif,
         preserveSourceDate = preserveSourceDate
@@ -669,6 +673,38 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
             current.copy(imageConfig = updatedConfig)
         }
         android.util.Log.d("CompressionViewModel", "Scheduling live preview after text config update")
+        scheduleLivePreview()
+    }
+
+    fun toggleDrawEditor() {
+        _state.update { state ->
+            val canDraw = state.sourceCategory == com.kompact.model.SourceCategory.IMAGE && state.selectedFiles.size == 1
+            val nextVisible = if (canDraw) !state.isDrawEditorVisible else false
+            state.copy(isDrawEditorVisible = nextVisible)
+        }
+    }
+
+    fun updateDrawConfig(config: com.kompact.model.DrawConfig?) {
+        _state.update { current ->
+            val updatedConfig = current.imageConfig.copy(drawConfig = config)
+            current.copy(imageConfig = updatedConfig)
+        }
+        scheduleLivePreview()
+    }
+
+    fun toggleAdjustEditor() {
+        _state.update { state ->
+            val canAdjust = state.sourceCategory == com.kompact.model.SourceCategory.IMAGE && state.selectedFiles.size == 1
+            val nextVisible = if (canAdjust) !state.isAdjustEditorVisible else false
+            state.copy(isAdjustEditorVisible = nextVisible)
+        }
+    }
+
+    fun updateAdjustConfig(config: com.kompact.model.AdjustConfig?) {
+        _state.update { current ->
+            val updatedConfig = current.imageConfig.copy(adjustConfig = config)
+            current.copy(imageConfig = updatedConfig)
+        }
         scheduleLivePreview()
     }
 }

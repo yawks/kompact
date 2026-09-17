@@ -163,4 +163,14 @@
     <string name="white">白</string>
     <string name="red">赤</string>
     <string name="degrees_format">度: %d°</string>
+    <string name="draw">描画</string>
+    <string name="edit_draw">描画を編集</string>
+    <string name="adjust">調整</string>
+    <string name="edit_adjust">調整を編集</string>
+    <string name="brightness">明るさ</string>
+    <string name="contrast">コントラスト</string>
+    <string name="saturation">彩度</string>
+    <string name="warmth">温かみ</string>
+    <string name="shadows">影</string>
+    <string name="highlights">ハイライト</string>
 </resources>

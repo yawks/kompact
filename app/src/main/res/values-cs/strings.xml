@@ -163,4 +163,14 @@
     <string name="white">Bílá</string>
     <string name="red">Červená</string>
     <string name="degrees_format">Stupně: %d°</string>
+    <string name="draw">Kreslit</string>
+    <string name="edit_draw">Upravit Kresbu</string>
+    <string name="adjust">Úprava</string>
+    <string name="edit_adjust">Upravit Úpravy</string>
+    <string name="brightness">Jas</string>
+    <string name="contrast">Kontrast</string>
+    <string name="saturation">Sytost</string>
+    <string name="warmth">Teplota</string>
+    <string name="shadows">Stíny</string>
+    <string name="highlights">Světla</string>
 </resources>

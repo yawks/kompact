@@ -163,4 +163,14 @@
     <string name="white">Білий</string>
     <string name="red">Червоний</string>
     <string name="degrees_format">Градуси: %d°</string>
+    <string name="draw">Малювання</string>
+    <string name="edit_draw">Редагувати Малюнок</string>
+    <string name="adjust">Налаштування</string>
+    <string name="edit_adjust">Редагувати Налаштування</string>
+    <string name="brightness">Яскравість</string>
+    <string name="contrast">Контраст</string>
+    <string name="saturation">Насиченість</string>
+    <string name="warmth">Теплота</string>
+    <string name="shadows">Тіні</string>
+    <string name="highlights">Світло</string>
 </resources>

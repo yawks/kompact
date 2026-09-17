@@ -163,4 +163,14 @@
     <string name="white">Vit</string>
     <string name="red">Röd</string>
     <string name="degrees_format">Grader: %d°</string>
+    <string name="draw">Rita</string>
+    <string name="edit_draw">Redigera Ritning</string>
+    <string name="adjust">Justera</string>
+    <string name="edit_adjust">Redigera Justeringar</string>
+    <string name="brightness">Ljusstyrka</string>
+    <string name="contrast">Kontrast</string>
+    <string name="saturation">Mättnad</string>
+    <string name="warmth">Värme</string>
+    <string name="shadows">Skuggor</string>
+    <string name="highlights">Ljuspunkter</string>
 </resources>

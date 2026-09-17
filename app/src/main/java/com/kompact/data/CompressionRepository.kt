@@ -18,9 +18,11 @@ import com.kompact.model.CompressionType
 import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
 import com.kompact.util.DefaultDestinationResolver
+import com.kompact.util.applyAdjust
 import com.kompact.util.applyBackground
 import com.kompact.util.applyColorFilter
 import com.kompact.util.applyCrop
+import com.kompact.util.applyDraw
 import com.kompact.util.applyResize
 import com.kompact.util.applyRotation
 import com.kompact.util.applyTextOverlay
@@ -83,10 +85,12 @@ class LocalCompressionRepository(
             val outFile = cacheFile(extension)
             val hasVisualEdits = config.cropBounds != null ||
                 config.textConfig != null ||
+                config.drawConfig != null ||
                 config.resizeConfig != null ||
                 config.backgroundConfig != null ||
                 config.rotationDegrees != 0f ||
-                config.colorFilterConfig != null
+                config.colorFilterConfig != null ||
+                config.adjustConfig != null
 
             if (!hasVisualEdits && config.percentage == 0 && config.format == ImageOutputFormat.ORIGINAL && config.exifData == config.originalExifData) {
                 // Copy original without re-encoding or exif modification
@@ -118,6 +122,8 @@ class LocalCompressionRepository(
                     .applyColorFilter(config.colorFilterConfig)
                     .applyBackground(config.backgroundConfig)
                     .applyTextOverlay(config.textConfig)
+                    .applyDraw(config.drawConfig)
+                    .applyAdjust(config.adjustConfig)
                 val targetBytes = resolveTargetBytes(config, originalSize)
                 val (compressedBytes, _) = encodeBitmapWithTarget(
                     bitmap = bitmap,

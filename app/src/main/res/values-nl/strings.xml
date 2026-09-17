@@ -163,4 +163,14 @@
     <string name="white">Wit</string>
     <string name="red">Rood</string>
     <string name="degrees_format">Graden: %d°</string>
+    <string name="draw">Tekenen</string>
+    <string name="edit_draw">Tekening Bewerken</string>
+    <string name="adjust">Aanpassen</string>
+    <string name="edit_adjust">Aanpassingen Bewerken</string>
+    <string name="brightness">Helderheid</string>
+    <string name="contrast">Contrast</string>
+    <string name="saturation">Verzadiging</string>
+    <string name="warmth">Warmte</string>
+    <string name="shadows">Schaduwen</string>
+    <string name="highlights">Lichten</string>
 </resources>

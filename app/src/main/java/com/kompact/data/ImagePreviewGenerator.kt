@@ -5,8 +5,10 @@ import android.net.Uri
 import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
 import com.kompact.model.ImagePreviewPayload
+import com.kompact.util.applyAdjust
 import com.kompact.util.applyBackground
 import com.kompact.util.applyCrop
+import com.kompact.util.applyDraw
 import com.kompact.util.applyResize
 import com.kompact.util.applyRotation
 import com.kompact.util.applyColorFilter
@@ -37,6 +39,8 @@ class ImagePreviewGenerator(context: Context) {
             .applyColorFilter(config.colorFilterConfig)
             .applyBackground(config.backgroundConfig)
             .applyTextOverlay(config.textConfig)
+            .applyDraw(config.drawConfig)
+            .applyAdjust(config.adjustConfig)
         val originalBytes = resolver.getFileSize(appContext, source)
         val extension = resolveImageExtension(appContext, resolver, source, config.format)
         val targetBytes = resolveTargetBytes(config, originalBytes)

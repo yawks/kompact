@@ -11,6 +11,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -162,6 +164,10 @@ fun KompactScreen(
     onExifDataChange: (com.kompact.model.ExifData?) -> Unit,
     onToggleTextEditor: () -> Unit,
     onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
+    onToggleDrawEditor: () -> Unit,
+    onDrawConfigChange: (com.kompact.model.DrawConfig?) -> Unit,
+    onToggleAdjustEditor: () -> Unit,
+    onAdjustConfigChange: (com.kompact.model.AdjustConfig?) -> Unit,
     onToggleExifEditor: () -> Unit,
     onToggleCropEditor: () -> Unit,
     onCropBoundsChange: (com.kompact.model.CropBounds?) -> Unit,
@@ -298,6 +304,10 @@ fun KompactScreen(
                     onExifDataChange = onExifDataChange,
                     onToggleTextEditor = onToggleTextEditor,
                     onTextConfigChange = onTextConfigChange,
+                    onToggleDrawEditor = onToggleDrawEditor,
+                    onDrawConfigChange = onDrawConfigChange,
+                    onToggleAdjustEditor = onToggleAdjustEditor,
+                    onAdjustConfigChange = onAdjustConfigChange,
                     onToggleExifEditor = onToggleExifEditor,
                     onToggleCropEditor = onToggleCropEditor,
                     onCropBoundsChange = onCropBoundsChange,
@@ -343,6 +353,10 @@ fun HomeScreen(
     onExifDataChange: (ExifData?) -> Unit,
     onToggleTextEditor: () -> Unit,
     onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
+    onToggleDrawEditor: () -> Unit,
+    onDrawConfigChange: (com.kompact.model.DrawConfig?) -> Unit,
+    onToggleAdjustEditor: () -> Unit,
+    onAdjustConfigChange: (com.kompact.model.AdjustConfig?) -> Unit,
     onToggleExifEditor: () -> Unit,
     onToggleCropEditor: () -> Unit,
     onCropBoundsChange: (CropBounds?) -> Unit,
@@ -434,6 +448,14 @@ fun HomeScreen(
                         isTextEditorVisible = state.isTextEditorVisible,
                         isTextApplied = state.imageConfig.textConfig != null,
                         onTextClick = onToggleTextEditor,
+                        canAdjust = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1,
+                        isAdjustEditorVisible = state.isAdjustEditorVisible,
+                        isAdjustApplied = state.imageConfig.adjustConfig != null,
+                        onAdjustClick = onToggleAdjustEditor,
+                        canDraw = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1,
+                        isDrawEditorVisible = state.isDrawEditorVisible,
+                        isDrawApplied = state.imageConfig.drawConfig != null,
+                        onDrawClick = onToggleDrawEditor,
                         onRotateClick = { isRotateEditorVisible = true },
                         onColorFilterClick = onToggleColorFilterEditor,
                         exifEditingEnabled = exifEditingEnabled,
@@ -586,6 +608,36 @@ fun HomeScreen(
                     onToggleTextEditor() // close it
                 },
                 onDismiss = onToggleTextEditor
+            )
+        }
+    }
+
+    if (state.isAdjustEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+        val uri = state.selectedFiles.firstOrNull()?.uri
+        if (uri != null) {
+            AdjustEditorDialog(
+                imageUri = uri,
+                adjustConfig = state.imageConfig.adjustConfig,
+                onAdjustConfigChange = { config ->
+                    onAdjustConfigChange(config)
+                    onToggleAdjustEditor() // close it
+                },
+                onDismiss = onToggleAdjustEditor
+            )
+        }
+    }
+
+    if (state.isDrawEditorVisible && state.sourceCategory == SourceCategory.IMAGE) {
+        val uri = state.selectedFiles.firstOrNull()?.uri
+        if (uri != null) {
+            DrawEditorDialog(
+                imageUri = uri,
+                drawConfig = state.imageConfig.drawConfig,
+                onDrawConfigChange = { config ->
+                    onDrawConfigChange(config)
+                    onToggleDrawEditor() // close it
+                },
+                onDismiss = onToggleDrawEditor
             )
         }
     }
@@ -2473,6 +2525,10 @@ private fun PreviewKompact() {
             onToggleExifEditor = {},
             onToggleTextEditor = {},
             onTextConfigChange = { _ -> },
+            onToggleDrawEditor = {},
+            onDrawConfigChange = { _ -> },
+            onToggleAdjustEditor = {},
+            onAdjustConfigChange = { _ -> },
             onToggleCropEditor = {},
             onCropBoundsChange = { _ -> },
             onToggleResizeEditor = {},
@@ -2520,6 +2576,14 @@ fun LivePreviewCard(
     isTextEditorVisible: Boolean = false,
     isTextApplied: Boolean = false,
     onTextClick: () -> Unit = {},
+    canAdjust: Boolean = false,
+    isAdjustEditorVisible: Boolean = false,
+    isAdjustApplied: Boolean = false,
+    onAdjustClick: () -> Unit = {},
+    canDraw: Boolean = false,
+    isDrawEditorVisible: Boolean = false,
+    isDrawApplied: Boolean = false,
+    onDrawClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var zoomTarget by remember { mutableStateOf<Uri?>(null) }
@@ -2584,6 +2648,16 @@ fun LivePreviewCard(
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.rotate))
                     }
+                    TextButton(onClick = onAdjustClick, enabled = canAdjust) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Tune, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        val label = when {
+                            isAdjustEditorVisible -> stringResource(R.string.adjust)
+                            isAdjustApplied -> stringResource(R.string.edit_adjust)
+                            else -> stringResource(R.string.adjust)
+                        }
+                        Text(label)
+                    }
                     TextButton(onClick = onColorFilterClick) {
                         Icon(androidx.compose.material.icons.Icons.Default.Palette, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
@@ -2609,6 +2683,19 @@ fun LivePreviewCard(
                             isTextEditorVisible -> stringResource(R.string.text_label)
                             isTextApplied -> stringResource(R.string.edit_text)
                             else -> stringResource(R.string.text_label)
+                        }
+                        Text(label)
+                    }
+                    TextButton(
+                        onClick = onDrawClick,
+                        enabled = canDraw
+                    ) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Edit, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        val label = when {
+                            isDrawEditorVisible -> stringResource(R.string.draw)
+                            isDrawApplied -> stringResource(R.string.edit_draw)
+                            else -> stringResource(R.string.draw)
                         }
                         Text(label)
                     }

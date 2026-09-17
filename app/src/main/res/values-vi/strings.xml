@@ -160,4 +160,14 @@
     <string name="black">Đen</string>
     <string name="white">Trắng</string>
     <string name="red">Đỏ</string>
+    <string name="draw">Vẽ</string>
+    <string name="edit_draw">Chỉnh Sửa Vẽ</string>
+    <string name="adjust">Điều Chỉnh</string>
+    <string name="edit_adjust">Chỉnh Sửa Điều Chỉnh</string>
+    <string name="brightness">Độ Sáng</string>
+    <string name="contrast">Độ Tương Phản</string>
+    <string name="saturation">Độ Bão Hòa</string>
+    <string name="warmth">Độ Ấm</string>
+    <string name="shadows">Bóng Tối</string>
+    <string name="highlights">Ánh Sáng</string>
     <string name="degrees_format">Độ: %d°</string></resources>

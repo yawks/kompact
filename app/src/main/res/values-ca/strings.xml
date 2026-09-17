@@ -161,4 +161,14 @@
     <string name="white">Blanc</string>
     <string name="red">Vermell</string>
     <string name="degrees_format">Graus: %d°</string>
+    <string name="draw">Dibuxar</string>
+    <string name="edit_draw">Editar Dibuix</string>
+    <string name="adjust">Ajustar</string>
+    <string name="edit_adjust">Editar Ajustos</string>
+    <string name="brightness">Luminositat</string>
+    <string name="contrast">Contrast</string>
+    <string name="saturation">Saturació</string>
+    <string name="warmth">Calidesa</string>
+    <string name="shadows">Ombres</string>
+    <string name="highlights">Llums</string>
 </resources>

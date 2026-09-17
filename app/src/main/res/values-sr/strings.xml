@@ -161,4 +161,14 @@
     <string name="white">Бела</string>
     <string name="red">Црвена</string>
     <string name="degrees_format">Степени: %d°</string>
+    <string name="draw">Цртај</string>
+    <string name="edit_draw">Уреди Цртеж</string>
+    <string name="adjust">Прилагоди</string>
+    <string name="edit_adjust">Уреди Прилагођавања</string>
+    <string name="brightness">Осветљење</string>
+    <string name="contrast">Контраст</string>
+    <string name="saturation">Засићеност</string>
+    <string name="warmth">Топлина</string>
+    <string name="shadows">Сенке</string>
+    <string name="highlights">Истакнуте</string>
 </resources>

@@ -162,4 +162,14 @@
     <string name="white">Valkoinen</string>
     <string name="red">Punainen</string>
     <string name="degrees_format">Asteet: %d°</string>
+    <string name="draw">Piirrä</string>
+    <string name="edit_draw">Muokkaa Piirustusta</string>
+    <string name="adjust">Säädä</string>
+    <string name="edit_adjust">Muokkaa Säätöjä</string>
+    <string name="brightness">Kirkkaus</string>
+    <string name="contrast">Kontrasti</string>
+    <string name="saturation">Kylläisyys</string>
+    <string name="warmth">Lämpö</string>
+    <string name="shadows">Varjot</string>
+    <string name="highlights">Korostukset</string>
 </resources>

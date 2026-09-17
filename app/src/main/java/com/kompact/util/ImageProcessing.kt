@@ -910,3 +910,135 @@ internal fun android.graphics.Bitmap.applyTextOverlay(config: com.kompact.model.
 
     return workingBitmap
 }
+
+internal fun android.graphics.Bitmap.applyDraw(config: com.kompact.model.DrawConfig?): android.graphics.Bitmap {
+    if (config == null || config.strokes.isEmpty()) return this
+
+    val workingBitmap = if (this.isMutable && this.config == android.graphics.Bitmap.Config.ARGB_8888) {
+        this
+    } else {
+        this.copy(android.graphics.Bitmap.Config.ARGB_8888, true) ?: return this
+    }
+    
+    val canvas = android.graphics.Canvas(workingBitmap)
+    
+    for (stroke in config.strokes) {
+        val paint = android.graphics.Paint().apply {
+            color = stroke.color
+            strokeWidth = stroke.strokeWidth
+            style = android.graphics.Paint.Style.STROKE
+            strokeCap = android.graphics.Paint.Cap.ROUND
+            strokeJoin = android.graphics.Paint.Join.ROUND
+            alpha = (stroke.opacity * 255).toInt()
+            isAntiAlias = true
+            isFilterBitmap = true
+        }
+        
+        if (stroke.points.size < 2) continue
+        
+        // Points are stored as normalized coordinates (0-1 range)
+        // Scale them to the bitmap dimensions
+        val path = android.graphics.Path()
+        path.moveTo(stroke.points[0].x * workingBitmap.width, stroke.points[0].y * workingBitmap.height)
+        
+        for (i in 1 until stroke.points.size) {
+            path.lineTo(stroke.points[i].x * workingBitmap.width, stroke.points[i].y * workingBitmap.height)
+        }
+        
+        canvas.drawPath(path, paint)
+    }
+    
+    return workingBitmap
+}
+
+/**
+ * Apply image adjustments (brightness, contrast, saturation, warmth, shadows, highlights)
+ * All values are percentages: -100 to 100 where 0 = no change
+ */
+internal fun android.graphics.Bitmap.applyAdjust(config: com.kompact.model.AdjustConfig?): android.graphics.Bitmap {
+    if (config == null) return this
+    
+    // If all adjustments are 0, return unchanged
+    if (config.brightness == 0f && config.contrast == 0f && 
+        config.saturation == 0f && config.warmth == 0f &&
+        config.shadows == 0f && config.highlights == 0f) {
+        return this
+    }
+    
+    val workingBitmap = if (this.isMutable && this.config == android.graphics.Bitmap.Config.ARGB_8888) {
+        this
+    } else {
+        this.copy(android.graphics.Bitmap.Config.ARGB_8888, true) ?: return this
+    }
+    
+    val canvas = android.graphics.Canvas(workingBitmap)
+    val paint = android.graphics.Paint()
+    
+    // Create color matrix for adjustments
+    val colorMatrix = android.graphics.ColorMatrix()
+    
+    // Apply saturation
+    if (config.saturation != 0f) {
+        val saturation = 1f + (config.saturation / 100f)
+        colorMatrix.setSaturation(saturation.coerceIn(0f, 2f))
+    }
+    
+    // Apply contrast
+    if (config.contrast != 0f) {
+        val contrast = 1f + (config.contrast / 100f)
+        val contrastValue = contrast.coerceIn(0f, 2f)
+        val contrastMatrix = android.graphics.ColorMatrix(floatArrayOf(
+            contrastValue, 0f, 0f, 0f, (0.5f - contrastValue * 0.5f) * 255f,
+            0f, contrastValue, 0f, 0f, (0.5f - contrastValue * 0.5f) * 255f,
+            0f, 0f, contrastValue, 0f, (0.5f - contrastValue * 0.5f) * 255f,
+            0f, 0f, 0f, 1f, 0f
+        ))
+        colorMatrix.postConcat(contrastMatrix)
+    }
+    
+    // Apply brightness
+    if (config.brightness != 0f) {
+        val brightness = config.brightness / 100f
+        val brightnessMatrix = android.graphics.ColorMatrix(floatArrayOf(
+            1f, 0f, 0f, 0f, brightness * 255f,
+            0f, 1f, 0f, 0f, brightness * 255f,
+            0f, 0f, 1f, 0f, brightness * 255f,
+            0f, 0f, 0f, 1f, 0f
+        ))
+        colorMatrix.postConcat(brightnessMatrix)
+    }
+    
+    // Apply warmth (blue to yellow)
+    if (config.warmth != 0f) {
+        val warmth = config.warmth / 100f
+        val warmthValue = 1f + warmth * 0.2f  // More subtle effect
+        val warmthMatrix = android.graphics.ColorMatrix(floatArrayOf(
+            warmthValue, 0f, 0f, 0f, 0f,
+            0f, warmthValue.coerceIn(0.8f, 1.2f), 0f, 0f, 0f,
+            0f, 0f, 1f / warmthValue.coerceIn(0.8f, 1.2f), 0f, 0f,
+            0f, 0f, 0f, 1f, 0f
+        ))
+        colorMatrix.postConcat(warmthMatrix)
+    }
+    
+    // Apply shadows and highlights using curves (simplified with contrast adjustments)
+    if (config.shadows != 0f || config.highlights != 0f) {
+        val shadows = config.shadows / 100f
+        val highlights = config.highlights / 100f
+        
+        // Simple shadow/highlight adjustment via RGB curves
+        // This is a simplified approximation
+        val shadowHighlightMatrix = android.graphics.ColorMatrix(floatArrayOf(
+            1f, 0f, 0f, 0f, shadows * 255f,
+            0f, 1f, 0f, 0f, shadows * 255f,
+            0f, 0f, 1f, 0f, shadows * 255f,
+            0f, 0f, 0f, 1f, 0f
+        ))
+        colorMatrix.postConcat(shadowHighlightMatrix)
+    }
+    
+    paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
+    canvas.drawBitmap(workingBitmap, 0f, 0f, paint)
+    
+    return workingBitmap
+}

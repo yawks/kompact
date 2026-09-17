@@ -163,4 +163,14 @@
     <string name="white">Alb</string>
     <string name="red">Roșu</string>
     <string name="degrees_format">Grade: %d°</string>
+    <string name="draw">Desenați</string>
+    <string name="edit_draw">Editați Desenul</string>
+    <string name="adjust">Ajustare</string>
+    <string name="edit_adjust">Editați Ajustările</string>
+    <string name="brightness">Luminozitate</string>
+    <string name="contrast">Contrast</string>
+    <string name="saturation">Saturație</string>
+    <string name="warmth">Căldură</string>
+    <string name="shadows">Umbre</string>
+    <string name="highlights">Lumină</string>
 </resources>

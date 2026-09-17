@@ -161,4 +161,14 @@
     <string name="white">Bijela</string>
     <string name="red">Crvena</string>
     <string name="degrees_format">Stupnjevi: %d°</string>
+    <string name="draw">Crtaj</string>
+    <string name="edit_draw">Uredi Crtež</string>
+    <string name="adjust">Prilagodi</string>
+    <string name="edit_adjust">Uredi Prilagodbe</string>
+    <string name="brightness">Osjetljivost</string>
+    <string name="contrast">Kontrast</string>
+    <string name="saturation">Zasićenost</string>
+    <string name="warmth">Toplina</string>
+    <string name="shadows">Sjenke</string>
+    <string name="highlights">Istaknute</string>
 </resources>

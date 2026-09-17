@@ -112,10 +112,37 @@ data class ExifData(
 
 enum class ColorFilterType { NONE, AUTO, GRAYSCALE, SEPIA, VINTAGE, COOL, WARM, CUSTOM }
 
+enum class DrawToolType { PEN, HIGHLIGHTER }
+
+data class DrawStroke(
+    val points: List<android.graphics.PointF> = emptyList(),
+    val color: Int = android.graphics.Color.RED,
+    val strokeWidth: Float = 5f,
+    val toolType: DrawToolType = DrawToolType.PEN,
+    val opacity: Float = 1.0f
+)
+
+data class DrawConfig(
+    val strokes: List<DrawStroke> = emptyList(),
+    val color: Int = android.graphics.Color.RED,
+    val strokeWidth: Float = 5f,
+    val toolType: DrawToolType = DrawToolType.PEN,
+    val opacity: Float = 1.0f
+)
+
 data class ColorFilterConfig(
     val filterType: ColorFilterType = ColorFilterType.NONE,
     val intensity: Float = 1.0f, // Optional for future intensity tuning
     val hue: Float = 0f // Hue value from 0 to 360 for CUSTOM filter
+)
+
+data class AdjustConfig(
+    val brightness: Float = 0f,    // -100 to 100 (percentage)
+    val contrast: Float = 0f,      // -100 to 100 (percentage)
+    val saturation: Float = 0f,    // -100 to 100 (percentage)
+    val warmth: Float = 0f,        // -100 to 100 (percentage, blue to yellow)
+    val shadows: Float = 0f,       // -100 to 100 (percentage)
+    val highlights: Float = 0f,    // -100 to 100 (percentage)
 )
 
 data class ImageCompressionConfig(
@@ -133,6 +160,8 @@ data class ImageCompressionConfig(
     val backgroundConfig: BackgroundConfig? = null,
     val rotationDegrees: Float = 0f,
     val colorFilterConfig: ColorFilterConfig? = null,
+    val drawConfig: DrawConfig? = null,
+    val adjustConfig: AdjustConfig? = null,
     val preserveSourceDate: Boolean = false,
 )
 
@@ -215,6 +244,8 @@ data class CompressionUiState(
     val isResizeEditorVisible: Boolean = false,
     val isBackgroundEditorVisible: Boolean = false,
     val isColorFilterEditorVisible: Boolean = false,
+    val isDrawEditorVisible: Boolean = false,
+    val isAdjustEditorVisible: Boolean = false,
     val deleteOriginals: Boolean = false,
     val preserveSourceDate: Boolean = false,
 )

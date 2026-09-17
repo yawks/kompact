@@ -161,4 +161,14 @@
     <string name="white">Бял</string>
     <string name="red">Червен</string>
     <string name="degrees_format">Градуси: %d°</string>
+    <string name="draw">Рисувай</string>
+    <string name="edit_draw">Редактирай Рисуване</string>
+    <string name="adjust">Настройка</string>
+    <string name="edit_adjust">Редактирай Настройка</string>
+    <string name="brightness">Яркост</string>
+    <string name="contrast">Контраст</string>
+    <string name="saturation">Съситеност</string>
+    <string name="warmth">Топлина</string>
+    <string name="shadows">Сенки</string>
+    <string name="highlights">Светли участъци</string>
 </resources>

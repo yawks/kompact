@@ -162,4 +162,14 @@
     <string name="white">Blanco</string>
     <string name="red">Rojo</string>
     <string name="degrees_format">Grados: %d°</string>
+    <string name="draw">Dibujar</string>
+    <string name="edit_draw">Editar Dibujo</string>
+    <string name="adjust">Ajustar</string>
+    <string name="edit_adjust">Editar Ajustes</string>
+    <string name="brightness">Brillo</string>
+    <string name="contrast">Contraste</string>
+    <string name="saturation">Saturación</string>
+    <string name="warmth">Temperatura</string>
+    <string name="shadows">Sombras</string>
+    <string name="highlights">Luces</string>
 </resources>

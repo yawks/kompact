@@ -161,4 +161,14 @@
     <string name="white">Putih</string>
     <string name="red">Merah</string>
     <string name="degrees_format">Derajat: %d°</string>
+    <string name="draw">Gambar</string>
+    <string name="edit_draw">Edit Gambar</string>
+    <string name="adjust">Sesuaikan</string>
+    <string name="edit_adjust">Edit Penyesuaian</string>
+    <string name="brightness">Kecerahan</string>
+    <string name="contrast">Kontras</string>
+    <string name="saturation">Kejenuhan</string>
+    <string name="warmth">Kehangatan</string>
+    <string name="shadows">Bayangan</string>
+    <string name="highlights">Sorotan</string>
 </resources>

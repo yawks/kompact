@@ -159,4 +159,14 @@
     <string name="white">白色</string>
     <string name="red">红色</string>
     <string name="degrees_format">角度：%d°</string>
+    <string name="draw">绘画</string>
+    <string name="edit_draw">编辑绘画</string>
+    <string name="adjust">调整</string>
+    <string name="edit_adjust">编辑调整</string>
+    <string name="brightness">亮度</string>
+    <string name="contrast">对比度</string>
+    <string name="saturation">饱和度</string>
+    <string name="warmth">暖色</string>
+    <string name="shadows">阴影</string>
+    <string name="highlights">高光</string>
 </resources>

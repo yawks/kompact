@@ -161,4 +161,14 @@
     <string name="white">Fehér</string>
     <string name="red">Piros</string>
     <string name="degrees_format">Fok: %d°</string>
+    <string name="draw">Rajzolás</string>
+    <string name="edit_draw">Rajz Szerkesztése</string>
+    <string name="adjust">Beállítás</string>
+    <string name="edit_adjust">Beállítások Szerkesztése</string>
+    <string name="brightness">Fényerő</string>
+    <string name="contrast">Kontraszt</string>
+    <string name="saturation">Telítettség</string>
+    <string name="warmth">Melegség</string>
+    <string name="shadows">Árnyékok</string>
+    <string name="highlights">Fénypontok</string>
 </resources>

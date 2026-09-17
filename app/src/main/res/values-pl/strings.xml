@@ -163,4 +163,14 @@
     <string name="white">Biały</string>
     <string name="red">Czerwony</string>
     <string name="degrees_format">Stopnie: %d°</string>
+    <string name="draw">Rysuj</string>
+    <string name="edit_draw">Edytuj Rysunek</string>
+    <string name="adjust">Dostosuj</string>
+    <string name="edit_adjust">Edytuj Dostosowania</string>
+    <string name="brightness">Jasność</string>
+    <string name="contrast">Kontrast</string>
+    <string name="saturation">Nasycenie</string>
+    <string name="warmth">Ciepło</string>
+    <string name="shadows">Cienie</string>
+    <string name="highlights">Światła</string>
 </resources>
