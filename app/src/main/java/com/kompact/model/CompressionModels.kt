@@ -110,7 +110,7 @@ data class ExifData(
     val subsecTimeDigitized: String? = null,
 )
 
-enum class ColorFilterType { NONE, GRAYSCALE, SEPIA, VINTAGE, COOL, WARM, CUSTOM }
+enum class ColorFilterType { NONE, AUTO, GRAYSCALE, SEPIA, VINTAGE, COOL, WARM, CUSTOM }
 
 data class ColorFilterConfig(
     val filterType: ColorFilterType = ColorFilterType.NONE,

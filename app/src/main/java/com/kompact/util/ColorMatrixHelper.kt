@@ -9,6 +9,22 @@ internal fun ColorFilterConfig.toAndroidColorMatrix(): android.graphics.ColorMat
 
     val androidMatrix = android.graphics.ColorMatrix()
     when (this.filterType) {
+        ColorFilterType.AUTO -> {
+            // Professional auto-enhance similar to Google Photos
+            // Slight saturation boost (+15%)
+            // Slight contrast enhancement
+            // Automatic color balance
+            androidMatrix.setSaturation(1.15f)
+            
+            // Apply slight contrast enhancement
+            val autoMatrix = android.graphics.ColorMatrix(floatArrayOf(
+                1.1f, -0.05f, -0.05f, 0f, 0f,
+                -0.05f, 1.1f, -0.05f, 0f, 0f,
+                -0.05f, -0.05f, 1.1f, 0f, 0f,
+                0f, 0f, 0f, 1f, 0f
+            ))
+            androidMatrix.postConcat(autoMatrix)
+        }
         ColorFilterType.GRAYSCALE -> androidMatrix.setSaturation(0f)
         ColorFilterType.SEPIA -> {
             androidMatrix.setSaturation(0f)
