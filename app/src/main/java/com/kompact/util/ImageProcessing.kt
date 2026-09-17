@@ -27,41 +27,55 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
         resolver.openInputStream(uri)?.use { input ->
             val exif = ExifInterface(input)
             
-            // Read GPS coordinates more reliably by checking individual tags
-            val latLong = exif.latLong
-            val lat = latLong?.getOrNull(0)
-            val lon = latLong?.getOrNull(1)
+            // ========================================================================
+            // RADICAL GPS PARSE: Read individual GPS tags directly
+            // Try multiple approaches to ensure we get GPS data from all devices
+            // ========================================================================
             
-            // Check if altitude tag exists - only return non-null if the tag actually exists
-            val altitude = if (exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE) != null) {
-                val altValue = exif.getAltitude(0.0)
-                // Only return altitude if it's a valid value (not just the default 0.0)
-                // We consider 0.0 as valid if the altitude reference tag exists
-                if (exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF) != null) {
-                    altValue
-                } else {
-                    // Check if latitude/longitude exist - if they do, altitude of 0.0 might be valid
-                    if (lat != null && lon != null) {
-                        altValue
-                    } else {
-                        null
-                    }
+            // Primary: Parse from individual GPS tags (most reliable across devices)
+            var latitude = parseGpsCoordinate(
+                exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE),
+                exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF)
+            )
+            var longitude = parseGpsCoordinate(
+                exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE),
+                exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF)
+            )
+            
+            // Fallback 1: Try using the built-in latLong property (works on some devices)
+            if (latitude == null || longitude == null) {
+                val latLong = exif.latLong
+                if (latLong != null) {
+                    latitude = latLong.getOrNull(0)
+                    longitude = latLong.getOrNull(1)
                 }
-            } else {
-                null
+            }
+            
+            // Parse altitude from TAG_GPS_ALTITUDE and TAG_GPS_ALTITUDE_REF
+            var altitude: Double? = parseGpsAltitude(
+                exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE),
+                exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF)
+            )
+            
+            // Fallback for altitude: Try using getAltitude() if direct parsing failed
+            if (altitude == null && exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE) != null) {
+                val altitudeRef = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF)
+                if (altitudeRef != null) {
+                    altitude = exif.getAltitude(0.0)
+                }
             }
             
             // Generate position string from GPS coordinates if available
-            val position = exif.getAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION) 
-                ?: (if (lat != null && lon != null) formatGpsPosition(lat, lon) else null)
+            val position = exif.getAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION)
+                ?: (if (latitude != null && longitude != null) formatGpsPosition(latitude, longitude) else null)
             
             ExifData(
                 dateTime = exif.getAttribute(ExifInterface.TAG_DATETIME),
                 make = exif.getAttribute(ExifInterface.TAG_MAKE),
                 model = exif.getAttribute(ExifInterface.TAG_MODEL),
                 orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL),
-                latitude = lat,
-                longitude = lon,
+                latitude = latitude,
+                longitude = longitude,
                 altitude = altitude,
                 position = position,
                 exposureTime = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME),
@@ -76,6 +90,81 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
                 description = exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION),
                 userComment = exif.getAttribute(ExifInterface.TAG_USER_COMMENT),
             )
+        }
+    } catch (e: Exception) {
+        null
+    }
+}
+
+/**
+ * Parse GPS coordinate from EXIF rational array format to decimal degrees.
+ * GPS coordinates in EXIF are stored as: [degrees, minutes, seconds] as rational numbers
+ * Reference indicates N/S for latitude or E/W for longitude
+ * Format: "dd/ddddd,mm/mm,ss/sss" or array of rational strings
+ */
+private fun parseGpsCoordinate(coordinateValue: String?, referenceValue: String?): Double? {
+    if (coordinateValue.isNullOrBlank() || referenceValue.isNullOrBlank()) return null
+    
+    return try {
+        // Parse the coordinate array (format: "deg/1,min/1,sec/1" or "deg_num/deg_den,min_num/min_den,sec_num/sec_den")
+        val parts = coordinateValue.split(",")
+        if (parts.size != 3) return null
+        
+        val degrees = parseRational(parts[0]) ?: return null
+        val minutes = parseRational(parts[1]) ?: return null
+        val seconds = parseRational(parts[2]) ?: return null
+        
+        // Convert to decimal degrees: degrees + minutes/60 + seconds/3600
+        val decimalDegrees = degrees + (minutes / 60.0) + (seconds / 3600.0)
+        
+        // Apply reference (N/S for latitude, E/W for longitude)
+        val sign = when (referenceValue.uppercase()) {
+            "S", "W" -> -1.0
+            else -> 1.0  // "N", "E" or unknown (default to positive)
+        }
+        
+        decimalDegrees * sign
+    } catch (e: Exception) {
+        null
+    }
+}
+
+/**
+ * Parse altitude from EXIF GPS altitude tags.
+ * Altitude is stored as a rational number, with reference indicating above/below sea level.
+ */
+private fun parseGpsAltitude(altitudeValue: String?, altitudeRefValue: String?): Double? {
+    if (altitudeValue == null) return null
+    
+    return try {
+        val altitude = parseRational(altitudeValue)
+        if (altitude == null) return null
+        
+        // Reference: 0 = above sea level, 1 = below sea level
+        val sign = if (altitudeRefValue == "1") -1.0 else 1.0
+        
+        altitude * sign
+    } catch (e: Exception) {
+        null
+    }
+}
+
+/**
+ * Parse a rational number string in format "numerator/denominator" or just "number".
+ * EXIF stores rational numbers as strings like "123/100" or "45/1"
+ */
+private fun parseRational(value: String): Double? {
+    return try {
+        if (!value.contains('/')) {
+            // Simple integer or decimal
+            value.toDoubleOrNull()
+        } else {
+            // Rational format: numerator/denominator
+            val parts = value.split('/')
+            val numerator = parts[0].toDoubleOrNull() ?: return null
+            val denominator = parts[1].toDoubleOrNull() ?: return null
+            if (denominator == 0.0) return null
+            numerator / denominator
         }
     } catch (e: Exception) {
         null
