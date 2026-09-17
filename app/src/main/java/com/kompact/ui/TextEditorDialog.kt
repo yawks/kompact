@@ -1,9 +1,6 @@
 package com.kompact.ui
 
 import android.net.Uri
-import androidx.core.view.WindowCompat
-import androidx.compose.ui.window.DialogWindowProvider
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
@@ -40,7 +37,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -48,8 +44,6 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberAsyncImagePainter
 import com.kompact.R
 import com.kompact.model.TextOverlayConfig
-import kotlin.math.roundToInt
-import android.util.Log
 
 @Composable
 private fun ControlRow(
@@ -64,7 +58,6 @@ private fun ControlRow(
     modifier: Modifier = Modifier
 ) {
     if (isCompact) {
-        // Vertical layout per schermi piccoli
         Column(
             modifier = modifier
                 .fillMaxWidth()
@@ -116,7 +109,6 @@ private fun ControlRow(
             }
         }
     } else {
-        // Horizontal layout per schermi grandi
         Row(
             modifier = modifier
                 .fillMaxWidth()
@@ -171,73 +163,51 @@ fun TextEditorDialog(
     onTextConfigChange: (TextOverlayConfig?) -> Unit,
     onDismiss: () -> Unit
 ) {
+    // State per il testo e la configurazione
     var text by remember { mutableStateOf(textConfig?.text ?: "") }
     var color by remember { mutableStateOf(Color(textConfig?.color ?: android.graphics.Color.WHITE)) }
     var size by remember { mutableStateOf(textConfig?.size ?: 50f) }
     var scale by remember { mutableStateOf(textConfig?.scale ?: 1f) }
     var rotation by remember { mutableStateOf(textConfig?.rotation ?: 0f) }
-
-    var offsetX by remember { mutableStateOf(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
-    var hasInitializedOffset by remember { mutableStateOf(false) }
+    
+    // State per la posizione - NORMALIZZATA (0-1)
+    // offsetX e offsetY sono in coordinate normalizzate (0-1) dove (0.5, 0.5) = centro
+    var offsetX by remember { mutableStateOf(textConfig?.offsetX ?: 0.5f) }
+    var offsetY by remember { mutableStateOf(textConfig?.offsetY ?: 0.5f) }
+    
+    // State per l'editing
+    var isEditing by remember { mutableStateOf(text.isEmpty()) }
+    var isDragging by remember { mutableStateOf(false) }
+    
+    // Dimensione del container
     var containerWidth by remember { mutableStateOf(1f) }
     var containerHeight by remember { mutableStateOf(1f) }
     
-    // Remembered state for offset calculation
-    val savedContainerWidth = remember { mutableStateOf(1f) }
-    val savedContainerHeight = remember { mutableStateOf(1f) }
-    
-    var isDragging by remember { mutableStateOf(false) }
-    var isEditing by remember { mutableStateOf(text.isEmpty()) }
-    var lastTapTime by remember { mutableStateOf(0L) }
-    var tapCount by remember { mutableStateOf(0) }
+    // Focus manager
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
+    // Gestione focus
     LaunchedEffect(isEditing) {
         if (isEditing) {
-            try { focusRequester.requestFocus() } catch (e: Exception) {}
+            focusRequester.requestFocus()
         } else {
             focusManager.clearFocus()
         }
     }
 
-    // Logica per double tap detection
-    fun handleTextTap() {
-        val now = System.currentTimeMillis()
-        if (now - lastTapTime < 300) {
-            // Double tap detected
-            tapCount++
-            if (tapCount >= 2) {
-                // Reset transforms
-                scale = 1f
-                rotation = 0f
-                offsetX = 0f
-                offsetY = 0f
-                tapCount = 0
-                lastTapTime = 0
-            }
-        } else {
-            // Single tap
-            tapCount = 1
-            lastTapTime = now
-            isEditing = true
-            focusRequester.requestFocus()
-        }
+    // Double tap per reset
+    fun handleDoubleTap() {
+        scale = 1f
+        rotation = 0f
+        offsetX = 0.5f
+        offsetY = 0.5f
     }
 
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        val view = LocalView.current
-        val dialogWindow = (view.parent as? DialogWindowProvider)?.window
-        LaunchedEffect(dialogWindow) {
-            dialogWindow?.let {
-                WindowCompat.setDecorFitsSystemWindows(it, false)
-            }
-        }
-
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Black,
@@ -254,58 +224,32 @@ fun TextEditorDialog(
                     actions = {
                         IconButton(
                             onClick = {
-                                Log.d("TextEditorDialog", "Save button clicked, textBlank=${text.isBlank()}")
                                 if (text.isBlank()) {
-                                    // Se il testo è vuoto, esci senza salvare
-                                    Log.d("TextEditorDialog", "Text is blank, dismissing without save")
                                     isEditing = false
                                     focusManager.clearFocus()
                                     onDismiss()
                                 } else {
-                                    try {
-                                        Log.d("TextEditorDialog", "Saving text: '$text', size=$size, scale=$scale, rotation=$rotation")
-                                        val width = savedContainerWidth.value.coerceAtLeast(1f)
-                                        val height = savedContainerHeight.value.coerceAtLeast(1f)
-                                        
-                                        val finalOffsetX = (offsetX / width) + 0.5f
-                                        val finalOffsetY = (offsetY / height) + 0.5f
-                                        
-                                        val newConfig = TextOverlayConfig(
+                                    isEditing = false
+                                    focusManager.clearFocus()
+                                    onTextConfigChange(
+                                        TextOverlayConfig(
                                             text = text.trim(),
                                             color = color.toArgb(),
                                             size = size,
                                             scale = scale,
-                                            offsetX = finalOffsetX.coerceIn(0f, 1f),
-                                            offsetY = finalOffsetY.coerceIn(0f, 1f),
+                                            offsetX = offsetX,
+                                            offsetY = offsetY,
                                             rotation = rotation
                                         )
-                                        
-                                        Log.d("TextEditorDialog", "Created config: offsetX=${newConfig.offsetX}, offsetY=${newConfig.offsetY}, size=${newConfig.size}, restrictedBox=${width}x${height}")
-                                        
-                                        // Esci dall'editing
-                                        isEditing = false
-                                        focusManager.clearFocus()
-                                        
-                                        // Salva e chiudi
-                                        Log.d("TextEditorDialog", "Calling onTextConfigChange...")
-                                        onTextConfigChange(newConfig)
-                                        Log.d("TextEditorDialog", "Calling onDismiss...")
-                                        onDismiss()
-                                        Log.d("TextEditorDialog", "After onDismiss")
-                                    } catch (e: Exception) {
-                                        Log.e("TextEditorDialog", "Error saving text", e)
-                                        e.printStackTrace()
-                                        // Fallback: chiudi comunque
-                                        onDismiss()
-                                    }
+                                    )
+                                    onDismiss()
                                 }
                             }
                         ) {
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = "Save Text",
-                                tint = if (text.isNotBlank()) Color.Green else Color.Gray,
-                                modifier = Modifier.size(26.dp)
+                                tint = if (text.isNotBlank()) Color.Green else Color.Gray
                             )
                         }
                         IconButton(onClick = onDismiss) {
@@ -313,7 +257,7 @@ fun TextEditorDialog(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Black.copy(alpha = 0.7f),
+                        containerColor = Color.Black.copy(alpha = 0.9f),
                         titleContentColor = Color.White
                     )
                 )
@@ -324,7 +268,7 @@ fun TextEditorDialog(
                         .fillMaxWidth()
                         .navigationBarsPadding()
                         .imePadding()
-                        .background(Color.Black.copy(alpha = 0.7f))
+                        .background(Color.Black.copy(alpha = 0.9f))
                 ) {
                     Column(
                         modifier = Modifier
@@ -334,7 +278,7 @@ fun TextEditorDialog(
                             .heightIn(max = 320.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        // Colors Section with dynamic sizing
+                        // Colors Section
                         Text(
                             "Colors",
                             color = Color.White,
@@ -386,7 +330,6 @@ fun TextEditorDialog(
                         // Control Section - Responsive layout
                         val containerMaxWidth = this@BoxWithConstraints.maxWidth
                         if (containerMaxWidth < 600.dp) {
-                            // Vertical layout per schermi piccoli/portrait
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -415,7 +358,7 @@ fun TextEditorDialog(
                                 )
                                 ControlRow(
                                     label = "Rotate",
-                                    value = "%.0f°".format(rotation),
+                                    value = "%.0f\u00B0".format(rotation),
                                     onDecrease = { rotation = (rotation - 15f + 360f) % 360f },
                                     onIncrease = { rotation = (rotation + 15f) % 360f },
                                     onSliderChange = { rotation = it },
@@ -425,7 +368,6 @@ fun TextEditorDialog(
                                 )
                             }
                         } else {
-                            // Horizontal layout per schermi grandi/landscape
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -457,7 +399,7 @@ fun TextEditorDialog(
                                 )
                                 ControlRow(
                                     label = "Rotate",
-                                    value = "%.0f°".format(rotation),
+                                    value = "%.0f\u00B0".format(rotation),
                                     onDecrease = { rotation = (rotation - 15f + 360f) % 360f },
                                     onIncrease = { rotation = (rotation + 15f) % 360f },
                                     onSliderChange = { rotation = it },
@@ -476,36 +418,21 @@ fun TextEditorDialog(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(Color.Black),
-                contentAlignment = Alignment.Center
+                    .background(Color.Black)
             ) {
+                // Salva le dimensioni del container
                 containerWidth = constraints.maxWidth.toFloat().coerceAtLeast(1f)
                 containerHeight = constraints.maxHeight.toFloat().coerceAtLeast(1f)
                 
-                // Box ristretto dove effettivamente vive il testo - con calcolo preciso delle dimensioni
-                val restrictedBoxWidth = (containerWidth * 0.85f).coerceAtLeast(1f)
-                val restrictedBoxHeight = restrictedBoxWidth  // 1:1 aspect ratio
+                // Calcola le dimensioni della zona di lavoro (85% del container, aspetto 1:1)
+                val maxImageSize = containerWidth.coerceAtMost(containerHeight) * 0.85f
                 
-                // Salva i valori per il calcolo negli offset
-                savedContainerWidth.value = restrictedBoxWidth
-                savedContainerHeight.value = restrictedBoxHeight
-
-                if (!hasInitializedOffset && textConfig != null) {
-                    offsetX = (textConfig.offsetX - 0.5f) * restrictedBoxWidth
-                    offsetY = (textConfig.offsetY - 0.5f) * restrictedBoxHeight
-                    hasInitializedOffset = true
-                } else if (!hasInitializedOffset) {
-                    offsetX = 0f
-                    offsetY = 0f
-                    hasInitializedOffset = true
-                }
-
-                // Immagine di sfondo - limitata a dimensione ragionevole
+                // Immagine di sfondo
                 imageUri?.let { uri ->
                     Box(
                         modifier = Modifier
-                            .width((restrictedBoxWidth).dp)
-                            .height((restrictedBoxHeight).dp)
+                            .width(maxImageSize.dp)
+                            .height(maxImageSize.dp)
                             .align(Alignment.Center)
                     ) {
                         Image(
@@ -517,7 +444,7 @@ fun TextEditorDialog(
                     }
                 }
 
-                // Dimmer quando si modifica il testo
+                // Overlay scuro quando si modifica il testo
                 if (isEditing) {
                     Box(
                         modifier = Modifier
@@ -526,137 +453,125 @@ fun TextEditorDialog(
                     )
                 }
 
-                // Layer di interazione globale - Solo per trasform gestures (pinch/zoom/rotate)
-                // Questo conosce le dimensioni piene (containerWidth/Height)
+                // Layer per gesture di trasformazione (pinch/zoom/rotate/drag)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .pointerInput(Unit) {
                             detectTransformGestures { _, pan, zoom, transformRotation ->
-                                if (!isEditing) {
-                                    // Consenti pan/zoom/rotate libero da qualsiasi punto
-                                    offsetX += pan.x
-                                    offsetY += pan.y
+                                if (!isEditing && !isDragging) {
+                                    // Pan: sposta il testo (converte in offset normalizzato)
+                                    val panX = pan.x / maxImageSize
+                                    val panY = pan.y / maxImageSize
+                                    offsetX = (offsetX + panX).coerceIn(0f, 1f)
+                                    offsetY = (offsetY + panY).coerceIn(0f, 1f)
+                                    
+                                    // Zoom: scala il testo
                                     scale = (scale * zoom).coerceIn(0.5f, 5f)
+                                    
+                                    // Rotazione
                                     rotation += transformRotation
                                 }
                             }
                         }
-                        .pointerInput(Unit) {
-                            // Tap generico fuori dal testo
-                            detectTapGestures(
-                                onTap = { _ ->
-                                    if (isEditing) {
-                                        // Esci da editing al tap fuori
-                                        isEditing = false
-                                        focusManager.clearFocus()
-                                    }
-                                }
-                            )
-                        }
-                )
-
-                // Elemento testo - posizionato sopra l'immagine limitata (stesso container dell'immagine)
-                Box(
-                    modifier = Modifier
-                        .width((restrictedBoxWidth).dp)
-                        .height((restrictedBoxHeight).dp)
-                        .align(Alignment.Center),
-                    contentAlignment = Alignment.Center
                 ) {
-                    val textContainerModifier = Modifier
-                        .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
-                        .graphicsLayer(
-                            scaleX = scale,
-                            scaleY = scale,
-                            rotationZ = rotation
-                        )
-                        .pointerInput(Unit) {
-                            // Drag sul testo - move/transform il testo
-                            detectDragGestures(
-                                onDragStart = { isDragging = true },
-                                onDragEnd = { isDragging = false },
-                                onDragCancel = { isDragging = false },
-                                onDrag = { change, dragAmount ->
-                                    // Permetti drag sia in editing che in transform mode
-                                    if (!isEditing) {
-                                        change.consume()
-                                        // Drag = sposta il testo in qualsiasi momento
-                                        offsetX += dragAmount.x
-                                        offsetY += dragAmount.y
+                    // Elemento testo - posizionato al centro con offset normalizzato
+                    Box(
+                        modifier = Modifier
+                            .width(maxImageSize.dp)
+                            .height(maxImageSize.dp)
+                            .align(Alignment.Center),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Calcola la posizione usando offset normalizzato [0, 1]
+                        // (0.5, 0.5) = centro, (0, 0) = top-left, (1, 1) = bottom-right
+                        val textModifier = Modifier
+                            .graphicsLayer(
+                                translationX = (offsetX - 0.5f) * maxImageSize,
+                                translationY = (offsetY - 0.5f) * maxImageSize,
+                                scaleX = scale,
+                                scaleY = scale,
+                                rotationZ = rotation
+                            )
+                            .pointerInput(Unit) {
+                                detectDragGestures(
+                                    onDragStart = { isDragging = true },
+                                    onDragEnd = { isDragging = false },
+                                    onDragCancel = { isDragging = false },
+                                    onDrag = { change, dragAmount ->
+                                        if (!isEditing) {
+                                            change.consume()
+                                            // Converte dragAmount in offset normalizzato
+                                            val dragX = dragAmount.x / maxImageSize
+                                            val dragY = dragAmount.y / maxImageSize
+                                            offsetX = (offsetX + dragX).coerceIn(0f, 1f)
+                                            offsetY = (offsetY + dragY).coerceIn(0f, 1f)
+                                        }
                                     }
-                                }
-                            )
-                        }
-                        .pointerInput(Unit) {
-                            // Tap sul testo - single/double tap detection
-                            detectTapGestures(
-                                onTap = { _ -> handleTextTap() },
-                                onDoubleTap = { _ ->
-                                    // Double tap = reset transforms
-                                    scale = 1f
-                                    rotation = 0f
-                                    offsetX = 0f
-                                    offsetY = 0f
-                                }
-                            )
-                        }
-                        .border(
-                            width = if (!isEditing && text.isNotEmpty()) 2.dp else 0.dp,
-                            color = Color.White.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .padding(12.dp)
-
-                    BasicTextField(
-                        value = text,
-                        onValueChange = { text = it },
-                        textStyle = TextStyle(
-                            color = color,
-                            fontSize = size.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color = Color.Black.copy(alpha = 0.7f),
-                                offset = androidx.compose.ui.geometry.Offset(2f, 2f),
-                                blurRadius = 4f
-                            )
-                        ),
-                        cursorBrush = SolidColor(color),
-                        modifier = textContainerModifier
-                            .focusRequester(focusRequester)
-                            .widthIn(min = 50.dp, max = 300.dp),
-                        singleLine = false,
-                        decorationBox = { innerTextField ->
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.padding(4.dp)
-                            ) {
-                                if (text.isEmpty()) {
-                                    Text(
-                                        text = if (isEditing) 
-                                            stringResource(R.string.enter_text) 
-                                        else 
-                                            "Tap to add text",
-                                        style = TextStyle(
-                                            color = color.copy(alpha = 0.4f),
-                                            fontSize = size.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    )
-                                }
-                                innerTextField()
+                                )
                             }
-                        }
-                    )
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { 
+                                        if (isEditing) {
+                                            isEditing = false
+                                            focusManager.clearFocus()
+                                        }
+                                    },
+                                    onDoubleTap = { 
+                                        if (!isEditing) {
+                                            handleDoubleTap()
+                                        }
+                                    }
+                                )
+                            }
+                            .border(
+                                width = if (!isEditing && text.isNotEmpty()) 2.dp else 0.dp,
+                                color = Color.White.copy(alpha = 0.8f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
 
-                    // Hint quando non in editing
-                    if (!isEditing && text.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .border(2.dp, Color.Yellow.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                        BasicTextField(
+                            value = text,
+                            onValueChange = { text = it },
+                            textStyle = TextStyle(
+                                color = color,
+                                fontSize = size.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                shadow = androidx.compose.ui.graphics.Shadow(
+                                    color = Color.Black.copy(alpha = 0.7f),
+                                    offset = Offset(2f, 2f),
+                                    blurRadius = 4f
+                                )
+                            ),
+                            cursorBrush = SolidColor(color),
+                            modifier = textModifier
+                                .focusRequester(focusRequester)
+                                .widthIn(min = 50.dp, max = maxImageSize.dp * 0.9f),
+                            singleLine = false,
+                            decorationBox = { innerTextField ->
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.padding(4.dp)
+                                ) {
+                                    if (text.isEmpty()) {
+                                        Text(
+                                            text = if (isEditing) 
+                                                stringResource(R.string.enter_text) 
+                                            else 
+                                                "Tap to add text",
+                                            style = TextStyle(
+                                                color = color.copy(alpha = 0.4f),
+                                                fontSize = size.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            }
                         )
                     }
                 }

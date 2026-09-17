@@ -430,7 +430,7 @@ fun HomeScreen(
                         isResizeEditorVisible = state.isResizeEditorVisible,
                         isResizeApplied = state.imageConfig.resizeConfig != null,
                         onResizeClick = onToggleResizeEditor,
-                        canText = false, // DISABLED: Text editor needs fixing
+                        canText = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1,
                         isTextEditorVisible = state.isTextEditorVisible,
                         isTextApplied = state.imageConfig.textConfig != null,
                         onTextClick = onToggleTextEditor,
