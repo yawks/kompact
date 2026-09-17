@@ -82,6 +82,32 @@ data class ExifData(
     val software: String? = null,
     val description: String? = null,
     val userComment: String? = null,
+    // Additional camera/device metadata
+    val exposureProgram: Int? = null,
+    val meteringMode: Int? = null,
+    val exposureMode: Int? = null,
+    val sceneType: Int? = null,
+    val sceneCaptureType: Int? = null,
+    val digitalZoomRatio: String? = null,
+    val focalLength35mm: String? = null,
+    val maxApertureValue: String? = null,
+    val subjectDistance: String? = null,
+    val subjectArea: String? = null,
+    // Image characteristics
+    val contrast: Int? = null,
+    val saturation: Int? = null,
+    val sharpness: Int? = null,
+    val brightnessValue: String? = null,
+    // Device info
+    val fileSource: String? = null,
+    val customRendered: Int? = null,
+    val colorSpace: Int? = null,
+    val gamma: String? = null,
+    // Additional info
+    val imageUniqueId: String? = null,
+    val subsecTime: String? = null,
+    val subsecTimeOriginal: String? = null,
+    val subsecTimeDigitized: String? = null,
 )
 
 enum class ColorFilterType { NONE, GRAYSCALE, SEPIA, VINTAGE, COOL, WARM, CUSTOM }

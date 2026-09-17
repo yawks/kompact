@@ -1534,7 +1534,95 @@ fun ExifEditorDialog(
                     label = { Text(stringResource(R.string.orientation)) },
                     modifier = Modifier.fillMaxWidth()
                 )
-
+                
+                Text("Advanced Camera Settings", style = MaterialTheme.typography.titleSmall)
+                OutlinedTextField(
+                    value = currentExif.exposureProgram?.toString() ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(exposureProgram = it.toIntOrNull())) },
+                    label = { Text("Exposure Program") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.meteringMode?.toString() ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(meteringMode = it.toIntOrNull())) },
+                    label = { Text("Metering Mode") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.exposureMode?.toString() ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(exposureMode = it.toIntOrNull())) },
+                    label = { Text("Exposure Mode") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.sceneType?.toString() ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(sceneType = it.toIntOrNull())) },
+                    label = { Text("Scene Type") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.sceneCaptureType?.toString() ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(sceneCaptureType = it.toIntOrNull())) },
+                    label = { Text("Scene Capture Type") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.digitalZoomRatio ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(digitalZoomRatio = it.takeIf { it.isNotBlank() })) },
+                    label = { Text("Digital Zoom Ratio") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.focalLength35mm ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(focalLength35mm = it.takeIf { it.isNotBlank() })) },
+                    label = { Text("Focal Length 35mm") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.maxApertureValue ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(maxApertureValue = it.takeIf { it.isNotBlank() })) },
+                    label = { Text("Max Aperture") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.subjectDistance ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(subjectDistance = it.takeIf { it.isNotBlank() })) },
+                    label = { Text("Subject Distance") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.subjectArea ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(subjectArea = it.takeIf { it.isNotBlank() })) },
+                    label = { Text("Subject Area") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Text("Image Characteristics", style = MaterialTheme.typography.titleSmall)
+                OutlinedTextField(
+                    value = currentExif.contrast?.toString() ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(contrast = it.toIntOrNull())) },
+                    label = { Text("Contrast") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.saturation?.toString() ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(saturation = it.toIntOrNull())) },
+                    label = { Text("Saturation") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.sharpness?.toString() ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(sharpness = it.toIntOrNull())) },
+                    label = { Text("Sharpness") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = currentExif.brightnessValue ?: "",
+                    onValueChange = { onExifDataChange(currentExif.copy(brightnessValue = it.takeIf { it.isNotBlank() })) },
+                    label = { Text("Brightness") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
                 Text(stringResource(R.string.metadata), style = MaterialTheme.typography.titleSmall)
                 OutlinedTextField(
                     value = currentExif.artist ?: "",

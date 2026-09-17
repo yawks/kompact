@@ -89,6 +89,32 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
                 software = exif.getAttribute(ExifInterface.TAG_SOFTWARE),
                 description = exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION),
                 userComment = exif.getAttribute(ExifInterface.TAG_USER_COMMENT),
+                // Additional camera/device metadata
+                exposureProgram = exif.getAttributeIntOrNull(ExifInterface.TAG_EXPOSURE_PROGRAM),
+                meteringMode = exif.getAttributeIntOrNull(ExifInterface.TAG_METERING_MODE),
+                exposureMode = exif.getAttributeIntOrNull(ExifInterface.TAG_EXPOSURE_MODE),
+                sceneType = exif.getAttributeIntOrNull(ExifInterface.TAG_SCENE_TYPE),
+                sceneCaptureType = exif.getAttributeIntOrNull(ExifInterface.TAG_SCENE_CAPTURE_TYPE),
+                digitalZoomRatio = exif.getAttribute(ExifInterface.TAG_DIGITAL_ZOOM_RATIO),
+                focalLength35mm = exif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM),
+                maxApertureValue = exif.getAttribute(ExifInterface.TAG_MAX_APERTURE_VALUE),
+                subjectDistance = exif.getAttribute(ExifInterface.TAG_SUBJECT_DISTANCE),
+                subjectArea = exif.getAttribute(ExifInterface.TAG_SUBJECT_AREA),
+                // Image characteristics
+                contrast = exif.getAttributeIntOrNull(ExifInterface.TAG_CONTRAST),
+                saturation = exif.getAttributeIntOrNull(ExifInterface.TAG_SATURATION),
+                sharpness = exif.getAttributeIntOrNull(ExifInterface.TAG_SHARPNESS),
+                brightnessValue = exif.getAttribute(ExifInterface.TAG_BRIGHTNESS_VALUE),
+                // Device info
+                fileSource = exif.getAttribute(ExifInterface.TAG_FILE_SOURCE),
+                customRendered = exif.getAttributeIntOrNull(ExifInterface.TAG_CUSTOM_RENDERED),
+                colorSpace = exif.getAttributeIntOrNull(ExifInterface.TAG_COLOR_SPACE),
+                gamma = exif.getAttribute(ExifInterface.TAG_GAMMA),
+                // Additional info
+                imageUniqueId = exif.getAttribute(ExifInterface.TAG_IMAGE_UNIQUE_ID),
+                subsecTime = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME),
+                subsecTimeOriginal = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL),
+                subsecTimeDigitized = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED),
             )
         }
     } catch (e: Exception) {
@@ -166,6 +192,19 @@ private fun parseRational(value: String): Double? {
             if (denominator == 0.0) return null
             numerator / denominator
         }
+    } catch (e: Exception) {
+        null
+    }
+}
+
+/**
+ * Helper extension to get attribute as nullable Int
+ * Returns null if the tag doesn't exist or can't be parsed
+ */
+private fun ExifInterface.getAttributeIntOrNull(tag: String): Int? {
+    return try {
+        val value = getAttributeInt(tag, Int.MIN_VALUE)
+        if (value == Int.MIN_VALUE) null else value
     } catch (e: Exception) {
         null
     }
@@ -413,6 +452,36 @@ internal fun writeExifData(bytes: ByteArray, exifData: ExifData?, resolver: Cont
             exif.setAttribute(ExifInterface.TAG_SOFTWARE, exifData.software)
             exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, exifData.description)
             exif.setAttribute(ExifInterface.TAG_USER_COMMENT, exifData.userComment)
+            
+            // Additional camera/device metadata
+            exifData.exposureProgram?.let { exif.setAttribute(ExifInterface.TAG_EXPOSURE_PROGRAM, it.toString()) }
+            exifData.meteringMode?.let { exif.setAttribute(ExifInterface.TAG_METERING_MODE, it.toString()) }
+            exifData.exposureMode?.let { exif.setAttribute(ExifInterface.TAG_EXPOSURE_MODE, it.toString()) }
+            exifData.sceneType?.let { exif.setAttribute(ExifInterface.TAG_SCENE_TYPE, it.toString()) }
+            exifData.sceneCaptureType?.let { exif.setAttribute(ExifInterface.TAG_SCENE_CAPTURE_TYPE, it.toString()) }
+            exif.setAttribute(ExifInterface.TAG_DIGITAL_ZOOM_RATIO, exifData.digitalZoomRatio)
+            exif.setAttribute(ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM, exifData.focalLength35mm)
+            exif.setAttribute(ExifInterface.TAG_MAX_APERTURE_VALUE, exifData.maxApertureValue)
+            exif.setAttribute(ExifInterface.TAG_SUBJECT_DISTANCE, exifData.subjectDistance)
+            exif.setAttribute(ExifInterface.TAG_SUBJECT_AREA, exifData.subjectArea)
+            
+            // Image characteristics
+            exifData.contrast?.let { exif.setAttribute(ExifInterface.TAG_CONTRAST, it.toString()) }
+            exifData.saturation?.let { exif.setAttribute(ExifInterface.TAG_SATURATION, it.toString()) }
+            exifData.sharpness?.let { exif.setAttribute(ExifInterface.TAG_SHARPNESS, it.toString()) }
+            exif.setAttribute(ExifInterface.TAG_BRIGHTNESS_VALUE, exifData.brightnessValue)
+            
+            // Device info
+            exif.setAttribute(ExifInterface.TAG_FILE_SOURCE, exifData.fileSource)
+            exifData.customRendered?.let { exif.setAttribute(ExifInterface.TAG_CUSTOM_RENDERED, it.toString()) }
+            exifData.colorSpace?.let { exif.setAttribute(ExifInterface.TAG_COLOR_SPACE, it.toString()) }
+            exif.setAttribute(ExifInterface.TAG_GAMMA, exifData.gamma)
+            
+            // Additional info
+            exif.setAttribute(ExifInterface.TAG_IMAGE_UNIQUE_ID, exifData.imageUniqueId)
+            exif.setAttribute(ExifInterface.TAG_SUBSEC_TIME, exifData.subsecTime)
+            exif.setAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, exifData.subsecTimeOriginal)
+            exif.setAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED, exifData.subsecTimeDigitized)
             
             // Ensure position is written even if it was set directly
             if (!exifData.position.isNullOrBlank()) {
