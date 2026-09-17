@@ -14,7 +14,7 @@ enum class PreviewKind { NONE, IMAGE }
 
 enum class CompressionGoal { PERCENTAGE, TARGET_SIZE }
 
-enum class ImageOutputFormat { ORIGINAL, JPG, PNG, WEBP, BMP, GIF, TIF, HEIF, HEIC, AVIF, JXL, TELEGRAM_PNG }
+enum class ImageOutputFormat { ORIGINAL, JPG, PNG, WEBP, BMP, GIF, TIF, HEIF, HEIC, AVIF, JXL, ICO, TELEGRAM_PNG }
 
 data class CropBounds(
     val left: Float = 0f,

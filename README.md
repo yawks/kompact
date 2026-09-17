@@ -2,7 +2,7 @@
 
 # Kompact
 
-Kompact is an open-source Android app written in Kotlin with Jetpack Compose that compresses images (JPEG, PNG, WebP) quickly and transparently. Official builds are produced and signed by the maintainer to keep a single line of trust that stays compliant with F-Droid and Google Play policies.
+Kompact is an open-source Android app written in Kotlin with Jetpack Compose that compresses images (JPEG, PNG, WebP, BMP, GIF, TIFF, HEIF, HEIC, AVIF, JXL, ICO) quickly and transparently. Official builds are produced and signed by the maintainer to keep a single line of trust that stays compliant with F-Droid and Google Play policies.
 
 ## Key Features
 - Multi-selection of images through the Storage Access Framework.

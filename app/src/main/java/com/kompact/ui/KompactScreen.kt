@@ -787,7 +787,7 @@ fun AboutScreen(modifier: Modifier = Modifier) {
                     Text(stringResource(R.string.current_features), style = MaterialTheme.typography.titleMedium)
                     Text(
                         stringResource(R.string.precision_compression_target_specific_file_sizes_or_quality_percentages_n) +
-                        "• Format Conversion: Switch easily between JPG, PNG, WebP, and more.\n" +
+                        "• Format Conversion: Switch easily between JPG, PNG, WebP, ICO, and more.\n" +
                         "• Live Preview: Compare original vs. compressed results in real-time.",
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -2758,6 +2758,7 @@ private fun inferOriginalFormat(file: SelectedFileDescriptor?): ImageOutputForma
         source.contains("heic") -> ImageOutputFormat.HEIC
         source.contains("avif") -> ImageOutputFormat.AVIF
         source.contains("jxl") -> ImageOutputFormat.JXL
+        source.contains("ico") || source.contains("x-icon") -> ImageOutputFormat.ICO
         else -> null
     }
 }
@@ -2775,6 +2776,7 @@ private fun inferDefaultFormatLabel(file: SelectedFileDescriptor?): String? {
             ImageOutputFormat.HEIC -> "HEIC"
             ImageOutputFormat.AVIF -> "AVIF"
             ImageOutputFormat.JXL -> "JXL"
+            ImageOutputFormat.ICO -> "ICO"
             else -> format.name
         }
     }

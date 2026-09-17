@@ -393,6 +393,7 @@ class LocalCompressionRepository(
             "heic" -> "image/heic"
             "avif" -> "image/avif"
             "jxl" -> "image/jxl"
+            "ico" -> "image/x-icon"
             else -> "application/octet-stream"
         }
     }

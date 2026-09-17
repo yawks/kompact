@@ -364,6 +364,7 @@ internal fun encodeBitmapWithTarget(
         ImageOutputFormat.TIF -> encodeToPng(bitmap, 100) to 100 // Same
         ImageOutputFormat.AVIF -> encodeToWebp(bitmap, normalizedQuality) to normalizedQuality // AVIF not supported, use WEBP
         ImageOutputFormat.JXL -> encodeToPng(bitmap, 100) to 100 // JXL not supported, use PNG
+        ImageOutputFormat.ICO -> encodeToIco(bitmap) to 100 // ICO is lossless (PNG inside)
         ImageOutputFormat.TELEGRAM_PNG -> encodeToPng(bitmap, normalizedQuality) to normalizedQuality // PNG optimized
         else -> {
             val compressFormat = when (outputFormat) {
@@ -481,6 +482,78 @@ internal fun encodeToBmp(bitmap: Bitmap): ByteArray {
     return buffer
 }
 
+internal fun encodeToIco(bitmap: Bitmap): ByteArray {
+    // ICO encoder that creates a standard Windows ICO file
+    // ICO format: header + icon entries + image data
+    // For simplicity, we store the image as a PNG inside the ICO container
+    // This provides better quality and transparency support
+    
+    val width = bitmap.width
+    val height = bitmap.height
+    
+    // First, encode the bitmap as PNG
+    val pngData = encodeToPng(bitmap, 100)
+    
+    // ICO header: 6 bytes
+    // 0-1: Reserved (0)
+    // 2-3: Image type (1 for icon)
+    // 4-5: Number of images (1)
+    val headerSize = 6
+    
+    // Icon entry: 16 bytes per image
+    // 0: Image width (1-256, 0 means 256)
+    // 1: Image height (1-256, 0 means 256)
+    // 2: Number of colors in palette (0 if >= 256 colors)
+    // 3: Reserved (0)
+    // 4-5: Color planes (1 for PNG)
+    // 6-7: Bits per pixel (0 for PNG)
+    // 8-11: Image data size in bytes
+    // 12-15: Offset of image data from beginning of file
+    val entrySize = 16
+    
+    val imageDataSize = pngData.size
+    val offsetToImageData = headerSize + entrySize
+    
+    val icoData = ByteArray(headerSize + entrySize + imageDataSize)
+    var offset = 0
+    
+    // Write ICO header
+    icoData[offset++] = 0 // Reserved
+    icoData[offset++] = 0 // Reserved
+    icoData[offset++] = 1 // Image type: 1 = icon
+    icoData[offset++] = 0 // Image type: high byte
+    icoData[offset++] = 1 // Number of images: 1
+    icoData[offset++] = 0 // Number of images: high byte
+    
+    // Write icon entry
+    // Width and height (must be <= 255 for standard ICO)
+    val icoWidth = if (width > 255) 255 else width
+    val icoHeight = if (height > 255) 255 else height
+    icoData[offset++] = icoWidth.toByte() // Width
+    icoData[offset++] = icoHeight.toByte() // Height
+    icoData[offset++] = 0 // Number of colors (0 = 256+ colors)
+    icoData[offset++] = 0 // Reserved
+    icoData[offset++] = 0 // Color planes (low byte)
+    icoData[offset++] = 1 // Color planes (high byte) - 1 plane
+    icoData[offset++] = 0 // Bits per pixel (low byte)
+    icoData[offset++] = 32 // Bits per pixel (high byte) - 32 for PNG in ICO
+    
+    // Image data size (4 bytes, little-endian)
+    for (i in 0..3) {
+        icoData[offset++] = (imageDataSize shr (i * 8)).toByte()
+    }
+    
+    // Offset to image data (4 bytes, little-endian)
+    for (i in 0..3) {
+        icoData[offset++] = (offsetToImageData shr (i * 8)).toByte()
+    }
+    
+    // Write PNG data
+    System.arraycopy(pngData, 0, icoData, offset, pngData.size)
+    
+    return icoData
+}
+
 internal fun resolveImageExtension(
     context: Context,
     resolver: ContentResolver,
@@ -499,6 +572,7 @@ internal fun resolveImageExtension(
         ImageOutputFormat.HEIC -> "heic"
         ImageOutputFormat.AVIF -> "avif"
         ImageOutputFormat.JXL -> "jxl"
+        ImageOutputFormat.ICO -> "ico"
         ImageOutputFormat.TELEGRAM_PNG -> "png"
     }
 }
@@ -519,6 +593,8 @@ private fun inferOriginalExtension(
         mime?.contains("heic", ignoreCase = true) == true -> "heic"
         mime?.contains("avif", ignoreCase = true) == true -> "avif"
         mime?.contains("jxl", ignoreCase = true) == true -> "jxl"
+        mime?.contains("ico", ignoreCase = true) == true -> "ico"
+        mime?.contains("x-icon", ignoreCase = true) == true -> "ico"
         else -> "jpg"
     }
 }
