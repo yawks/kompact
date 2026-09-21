@@ -409,7 +409,9 @@ internal fun writeExifData(bytes: ByteArray, exifData: ExifData?, resolver: Cont
             exif.setAttribute(ExifInterface.TAG_DATETIME, exifData.dateTime)
             exif.setAttribute(ExifInterface.TAG_MAKE, exifData.make)
             exif.setAttribute(ExifInterface.TAG_MODEL, exifData.model)
-            exif.setAttribute(ExifInterface.TAG_ORIENTATION, exifData.orientation?.toString())
+            // The pixels were re-encoded from a bitmap already normalized to upright
+            // orientation (see decodeBitmap), so the output must not rotate again.
+            exif.setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL.toString())
             
             // Handle GPS coordinates - write both using setLatLong for compatibility
             // and also set individual tags for completeness
@@ -506,7 +508,48 @@ internal fun decodeBitmap(resolver: ContentResolver, uri: Uri): Bitmap? {
         inPreferredConfig = Bitmap.Config.ARGB_8888
         inScaled = false
     }
-    return resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
+    val decoded = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
+        ?: return null
+    return applyExifOrientation(decoded, resolver, uri)
+}
+
+/**
+ * BitmapFactory ignores the EXIF orientation tag, while image loaders used by the
+ * editors (Coil) display the upright image. Rotate/flip the decoded bitmap so the
+ * processing pipeline works in the same coordinate space the user saw while editing.
+ */
+private fun applyExifOrientation(bitmap: Bitmap, resolver: ContentResolver, uri: Uri): Bitmap {
+    val orientation = try {
+        resolver.openInputStream(uri)?.use { stream ->
+            ExifInterface(stream).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        } ?: ExifInterface.ORIENTATION_NORMAL
+    } catch (e: Exception) {
+        ExifInterface.ORIENTATION_NORMAL
+    }
+
+    val matrix = android.graphics.Matrix()
+    when (orientation) {
+        ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+        ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+        ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.postScale(-1f, 1f)
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.postScale(1f, -1f)
+        ExifInterface.ORIENTATION_TRANSPOSE -> {
+            matrix.postRotate(90f)
+            matrix.postScale(-1f, 1f)
+        }
+        ExifInterface.ORIENTATION_TRANSVERSE -> {
+            matrix.postRotate(270f)
+            matrix.postScale(-1f, 1f)
+        }
+        else -> return bitmap
+    }
+
+    val oriented = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    if (oriented != bitmap) {
+        bitmap.recycle()
+    }
+    return oriented
 }
 
 internal fun encodeBitmapWithTarget(
@@ -879,33 +922,44 @@ internal fun android.graphics.Bitmap.applyTextOverlay(config: com.kompact.model.
 
     val workingBitmap = if (this.isMutable && this.config == android.graphics.Bitmap.Config.ARGB_8888) this else this.copy(android.graphics.Bitmap.Config.ARGB_8888, true) ?: return this
     val canvas = android.graphics.Canvas(workingBitmap)
+    val width = workingBitmap.width
+    val height = workingBitmap.height
+    val maxEdge = maxOf(width, height).toFloat()
     val paint = android.graphics.Paint().apply {
         color = config.color
-        // Scala il testo in base alla larghezza dell'immagine (reference 1080px)
-        textSize = config.size * config.scale * (workingBitmap.width / 1080f).coerceAtLeast(1f)
+        // In the editor the font height is a fraction of its square canvas, and that
+        // square maps to the image's longest edge. Fall back to legacy sizing when the
+        // fraction was not recorded.
+        textSize = if (config.sizeFraction > 0f) {
+            config.sizeFraction * config.scale * maxEdge
+        } else {
+            config.size * config.scale * (width / 1080f).coerceAtLeast(1f)
+        }
         isAntiAlias = true
         style = android.graphics.Paint.Style.FILL
         textAlign = android.graphics.Paint.Align.CENTER
         setShadowLayer(4f, 2f, 2f, android.graphics.Color.BLACK)
     }
 
-    val x = config.offsetX * workingBitmap.width
-    val y = config.offsetY * workingBitmap.height
-    
-    canvas.save()
-    canvas.translate(x, y)
-    canvas.rotate(config.rotation)
-    
-    // Draw multiline text
-    val lines = config.text.split("\\n")
+    // The editor lays the text out over a square canvas with the image fitted inside
+    // (ContentScale.Fit, letterboxed and centered). Map the square-space offsets to
+    // image-space coordinates and keep the anchor inside the bitmap so the text is
+    // never drawn completely outside the output image.
+    val x = (config.offsetX * maxEdge - (maxEdge - width) / 2f).coerceIn(0f, width.toFloat())
+    val y = (config.offsetY * maxEdge - (maxEdge - height) / 2f).coerceIn(0f, height.toFloat())
 
-    var currentY = 0f
+    canvas.save()
+    canvas.rotate(config.rotation, x, y)
+
+    // Draw multiline text, centered on the anchor like the editor renders it
+    val lines = config.text.split('\n')
+
     val spacing = paint.descent() - paint.ascent()
-    for (line in lines) {
-        canvas.drawText(line, 0f, currentY, paint)
-        currentY += spacing
+    val blockTop = y - lines.size * spacing / 2f
+    lines.forEachIndexed { index, line ->
+        canvas.drawText(line, x, blockTop + index * spacing - paint.ascent(), paint)
     }
-    
+
     canvas.restore()
 
     return workingBitmap

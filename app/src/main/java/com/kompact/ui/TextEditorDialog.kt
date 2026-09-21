@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -186,6 +187,7 @@ fun TextEditorDialog(
     // Focus manager
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val density = LocalDensity.current
 
     // Gestione focus
     LaunchedEffect(isEditing) {
@@ -231,6 +233,11 @@ fun TextEditorDialog(
                                 } else {
                                     isEditing = false
                                     focusManager.clearFocus()
+                                    // Record the font height relative to the editor's square
+                                    // canvas so the output overlay can reproduce the same
+                                    // proportions on any image resolution.
+                                    val canvasPx = containerWidth.coerceAtMost(containerHeight) * 0.85f
+                                    val fontPx = with(density) { size.sp.toPx() }
                                     onTextConfigChange(
                                         TextOverlayConfig(
                                             text = text.trim(),
@@ -239,7 +246,8 @@ fun TextEditorDialog(
                                             scale = scale,
                                             offsetX = offsetX,
                                             offsetY = offsetY,
-                                            rotation = rotation
+                                            rotation = rotation,
+                                            sizeFraction = if (canvasPx > 0f) fontPx / canvasPx else 0f
                                         )
                                     )
                                     onDismiss()
@@ -423,16 +431,19 @@ fun TextEditorDialog(
                 // Salva le dimensioni del container
                 containerWidth = constraints.maxWidth.toFloat().coerceAtLeast(1f)
                 containerHeight = constraints.maxHeight.toFloat().coerceAtLeast(1f)
-                
+
                 // Calcola le dimensioni della zona di lavoro (85% del container, aspetto 1:1)
+                // constraints sono in pixel: convertili in Dp per il layout, mentre le
+                // gesture e graphicsLayer usano direttamente i pixel.
                 val maxImageSize = containerWidth.coerceAtMost(containerHeight) * 0.85f
-                
+                val maxImageSizeDp = with(LocalDensity.current) { maxImageSize.toDp() }
+
                 // Immagine di sfondo
                 imageUri?.let { uri ->
                     Box(
                         modifier = Modifier
-                            .width(maxImageSize.dp)
-                            .height(maxImageSize.dp)
+                            .width(maxImageSizeDp)
+                            .height(maxImageSizeDp)
                             .align(Alignment.Center)
                     ) {
                         Image(
@@ -478,8 +489,8 @@ fun TextEditorDialog(
                     // Elemento testo - posizionato al centro con offset normalizzato
                     Box(
                         modifier = Modifier
-                            .width(maxImageSize.dp)
-                            .height(maxImageSize.dp)
+                            .width(maxImageSizeDp)
+                            .height(maxImageSizeDp)
                             .align(Alignment.Center),
                         contentAlignment = Alignment.Center
                     ) {
@@ -548,7 +559,7 @@ fun TextEditorDialog(
                             cursorBrush = SolidColor(color),
                             modifier = textModifier
                                 .focusRequester(focusRequester)
-                                .widthIn(min = 50.dp, max = maxImageSize.dp * 0.9f),
+                                .widthIn(min = 50.dp, max = maxImageSizeDp * 0.9f),
                             singleLine = false,
                             decorationBox = { innerTextField ->
                                 Box(
