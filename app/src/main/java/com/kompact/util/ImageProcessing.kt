@@ -497,14 +497,14 @@ internal fun writeExifData(bytes: ByteArray, exifData: ExifData?, resolver: Cont
     }
 }
 
-internal fun decodeBitmap(resolver: ContentResolver, uri: Uri): Bitmap? {
+internal fun decodeBitmap(resolver: ContentResolver, uri: Uri, maxEdge: Int = MAX_IMAGE_EDGE): Bitmap? {
     val boundsOptions = BitmapFactory.Options().apply {
         inJustDecodeBounds = true
         inScaled = false
     }
     resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, boundsOptions) }
     val decodeOptions = BitmapFactory.Options().apply {
-        inSampleSize = calculateSampleSize(boundsOptions, MAX_IMAGE_EDGE, MAX_IMAGE_EDGE)
+        inSampleSize = calculateSampleSize(boundsOptions, maxEdge, maxEdge)
         inPreferredConfig = Bitmap.Config.ARGB_8888
         inScaled = false
     }

@@ -7,9 +7,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -192,6 +194,26 @@ fun DrawEditorDialog(
     fun handleClearAll() {
         saveStateForUndo()
         strokes.clear()
+    }
+
+    // Commit the current path as a stroke with normalized coordinates
+    fun commitStroke() {
+        if (currentPath.isEmpty()) return
+        // Registra lo spessore come frazione del lato maggiore
+        // dell'immagine processata mostrata, così l'output
+        // riproduce le stesse proporzioni a qualsiasi risoluzione
+        val displayMaxEdge = maxOf(imageSize.width, imageSize.height).coerceAtLeast(1f)
+        strokes.add(
+            DrawStroke(
+                points = currentPath.toList(),
+                color = currentColor.toArgb(),
+                strokeWidth = currentStrokeWidth,
+                widthFraction = currentStrokeWidth / displayMaxEdge,
+                toolType = currentToolType,
+                opacity = currentOpacity
+            )
+        )
+        currentPath.clear()
     }
     
     // Convert Dp to Px
@@ -435,15 +457,6 @@ fun DrawEditorDialog(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .background(Color.Black)
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            // Handle zoom and pan for the image
-                            if (!isDrawing) {
-                                scale = (scale * zoom).coerceIn(0.5f, 4f)
-                                translation += pan
-                            }
-                        }
-                    }
             ) {
                 val maxWidth = constraints.maxWidth.toFloat()
                 val maxHeight = constraints.maxHeight.toFloat()
@@ -479,128 +492,158 @@ fun DrawEditorDialog(
                 imageSize = displaySize
                 imageOffset = Offset(centerX - displaySize.width / 2f, centerY - displaySize.height / 2f)
 
-                // Draw image
-                imageUri?.let { uri ->
-                    Box(
-                        modifier = Modifier
-                            .width(with(density) { displaySize.width.toDp() })
-                            .height(with(density) { displaySize.height.toDp() })
-                            .align(Alignment.Center)
-                            .clipToBounds()
-                    ) {
-                        if (geometry == null) {
-                            // Fallback finché l'aspect non è noto
-                            AsyncImage(
-                                model = uri,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
-                        } else {
-                            // La regione di crop riempie il box di display; l'immagine
-                            // orientata viene ruotata con lo stesso bounding box della pipeline
-                            val k = displaySize.width / geometry.cw
-                            Image(
-                                painter = rememberAsyncImagePainter(uri),
-                                contentDescription = null,
-                                contentScale = ContentScale.FillBounds,
-                                modifier = Modifier
-                                    .size(
-                                        with(density) { (k * geometry.aspect).toDp() },
-                                        with(density) { k.toDp() }
-                                    )
-                                    .align(Alignment.Center)
-                                    .graphicsLayer(
-                                        rotationZ = geometry.theta,
-                                        translationX = -k * geometry.qx,
-                                        translationY = -k * geometry.qy
-                                    )
-                            )
-                        }
-                    }
-                }
-                
-                // Drawing canvas
-                Canvas(
+                // Zoom/pan della vista (pinch a due dita): immagine e tratti si
+                // trasformano insieme; i pointer restano in coordinate locali,
+                // quindi la normalizzazione dei tratti non cambia
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                onDragStart = { offset ->
-                                    if (!isDrawing) {
-                                        isDrawing = true
-                                        currentPath.clear()
-                                        saveStateForUndo()
-                                        // Convert canvas coordinates to normalized image coordinates
-                                        currentPath.add(normalizeToImage(offset, imageOffset, imageSize))
-                                    }
-                                },
-                                onDrag = { change, _ ->
-                                    if (isDrawing) {
-                                        change.consume()
-                                        // Convert canvas coordinates to normalized image coordinates
-                                        currentPath.add(normalizeToImage(change.position, imageOffset, imageSize))
-                                    }
-                                },
-                                onDragEnd = {
-                                    if (isDrawing) {
-                                        isDrawing = false
-                                        // Registra lo spessore come frazione del lato maggiore
-                                        // dell'immagine processata mostrata, così l'output
-                                        // riproduce le stesse proporzioni a qualsiasi risoluzione
-                                        val displayMaxEdge = maxOf(imageSize.width, imageSize.height).coerceAtLeast(1f)
-                                        // Add the path to strokes with normalized coordinates
-                                        strokes.add(
-                                            DrawStroke(
-                                                points = currentPath.toList(),
-                                                color = currentColor.toArgb(),
-                                                strokeWidth = currentStrokeWidth,
-                                                widthFraction = currentStrokeWidth / displayMaxEdge,
-                                                toolType = currentToolType,
-                                                opacity = currentOpacity
-                                            )
+                        .clipToBounds()
+                        .graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                            translationX = translation.x,
+                            translationY = translation.y
+                        )
+                ) {
+                    // Draw image
+                    imageUri?.let { uri ->
+                        Box(
+                            modifier = Modifier
+                                .width(with(density) { displaySize.width.toDp() })
+                                .height(with(density) { displaySize.height.toDp() })
+                                .align(Alignment.Center)
+                                .clipToBounds()
+                        ) {
+                            if (geometry == null) {
+                                // Fallback finché l'aspect non è noto
+                                AsyncImage(
+                                    model = uri,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            } else {
+                                // La regione di crop riempie il box di display; l'immagine
+                                // orientata viene ruotata con lo stesso bounding box della pipeline
+                                val k = displaySize.width / geometry.cw
+                                Image(
+                                    painter = rememberAsyncImagePainter(uri),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.FillBounds,
+                                    modifier = Modifier
+                                        .size(
+                                            with(density) { (k * geometry.aspect).toDp() },
+                                            with(density) { k.toDp() }
                                         )
-                                        currentPath.clear()
+                                        .align(Alignment.Center)
+                                        .graphicsLayer(
+                                            rotationZ = geometry.theta,
+                                            translationX = -k * geometry.qx,
+                                            translationY = -k * geometry.qy
+                                        )
+                                )
+                            }
+                        }
+                    }
+
+                    // Drawing canvas: un dito disegna, due dita zoom/pan della vista
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                val touchSlopPx = 8.dp.toPx()
+                                awaitEachGesture {
+                                    val down = awaitFirstDown(requireUnconsumed = false)
+                                    var drawing = false
+                                    var pastSlop = false
+                                    var multiTouch = false
+                                    while (true) {
+                                        val event = awaitPointerEvent()
+                                        val pressedChanges = event.changes.filter { it.pressed }
+                                        if (pressedChanges.isEmpty()) break
+
+                                        if (pressedChanges.size > 1) {
+                                            // Pinch: interrompi l'eventuale tratto in corso
+                                            if (drawing) {
+                                                drawing = false
+                                                isDrawing = false
+                                                currentPath.clear()
+                                            }
+                                            multiTouch = true
+                                            val zoomChange = event.calculateZoom()
+                                            val panChange = event.calculatePan()
+                                            event.changes.forEach { if (it.positionChanged()) it.consume() }
+                                            scale = (scale * zoomChange).coerceIn(1f, 5f)
+                                            // panChange è in coordinate locali: riscala in px schermo
+                                            val maxPanX = (scale - 1f) * canvasSize.width / 2f
+                                            val maxPanY = (scale - 1f) * canvasSize.height / 2f
+                                            translation = Offset(
+                                                (translation.x + panChange.x * scale).coerceIn(-maxPanX, maxPanX),
+                                                (translation.y + panChange.y * scale).coerceIn(-maxPanY, maxPanY)
+                                            )
+                                        } else if (!multiTouch) {
+                                            // Disegno a un dito, con touch slop
+                                            val change = pressedChanges.first()
+                                            if (!pastSlop &&
+                                                (change.position - down.position).getDistance() > touchSlopPx
+                                            ) {
+                                                pastSlop = true
+                                            }
+                                            if (pastSlop && change.positionChanged()) {
+                                                if (!drawing) {
+                                                    drawing = true
+                                                    isDrawing = true
+                                                    saveStateForUndo()
+                                                    currentPath.clear()
+                                                    currentPath.add(
+                                                        normalizeToImage(down.position, imageOffset, imageSize)
+                                                    )
+                                                }
+                                                change.consume()
+                                                currentPath.add(
+                                                    normalizeToImage(change.position, imageOffset, imageSize)
+                                                )
+                                            }
+                                        }
                                     }
-                                },
-                                onDragCancel = {
-                                    if (isDrawing) {
+                                    if (drawing) {
                                         isDrawing = false
-                                        currentPath.clear()
+                                        commitStroke()
                                     }
                                 }
+                            }
+                    ) {
+                        // Lato maggiore dell'immagine processata mostrata (letto dallo state,
+                        // così il rendering segue i cambi di layout)
+                        val displayMaxEdge = maxOf(imageSize.width, imageSize.height).coerceAtLeast(1f)
+
+                        // Draw existing strokes
+                        strokes.forEach { stroke ->
+                            val strokeColor = Color(stroke.color)
+                            val strokeWidth = if (stroke.widthFraction > 0f) {
+                                stroke.widthFraction * displayMaxEdge
+                            } else {
+                                stroke.strokeWidth
+                            }
+
+                            // Convert normalized coordinates back to canvas space for display
+                            drawPath(
+                                path = asPath(stroke.points.map { denormalizeFromImage(it, imageOffset, imageSize) }),
+                                color = strokeColor.copy(alpha = stroke.opacity),
+                                style = Stroke(width = strokeWidth)
                             )
                         }
-                ) {
-                    // Lato maggiore dell'immagine processata mostrata (letto dallo state,
-                    // così il rendering segue i cambi di layout)
-                    val displayMaxEdge = maxOf(imageSize.width, imageSize.height).coerceAtLeast(1f)
 
-                    // Draw existing strokes
-                    strokes.forEach { stroke ->
-                        val strokeColor = Color(stroke.color)
-                        val strokeWidth = if (stroke.widthFraction > 0f) {
-                            stroke.widthFraction * displayMaxEdge
-                        } else {
-                            stroke.strokeWidth
+                        // Draw current path
+                        if (isDrawing && currentPath.isNotEmpty()) {
+                            // Convert normalized coordinates back to canvas space for display
+                            drawPath(
+                                path = asPath(currentPath.map { denormalizeFromImage(it, imageOffset, imageSize) }),
+                                color = currentColor.copy(alpha = currentOpacity),
+                                style = Stroke(width = currentStrokeWidth)
+                            )
                         }
-                        
-                        // Convert normalized coordinates back to canvas space for display
-                        drawPath(
-                            path = asPath(stroke.points.map { denormalizeFromImage(it, imageOffset, imageSize) }),
-                            color = strokeColor.copy(alpha = stroke.opacity),
-                            style = Stroke(width = strokeWidth)
-                        )
-                    }
-                    
-                    // Draw current path
-                    if (isDrawing && currentPath.isNotEmpty()) {
-                        // Convert normalized coordinates back to canvas space for display
-                        drawPath(
-                            path = asPath(currentPath.map { denormalizeFromImage(it, imageOffset, imageSize) }),
-                            color = currentColor.copy(alpha = currentOpacity),
-                            style = Stroke(width = currentStrokeWidth)
-                        )
                     }
                 }
             }
