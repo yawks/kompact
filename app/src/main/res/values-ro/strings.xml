@@ -40,7 +40,7 @@
     <string name="output">Ieșire</string>
     <string name="default_text">Implicit</string>
     <string name="format">Format</string>
-    <string name="quality">Calitate</string>
+    <string name="compression">Comprimare</string>
     <string name="output_filename">Nume fișier de ieșire</string>
     <string name="basic_info">Informații de bază</string>
     <string name="make">Producător</string>

@@ -40,7 +40,7 @@
     <string name="output">Излаз</string>
     <string name="default_text">Подразумевано</string>
     <string name="format">Формат</string>
-    <string name="quality">Квалитет</string>
+    <string name="compression">Компресија</string>
     <string name="output_filename">Излаз име датотеке</string>
     <string name="basic_info">Основне информације</string>
     <string name="make">Произвођач</string>

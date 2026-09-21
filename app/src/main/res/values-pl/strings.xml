@@ -40,7 +40,7 @@
     <string name="output">Wyjście</string>
     <string name="default_text">Domyślny</string>
     <string name="format">Format</string>
-    <string name="quality">Jakość</string>
+    <string name="compression">Kompresja</string>
     <string name="output_filename">Nazwa pliku wyjściowego</string>
     <string name="basic_info">Podstawowe informacje</string>
     <string name="make">Producent</string>

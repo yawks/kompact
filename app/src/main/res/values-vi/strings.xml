@@ -40,7 +40,7 @@
     <string name="output">đầu ra</string>
     <string name="default_text">Mặc định</string>
     <string name="format">Định dạng</string>
-    <string name="quality">Chất lượng</string>
+    <string name="compression">Nén</string>
     <string name="output_filename">Tên tệp đầu ra</string>
     <string name="basic_info">Thông tin cơ bản</string>
     <string name="make">Nhãn hiệu</string>

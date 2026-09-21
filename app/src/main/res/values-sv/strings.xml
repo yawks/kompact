@@ -40,7 +40,7 @@
     <string name="output">Utdata</string>
     <string name="default_text">Standard</string>
     <string name="format">Formatera</string>
-    <string name="quality">Kvalitet</string>
+    <string name="compression">Komprimering</string>
     <string name="output_filename">Utdatafilnamn</string>
     <string name="basic_info">Grundläggande info</string>
     <string name="make">Tillverkare</string>

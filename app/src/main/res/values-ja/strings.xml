@@ -40,7 +40,7 @@
     <string name="output">出力</string>
     <string name="default_text">デフォルト</string>
     <string name="format">フォーマット</string>
-    <string name="quality">品質</string>
+    <string name="compression">圧縮</string>
     <string name="output_filename">出力ファイル名</string>
     <string name="basic_info">基本情報</string>
     <string name="make">メーカー</string>

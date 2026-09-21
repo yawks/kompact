@@ -40,7 +40,7 @@
     <string name="output">Παραγωγή</string>
     <string name="default_text">Αθέτηση</string>
     <string name="format">Σχήμα και διάταξις βιβλίου</string>
-    <string name="quality">Ποιότητα</string>
+    <string name="compression">Συμπίεση</string>
     <string name="output_filename">Όνομα αρχείου εξόδου</string>
     <string name="basic_info">Βασικές πληροφορίες</string>
     <string name="make">Μάρκα</string>

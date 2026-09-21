@@ -40,7 +40,7 @@
     <string name="output">Вивід</string>
     <string name="default_text">За замовчуванням</string>
     <string name="format">Формат</string>
-    <string name="quality">Якість</string>
+    <string name="compression">Стиснення</string>
     <string name="output_filename">Вихідна назва файлу</string>
     <string name="basic_info">Основна інформація</string>
     <string name="make">Виробник</string>

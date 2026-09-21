@@ -40,7 +40,7 @@
     <string name="output">Uitvoer</string>
     <string name="default_text">Standaard</string>
     <string name="format">Formaat</string>
-    <string name="quality">Kwaliteit</string>
+    <string name="compression">Compressie</string>
     <string name="output_filename">Uitvoerbestandsnaam</string>
     <string name="basic_info">Basisinformatie</string>
     <string name="make">Merk</string>

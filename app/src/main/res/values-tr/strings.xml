@@ -40,7 +40,7 @@
     <string name="output">Çıkış</string>
     <string name="default_text">Varsayılan</string>
     <string name="format">Biçim</string>
-    <string name="quality">Kalite</string>
+    <string name="compression">Sıkıştırma</string>
     <string name="output_filename">Çıktı dosya adı</string>
     <string name="basic_info">Temel Bilgiler</string>
     <string name="make">Yapmak</string>

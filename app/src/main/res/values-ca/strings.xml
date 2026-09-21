@@ -40,7 +40,7 @@
     <string name="output">Sortida</string>
     <string name="default_text">Per defecte</string>
     <string name="format">Format</string>
-    <string name="quality">Qualitat</string>
+    <string name="compression">Compressió</string>
     <string name="output_filename">Nom del fitxer de sortida</string>
     <string name="basic_info">Informació bàsica</string>
     <string name="make">Fer</string>

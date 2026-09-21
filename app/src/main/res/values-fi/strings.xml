@@ -40,7 +40,7 @@
     <string name="output">Lähtö</string>
     <string name="default_text">Oletus</string>
     <string name="format">Muoto</string>
-    <string name="quality">Laatu</string>
+    <string name="compression">Pakkaus</string>
     <string name="output_filename">Tulostustiedoston nimi</string>
     <string name="basic_info">Perustiedot</string>
     <string name="make">Valmistaja</string>

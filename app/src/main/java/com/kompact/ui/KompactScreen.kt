@@ -1289,7 +1289,7 @@ fun ImageConfigSection(
                 }
             }
         }
-        Text(stringResource(R.string.quality), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.compression), style = MaterialTheme.typography.titleSmall)
         val configPercentage = when (config.goal) {
             CompressionGoal.PERCENTAGE -> config.percentage
             CompressionGoal.TARGET_SIZE -> if (config.targetSizeBytes == null) config.percentage else (config.targetSizeBytes.toFloat().div(referenceBytes).times(100)).roundToInt()

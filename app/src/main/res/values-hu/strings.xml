@@ -40,7 +40,7 @@
     <string name="output">Kimenet</string>
     <string name="default_text">Alapértelmezett</string>
     <string name="format">Formátum</string>
-    <string name="quality">Minőség</string>
+    <string name="compression">Tömörítés</string>
     <string name="output_filename">Kimeneti fájlnév</string>
     <string name="basic_info">Alapvető információk</string>
     <string name="make">Készíts</string>

@@ -40,7 +40,7 @@
     <string name="output">Izlaz</string>
     <string name="default_text">Zadano</string>
     <string name="format">Format</string>
-    <string name="quality">Kvaliteta</string>
+    <string name="compression">Sažimanje</string>
     <string name="output_filename">Izlazni naziv datoteke</string>
     <string name="basic_info">Osnovne informacije</string>
     <string name="make">Napraviti</string>

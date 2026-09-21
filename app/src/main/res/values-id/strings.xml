@@ -40,7 +40,7 @@
     <string name="output">Keluaran</string>
     <string name="default_text">Bawaan</string>
     <string name="format">Format</string>
-    <string name="quality">Kualitas</string>
+    <string name="compression">Kompresi</string>
     <string name="output_filename">Nama file keluaran</string>
     <string name="basic_info">Info Dasar</string>
     <string name="make">Membuat</string>

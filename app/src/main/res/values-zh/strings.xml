@@ -36,7 +36,7 @@
     <string name="output">输出</string>
     <string name="default_text">默认</string>
     <string name="format">格式</string>
-    <string name="quality">质量</string>
+    <string name="compression">压缩</string>
     <string name="output_filename">输出文件名</string>
     <string name="basic_info">基本信息</string>
     <string name="make">制造商</string>

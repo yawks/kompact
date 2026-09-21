@@ -40,7 +40,7 @@
     <string name="output">Výstup</string>
     <string name="default_text">Výchozí</string>
     <string name="format">Formát</string>
-    <string name="quality">Kvalita</string>
+    <string name="compression">Komprese</string>
     <string name="output_filename">Výstupní název souboru</string>
     <string name="basic_info">Základní informace</string>
     <string name="make">Výrobce</string>

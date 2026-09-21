@@ -40,7 +40,7 @@
     <string name="output">Изход</string>
     <string name="default_text">По подразбиране</string>
     <string name="format">формат</string>
-    <string name="quality">качество</string>
+    <string name="compression">компресия</string>
     <string name="output_filename">Име на изходния файл</string>
     <string name="basic_info">Основна информация</string>
     <string name="make">направи</string>
