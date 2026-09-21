@@ -642,7 +642,9 @@ fun HomeScreen(
                     onDrawConfigChange(config)
                     onToggleDrawEditor() // close it
                 },
-                onDismiss = onToggleDrawEditor
+                onDismiss = onToggleDrawEditor,
+                rotationDegrees = state.imageConfig.rotationDegrees,
+                cropBounds = state.imageConfig.cropBounds
             )
         }
     }

@@ -3,6 +3,7 @@ package com.kompact.ui
 import android.graphics.PointF
 import android.net.Uri
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,6 +27,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.*
@@ -42,12 +44,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.kompact.R
+import com.kompact.model.CropBounds
 import com.kompact.model.DrawConfig
 import com.kompact.model.DrawStroke
 import com.kompact.model.DrawToolType
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
@@ -68,14 +74,65 @@ private fun denormalizeFromImage(point: PointF, imageOffset: Offset, imageSize: 
     return PointF(x, y)
 }
 
+/**
+ * Geometria dell'immagine processata dalla pipeline (EXIF -> rotazione con
+ * bounding box -> crop), su cui applyDraw disegna i tratti. Il Draw editor la
+ * usa per mostrare esattamente la stessa immagine.
+ *
+ * Unità: altezza dell'immagine orientata = 1.
+ */
+private data class ProcessedImageGeometry(
+    val aspect: Float, // aspect dell'immagine orientata (w/h)
+    val theta: Float,  // rotazione in gradi
+    val cw: Float,     // larghezza della regione di crop
+    val ch: Float,     // altezza della regione di crop
+    val qx: Float,     // centro regione rispetto al centro del bbox ruotato
+    val qy: Float
+)
+
+private fun computeProcessedImageGeometry(
+    orientedAspect: Float,
+    rotationDegrees: Float,
+    cropBounds: CropBounds?
+): ProcessedImageGeometry? {
+    val crop = cropBounds?.normalized()
+    val theta = ((rotationDegrees % 360f) + 360f) % 360f
+    val rad = theta * (kotlin.math.PI.toFloat() / 180f)
+    val absSin = abs(sin(rad))
+    val absCos = abs(cos(rad))
+    val a = orientedAspect
+    // Bounding box dopo la rotazione, come Bitmap.createBitmap con postRotate
+    val rw = a * absCos + absSin
+    val rh = a * absSin + absCos
+    val left = crop?.left ?: 0f
+    val top = crop?.top ?: 0f
+    val right = crop?.right ?: 1f
+    val bottom = crop?.bottom ?: 1f
+    val cw = (right - left) * rw
+    val ch = (bottom - top) * rh
+    if (cw <= 0f || ch <= 0f) return null
+    return ProcessedImageGeometry(
+        aspect = a,
+        theta = theta,
+        cw = cw,
+        ch = ch,
+        qx = (left + right) / 2f * rw - rw / 2f,
+        qy = (top + bottom) / 2f * rh - rh / 2f
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DrawEditorDialog(
     imageUri: Uri?,
     drawConfig: DrawConfig?,
     onDrawConfigChange: (DrawConfig?) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    rotationDegrees: Float = 0f,
+    cropBounds: CropBounds? = null
 ) {
+    // Aspect dell'immagine come la mostra il loader (EXIF applicato)
+    val orientedAspect = rememberOrientedImageAspectRatio(imageUri)
     // State for drawing
     var currentColor by remember { mutableStateOf(Color(drawConfig?.color ?: android.graphics.Color.RED)) }
     var currentStrokeWidth by remember { mutableStateOf(drawConfig?.strokeWidth ?: 5f) }
@@ -400,23 +457,66 @@ fun DrawEditorDialog(
                 // Image display area (85% of canvas)
                 val imageWidth = maxWidth * 0.85f
                 val imageHeight = maxHeight * 0.85f
-                imageSize = androidx.compose.ui.geometry.Size(imageWidth, imageHeight)
-                imageOffset = Offset(centerX - imageWidth / 2f, centerY - imageHeight / 2f)
-                
+
+                // Immagine processata (EXIF -> rotazione -> crop): i tratti vengono
+                // normalizzati su questa immagine, come applyDraw nella pipeline
+                val geometry = orientedAspect?.let {
+                    computeProcessedImageGeometry(it, rotationDegrees, cropBounds)
+                }
+
+                // Fit dell'immagine processata nell'area di display
+                val displaySize = if (geometry != null) {
+                    val boxAspect = imageWidth / imageHeight
+                    val processedAspect = geometry.cw / geometry.ch
+                    if (processedAspect >= boxAspect) {
+                        androidx.compose.ui.geometry.Size(imageWidth, imageWidth / processedAspect)
+                    } else {
+                        androidx.compose.ui.geometry.Size(imageHeight * processedAspect, imageHeight)
+                    }
+                } else {
+                    androidx.compose.ui.geometry.Size(imageWidth, imageHeight)
+                }
+                imageSize = displaySize
+                imageOffset = Offset(centerX - displaySize.width / 2f, centerY - displaySize.height / 2f)
+
                 // Draw image
                 imageUri?.let { uri ->
                     Box(
                         modifier = Modifier
-                            .width(imageWidth.dp)
-                            .height(imageHeight.dp)
+                            .width(with(density) { displaySize.width.toDp() })
+                            .height(with(density) { displaySize.height.toDp() })
                             .align(Alignment.Center)
+                            .clipToBounds()
                     ) {
-                        AsyncImage(
-                            model = uri,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit
-                        )
+                        if (geometry == null) {
+                            // Fallback finché l'aspect non è noto
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        } else {
+                            // La regione di crop riempie il box di display; l'immagine
+                            // orientata viene ruotata con lo stesso bounding box della pipeline
+                            val k = displaySize.width / geometry.cw
+                            Image(
+                                painter = rememberAsyncImagePainter(uri),
+                                contentDescription = null,
+                                contentScale = ContentScale.FillBounds,
+                                modifier = Modifier
+                                    .size(
+                                        with(density) { (k * geometry.aspect).toDp() },
+                                        with(density) { k.toDp() }
+                                    )
+                                    .align(Alignment.Center)
+                                    .graphicsLayer(
+                                        rotationZ = geometry.theta,
+                                        translationX = -k * geometry.qx,
+                                        translationY = -k * geometry.qy
+                                    )
+                            )
+                        }
                     }
                 }
                 
