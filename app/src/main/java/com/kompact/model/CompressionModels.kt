@@ -118,6 +118,9 @@ data class DrawStroke(
     val points: List<android.graphics.PointF> = emptyList(),
     val color: Int = android.graphics.Color.RED,
     val strokeWidth: Float = 5f,
+    // Stroke width as a fraction of the processed image's longest edge.
+    // 0 = unknown, fall back to the legacy absolute-px strokeWidth.
+    val widthFraction: Float = 0f,
     val toolType: DrawToolType = DrawToolType.PEN,
     val opacity: Float = 1.0f
 )

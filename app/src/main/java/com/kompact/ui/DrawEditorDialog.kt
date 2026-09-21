@@ -545,12 +545,17 @@ fun DrawEditorDialog(
                                 onDragEnd = {
                                     if (isDrawing) {
                                         isDrawing = false
+                                        // Registra lo spessore come frazione del lato maggiore
+                                        // dell'immagine processata mostrata, così l'output
+                                        // riproduce le stesse proporzioni a qualsiasi risoluzione
+                                        val displayMaxEdge = maxOf(imageSize.width, imageSize.height).coerceAtLeast(1f)
                                         // Add the path to strokes with normalized coordinates
                                         strokes.add(
                                             DrawStroke(
                                                 points = currentPath.toList(),
                                                 color = currentColor.toArgb(),
                                                 strokeWidth = currentStrokeWidth,
+                                                widthFraction = currentStrokeWidth / displayMaxEdge,
                                                 toolType = currentToolType,
                                                 opacity = currentOpacity
                                             )
@@ -567,15 +572,24 @@ fun DrawEditorDialog(
                             )
                         }
                 ) {
+                    // Lato maggiore dell'immagine processata mostrata (letto dallo state,
+                    // così il rendering segue i cambi di layout)
+                    val displayMaxEdge = maxOf(imageSize.width, imageSize.height).coerceAtLeast(1f)
+
                     // Draw existing strokes
                     strokes.forEach { stroke ->
                         val strokeColor = Color(stroke.color)
+                        val strokeWidth = if (stroke.widthFraction > 0f) {
+                            stroke.widthFraction * displayMaxEdge
+                        } else {
+                            stroke.strokeWidth
+                        }
                         
                         // Convert normalized coordinates back to canvas space for display
                         drawPath(
                             path = asPath(stroke.points.map { denormalizeFromImage(it, imageOffset, imageSize) }),
                             color = strokeColor.copy(alpha = stroke.opacity),
-                            style = Stroke(width = stroke.strokeWidth)
+                            style = Stroke(width = strokeWidth)
                         )
                     }
                     

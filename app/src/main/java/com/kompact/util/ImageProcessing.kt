@@ -975,11 +975,18 @@ internal fun android.graphics.Bitmap.applyDraw(config: com.kompact.model.DrawCon
     }
     
     val canvas = android.graphics.Canvas(workingBitmap)
+    // Lato maggiore dell'immagine processata: come nel Draw editor, lo spessore è
+    // proporzionale a questa dimensione così l'output riproduce le proporzioni viste
+    val maxEdge = maxOf(workingBitmap.width, workingBitmap.height).toFloat()
     
     for (stroke in config.strokes) {
         val paint = android.graphics.Paint().apply {
             color = stroke.color
-            strokeWidth = stroke.strokeWidth
+            strokeWidth = if (stroke.widthFraction > 0f) {
+                stroke.widthFraction * maxEdge
+            } else {
+                stroke.strokeWidth
+            }
             style = android.graphics.Paint.Style.STROKE
             strokeCap = android.graphics.Paint.Cap.ROUND
             strokeJoin = android.graphics.Paint.Join.ROUND
