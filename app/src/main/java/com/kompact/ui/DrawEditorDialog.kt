@@ -150,8 +150,9 @@ fun DrawEditorDialog(
     var undoStack by remember { mutableStateOf(mutableListOf<List<DrawStroke>>()) }
     var redoStack by remember { mutableStateOf(mutableListOf<List<DrawStroke>>()) }
     
-    // Current path being drawn
-    var currentPath by remember { mutableStateOf(mutableListOf<PointF>()) }
+    // Current path being drawn (SnapshotStateList: ogni punto aggiunto
+    // invalida il Canvas, così il tratto appare in tempo reale)
+    val currentPath = remember { mutableStateListOf<PointF>() }
     
     // Image and canvas state
     var canvasSize by remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }
