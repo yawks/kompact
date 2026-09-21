@@ -1,5 +1,6 @@
 package com.kompact.ui
 
+import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +24,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -42,9 +45,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.exifinterface.media.ExifInterface
 import coil.compose.rememberAsyncImagePainter
 import com.kompact.R
+import com.kompact.model.CropBounds
 import com.kompact.model.TextOverlayConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 private fun ControlRow(
@@ -162,7 +172,9 @@ fun TextEditorDialog(
     imageUri: Uri?,
     textConfig: TextOverlayConfig?,
     onTextConfigChange: (TextOverlayConfig?) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    rotationDegrees: Float = 0f,
+    cropBounds: CropBounds? = null
 ) {
     // State per il testo e la configurazione
     var text by remember { mutableStateOf(textConfig?.text ?: "") }
@@ -438,20 +450,85 @@ fun TextEditorDialog(
                 val maxImageSize = containerWidth.coerceAtMost(containerHeight) * 0.85f
                 val maxImageSizeDp = with(LocalDensity.current) { maxImageSize.toDp() }
 
-                // Immagine di sfondo
+                // Immagine di sfondo: riproduce la catena della pipeline
+                // (orientamento EXIF -> rotazione -> crop) così il posizionamento
+                // del testo e la sua dimensione corrispondono all'immagine di output.
                 imageUri?.let { uri ->
+                    val painter = rememberAsyncImagePainter(uri)
+                    val imageAspect = rememberOrientedImageAspectRatio(uri)
+                    val crop = cropBounds?.normalized()
+                    val theta = ((rotationDegrees % 360f) + 360f) % 360f
+                    val rad = theta * (kotlin.math.PI.toFloat() / 180f)
+                    val absSin = abs(sin(rad))
+                    val absCos = abs(cos(rad))
                     Box(
                         modifier = Modifier
                             .width(maxImageSizeDp)
                             .height(maxImageSizeDp)
                             .align(Alignment.Center)
+                            .background(Color.Black)
                     ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(uri),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit
-                        )
+                        if (imageAspect == null || (theta == 0f && crop == null)) {
+                            // Nessuna trasformazione: semplice Fit, identico all'output
+                            Image(
+                                painter = painter,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        } else {
+                            // Dimensioni in unità relative (altezza immagine = 1)
+                            val w = imageAspect
+                            val h = 1f
+                            // Bounding box dopo la rotazione, come Bitmap.createBitmap con postRotate
+                            val rw = w * absCos + h * absSin
+                            val rh = w * absSin + h * absCos
+                            val left = crop?.left ?: 0f
+                            val top = crop?.top ?: 0f
+                            val right = crop?.right ?: 1f
+                            val bottom = crop?.bottom ?: 1f
+                            val cw = (right - left) * rw
+                            val ch = (bottom - top) * rh
+                            if (cw <= 0f || ch <= 0f) {
+                                Image(
+                                    painter = painter,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            } else {
+                                // Scala per far entrare la regione di crop nel quadrato (Fit)
+                                val k = maxImageSize / maxOf(cw, ch)
+                                // Centro della regione di crop rispetto al centro del bounding box ruotato
+                                val qx = (left + right) / 2f * rw - rw / 2f
+                                val qy = (top + bottom) / 2f * rh - rh / 2f
+                                Box(
+                                    modifier = Modifier
+                                        .size(
+                                            with(density) { (k * cw).toDp() },
+                                            with(density) { (k * ch).toDp() }
+                                        )
+                                        .align(Alignment.Center)
+                                        .clipToBounds()
+                                ) {
+                                    Image(
+                                        painter = painter,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.FillBounds,
+                                        modifier = Modifier
+                                            .size(
+                                                with(density) { (k * w).toDp() },
+                                                with(density) { (k * h).toDp() }
+                                            )
+                                            .graphicsLayer(
+                                                rotationZ = theta,
+                                                translationX = -k * qx,
+                                                translationY = -k * qy
+                                            )
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -589,4 +666,43 @@ fun TextEditorDialog(
             }
         }
     }
+}
+
+/**
+ * Aspect ratio (width/height) of the image as it is displayed by image loaders
+ * (Coil applies the EXIF orientation tag). Matches the coordinate space used by
+ * the compression pipeline, which normalizes the orientation at decode time.
+ */
+@Composable
+private fun rememberOrientedImageAspectRatio(imageUri: Uri?): Float? {
+    val context = LocalContext.current
+    var aspectRatio by remember(imageUri) { mutableStateOf<Float?>(null) }
+
+    LaunchedEffect(imageUri, context) {
+        aspectRatio = imageUri?.let { uri ->
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                        BitmapFactory.decodeStream(stream, null, options)
+                        if (options.outWidth > 0 && options.outHeight > 0) {
+                            val raw = options.outWidth.toFloat() / options.outHeight.toFloat()
+                            val orientation = context.contentResolver.openInputStream(uri)?.use { s ->
+                                ExifInterface(s).getAttributeInt(
+                                    ExifInterface.TAG_ORIENTATION,
+                                    ExifInterface.ORIENTATION_NORMAL
+                                )
+                            } ?: ExifInterface.ORIENTATION_NORMAL
+                            val swapped = orientation == ExifInterface.ORIENTATION_ROTATE_90 ||
+                                orientation == ExifInterface.ORIENTATION_ROTATE_270 ||
+                                orientation == ExifInterface.ORIENTATION_TRANSPOSE ||
+                                orientation == ExifInterface.ORIENTATION_TRANSVERSE
+                            if (swapped) 1f / raw else raw
+                        } else null
+                    }
+                }.getOrNull()
+            }
+        }
+    }
+    return aspectRatio
 }

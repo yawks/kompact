@@ -607,7 +607,9 @@ fun HomeScreen(
                     onTextConfigChange(config)
                     onToggleTextEditor() // close it
                 },
-                onDismiss = onToggleTextEditor
+                onDismiss = onToggleTextEditor,
+                rotationDegrees = state.imageConfig.rotationDegrees,
+                cropBounds = state.imageConfig.cropBounds
             )
         }
     }
