@@ -5,6 +5,7 @@ import android.net.Uri
 import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
 import com.kompact.model.ImagePreviewPayload
+import com.kompact.model.hasVisualEdits
 import com.kompact.util.applyAdjust
 import com.kompact.util.applyBackground
 import com.kompact.util.applyCrop
@@ -57,7 +58,12 @@ class ImagePreviewGenerator(context: Context) {
         val previewFile = cachePreviewFile(source, extension)
         FileOutputStream(previewFile).use { it.write(exifBytes) }
         addPreviewFile(previewFile)
-        val mirrorsOriginalFile = config.percentage == 0 &&
+        // Mirror the fast path of CompressionRepository: only when no visual
+        // edit re-encodes the pixels can the output match the original size.
+        // With any edit (resize, filter, crop, text, draw, rotation, background,
+        // adjust) the re-encoded preview file length is the real estimate.
+        val mirrorsOriginalFile = !config.hasVisualEdits() &&
+            config.percentage == 0 &&
             config.format == ImageOutputFormat.ORIGINAL &&
             config.exifData == config.originalExifData
         val estimatedBytes = if (mirrorsOriginalFile) originalBytes else previewFile.length()

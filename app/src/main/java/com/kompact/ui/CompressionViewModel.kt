@@ -450,6 +450,11 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 (currentTotalBytes * ratio).toLong().coerceAtLeast(1L)
             }
             _state.update { state ->
+                // Nota: NON scrivere batchEstimate in imageConfig.targetSizeBytes:
+                // con goal TARGET_SIZE quello è il target scelto dall'utente e
+                // sovrascriverlo con la stima creerebbe un loop a spirale
+                // (stima -> nuovo target -> nuova stima più bassa -> ...).
+                // La stima vive solo in livePreview.estimatedBatchBytes.
                 state.copy(
                     livePreview = LivePreviewState(
                         kind = PreviewKind.IMAGE,
@@ -457,8 +462,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                         estimatedBatchBytes = batchEstimate,
                         isGenerating = false,
                         errorMessage = null,
-                    ),
-                    imageConfig = state.imageConfig.copy(targetSizeBytes = batchEstimate)
+                    )
                 )
             }
         }

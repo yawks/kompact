@@ -17,6 +17,7 @@ import com.kompact.model.CompressionResult
 import com.kompact.model.CompressionType
 import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
+import com.kompact.model.hasVisualEdits
 import com.kompact.util.DefaultDestinationResolver
 import com.kompact.util.applyAdjust
 import com.kompact.util.applyBackground
@@ -83,14 +84,7 @@ class LocalCompressionRepository(
         return runCatching {
             val extension = resolveImageExtension(context, resolver, uri, config.format)
             val outFile = cacheFile(extension)
-            val hasVisualEdits = config.cropBounds != null ||
-                config.textConfig != null ||
-                config.drawConfig != null ||
-                config.resizeConfig != null ||
-                config.backgroundConfig != null ||
-                config.rotationDegrees != 0f ||
-                config.colorFilterConfig != null ||
-                config.adjustConfig != null
+            val hasVisualEdits = config.hasVisualEdits()
 
             if (!hasVisualEdits && config.percentage == 0 && config.format == ImageOutputFormat.ORIGINAL && config.exifData == config.originalExifData) {
                 // Copy original without re-encoding or exif modification

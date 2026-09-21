@@ -168,6 +168,21 @@ data class ImageCompressionConfig(
     val preserveSourceDate: Boolean = false,
 )
 
+/**
+ * True when any edit changes the image pixels: the output must be re-encoded
+ * and can no longer mirror the original file. Shared by the compression
+ * pipeline and the live preview estimator so both take the same code path.
+ */
+fun ImageCompressionConfig.hasVisualEdits(): Boolean =
+    cropBounds != null ||
+        textConfig != null ||
+        drawConfig != null ||
+        resizeConfig != null ||
+        backgroundConfig != null ||
+        rotationDegrees != 0f ||
+        colorFilterConfig != null ||
+        adjustConfig != null
+
 data class CompressionResult(
     val source: Uri,
     val output: Uri?,
