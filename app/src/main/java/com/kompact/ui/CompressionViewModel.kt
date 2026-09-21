@@ -25,6 +25,7 @@ import com.kompact.model.PreviewKind
 import com.kompact.model.SelectedFileDescriptor
 import com.kompact.model.SourceCategory
 import com.kompact.model.ThemeMode
+import com.kompact.model.withoutVisualEdits
 import com.kompact.util.DefaultDestinationResolver
 import com.kompact.data.ImagePreviewGenerator
 import com.kompact.util.*
@@ -150,7 +151,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 totalCompressedBytes = 0,
                 isExifEditorVisible = false,
                 isCropEditorVisible = false,
-                imageConfig = it.imageConfig.copy(outputFileName = null)
+                imageConfig = it.imageConfig.withoutVisualEdits().copy(outputFileName = null)
             )
         }
     }
@@ -190,11 +191,10 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 totalCompressedBytes = 0,
                 results = emptyList(),
                 lastResult = null,
-                imageConfig = current.imageConfig.copy(
+                imageConfig = current.imageConfig.withoutVisualEdits().copy(
                     targetSizeBytes = null,
                     exifData = exifData,
                     originalExifData = exifData,
-                    cropBounds = null,
                 ),
                 exifData = exifData,
                 originalExifData = exifData,

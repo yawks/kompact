@@ -183,6 +183,24 @@ fun ImageCompressionConfig.hasVisualEdits(): Boolean =
         colorFilterConfig != null ||
         adjustConfig != null
 
+/**
+ * Rimuove tutti gli effetti visivi (crop, testo, resize, sfondo, rotazione,
+ * filtro colore, draw, adjust). Usato quando la selezione cambia: gli
+ * effetti sono per immagine e non devono applicarsi a un nuovo file.
+ * Le impostazioni di compressione (formato, percentuale, goal, EXIF)
+ * restano invariate.
+ */
+fun ImageCompressionConfig.withoutVisualEdits(): ImageCompressionConfig = copy(
+    cropBounds = null,
+    textConfig = null,
+    resizeConfig = null,
+    backgroundConfig = null,
+    rotationDegrees = 0f,
+    colorFilterConfig = null,
+    drawConfig = null,
+    adjustConfig = null
+)
+
 data class CompressionResult(
     val source: Uri,
     val output: Uri?,
