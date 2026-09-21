@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -125,6 +126,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 
 import androidx.documentfile.provider.DocumentFile
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.kompact.ui.theme.KompactTheme
 import com.kompact.util.asReadableBytes
@@ -568,6 +570,7 @@ fun HomeScreen(
             cropBounds = state.imageConfig.cropBounds,
             onCropBoundsChange = onCropBoundsChange,
             onDismiss = onToggleCropEditor,
+            rotationDegrees = state.imageConfig.rotationDegrees,
         )
     }
 
@@ -1740,8 +1743,19 @@ fun CropEditorDialog(
     cropBounds: CropBounds?,
     onCropBoundsChange: (CropBounds?) -> Unit,
     onDismiss: () -> Unit,
+    rotationDegrees: Float = 0f,
 ) {
-    val aspectRatio = rememberImageAspectRatio(imageUri)
+    // Aspect ratio del bounding box dell'immagine dopo l'orientamento EXIF e la
+    // rotazione utente: la pipeline applica il crop DOPO la rotazione, quindi i
+    // bounds sono relativi a questa immagine, non all'originale.
+    val orientedAspect = rememberOrientedImageAspectRatio(imageUri)
+    val aspectRatio = orientedAspect?.let { a ->
+        val theta = ((rotationDegrees % 360f) + 360f) % 360f
+        val rad = theta * (kotlin.math.PI.toFloat() / 180f)
+        val cosA = kotlin.math.abs(kotlin.math.cos(rad))
+        val sinA = kotlin.math.abs(kotlin.math.sin(rad))
+        (a * cosA + sinA) / (a * sinA + cosA)
+    }
     val initialBounds = remember(imageUri, cropBounds) { cropBounds ?: CropBounds.Full }
     var horizontalRange by remember(imageUri, cropBounds) {
         mutableStateOf(initialBounds.left..initialBounds.right)
@@ -1977,12 +1991,36 @@ fun CropEditorDialog(
                                         .matchParentSize()
                                         .clip(previewShape)
                                 ) {
-                                    AsyncImage(
-                                        model = imageUri,
-                                        contentDescription = null,
-                                        modifier = Modifier.matchParentSize(),
-                                        contentScale = ContentScale.Fit
-                                    )
+                                    val theta = ((rotationDegrees % 360f) + 360f) % 360f
+                                    if (orientedAspect == null || theta == 0f) {
+                                        // Nessuna rotazione: il loader applica già l'orientamento EXIF
+                                        AsyncImage(
+                                            model = imageUri,
+                                            contentDescription = null,
+                                            modifier = Modifier.matchParentSize(),
+                                            contentScale = ContentScale.Fit
+                                        )
+                                    } else {
+                                        // Mostra l'immagine ruotata con il bounding box espanso,
+                                        // come Bitmap.createBitmap + postRotate nella pipeline
+                                        val rad = theta * (kotlin.math.PI.toFloat() / 180f)
+                                        val cosA = kotlin.math.abs(kotlin.math.cos(rad))
+                                        val sinA = kotlin.math.abs(kotlin.math.sin(rad))
+                                        val a = orientedAspect
+                                        val rw = a * cosA + sinA
+                                        val rh = a * sinA + cosA
+                                        // Fit del bounding box ruotato nel box di preview
+                                        val k = minOf(previewWidth.value / rw, previewHeight.value / rh)
+                                        Image(
+                                            painter = rememberAsyncImagePainter(imageUri),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.FillBounds,
+                                            modifier = Modifier
+                                                .size((k * a).dp, k.dp)
+                                                .align(Alignment.Center)
+                                                .graphicsLayer(rotationZ = theta)
+                                        )
+                                    }
                                 }
                                 Canvas(
                                     modifier = Modifier

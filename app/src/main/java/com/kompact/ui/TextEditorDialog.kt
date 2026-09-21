@@ -674,7 +674,7 @@ fun TextEditorDialog(
  * the compression pipeline, which normalizes the orientation at decode time.
  */
 @Composable
-private fun rememberOrientedImageAspectRatio(imageUri: Uri?): Float? {
+internal fun rememberOrientedImageAspectRatio(imageUri: Uri?): Float? {
     val context = LocalContext.current
     var aspectRatio by remember(imageUri) { mutableStateOf<Float?>(null) }
 
