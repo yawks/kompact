@@ -38,6 +38,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -216,10 +217,7 @@ fun DrawEditorDialog(
         )
         currentPath.clear()
     }
-    
-    // Convert Dp to Px
-    fun Dp.toPx(): Float = with(density) { this@toPx.toPx() }
-    
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -552,6 +550,7 @@ fun DrawEditorDialog(
                     Canvas(
                         modifier = Modifier
                             .fillMaxSize()
+                            .testTag("draw_canvas")
                             .pointerInput(Unit) {
                                 val touchSlopPx = 8.dp.toPx()
                                 awaitEachGesture {

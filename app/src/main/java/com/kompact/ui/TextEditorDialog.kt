@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -166,56 +168,74 @@ private fun ControlRow(
     }
 }
 
+private data class EditableText(
+    val id: Int,
+    val config: TextOverlayConfig,
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextEditorDialog(
     imageUri: Uri?,
-    textConfig: TextOverlayConfig?,
-    onTextConfigChange: (TextOverlayConfig?) -> Unit,
+    texts: List<TextOverlayConfig>,
+    onTextsChange: (List<TextOverlayConfig>) -> Unit,
     onDismiss: () -> Unit,
     rotationDegrees: Float = 0f,
     cropBounds: CropBounds? = null
 ) {
-    // State per il testo e la configurazione
-    var text by remember { mutableStateOf(textConfig?.text ?: "") }
-    var color by remember { mutableStateOf(Color(textConfig?.color ?: android.graphics.Color.WHITE)) }
-    var size by remember { mutableStateOf(textConfig?.size ?: 50f) }
-    var scale by remember { mutableStateOf(textConfig?.scale ?: 1f) }
-    var rotation by remember { mutableStateOf(textConfig?.rotation ?: 0f) }
-    
-    // State per la posizione - NORMALIZZATA (0-1)
-    // offsetX e offsetY sono in coordinate normalizzate (0-1) dove (0.5, 0.5) = centro
-    var offsetX by remember { mutableStateOf(textConfig?.offsetX ?: 0.5f) }
-    var offsetY by remember { mutableStateOf(textConfig?.offsetY ?: 0.5f) }
-    
-    // State per l'editing
-    var isEditing by remember { mutableStateOf(text.isEmpty()) }
+    // Un elemento per ogni casella di testo sul canvas; l'id rende ogni
+    // testo autonomo e identificabile per selezione, editing ed eliminazione.
+    var items by remember(texts) { mutableStateOf(texts.mapIndexed { index, config -> EditableText(index, config) }) }
+    var nextId by remember(texts) { mutableStateOf(texts.size) }
+    var selectedId by remember { mutableStateOf<Int?>(null) }
+
+    // Tastiera aperta per la casella selezionata
+    var isEditing by remember { mutableStateOf(false) }
     var isDragging by remember { mutableStateOf(false) }
-    
+
     // Dimensione del container
     var containerWidth by remember { mutableStateOf(1f) }
     var containerHeight by remember { mutableStateOf(1f) }
-    
-    // Focus manager
-    val focusRequester = remember { FocusRequester() }
+
     val focusManager = LocalFocusManager.current
     val density = LocalDensity.current
 
-    // Gestione focus
-    LaunchedEffect(isEditing) {
-        if (isEditing) {
-            focusRequester.requestFocus()
-        } else {
-            focusManager.clearFocus()
-        }
+    val selectedItem = items.firstOrNull { it.id == selectedId }
+
+    fun updateItem(id: Int, transform: (TextOverlayConfig) -> TextOverlayConfig) {
+        items = items.map { if (it.id == id) it.copy(config = transform(it.config)) else it }
     }
 
-    // Double tap per reset
-    fun handleDoubleTap() {
-        scale = 1f
-        rotation = 0f
-        offsetX = 0.5f
-        offsetY = 0.5f
+    fun updateSelected(transform: (TextOverlayConfig) -> TextOverlayConfig) {
+        val id = selectedId ?: return
+        updateItem(id, transform)
+    }
+
+    fun addText() {
+        val id = nextId
+        nextId += 1
+        items = items + EditableText(id, TextOverlayConfig())
+        selectedId = id
+        isEditing = true
+    }
+
+    fun deleteSelected() {
+        val id = selectedId ?: return
+        items = items.filterNot { it.id == id }
+        selectedId = null
+        isEditing = false
+        focusManager.clearFocus()
+    }
+
+    // Prima apertura senza testi esistenti: crea subito il primo, come nel
+    // vecchio editor a testo singolo. Riaprendo con testi salvati seleziona
+    // il primo così i controlli agiscono subito su un bersaglio.
+    LaunchedEffect(Unit) {
+        if (items.isEmpty()) {
+            addText()
+        } else if (selectedId == null) {
+            selectedId = items.first().id
+        }
     }
 
     Dialog(
@@ -236,40 +256,39 @@ fun TextEditorDialog(
                         ) 
                     },
                     actions = {
+                        // Aggiunge una nuova casella di testo indipendente
+                        IconButton(onClick = { addText() }) {
+                            Icon(Icons.Default.Add, contentDescription = "Add Text", tint = Color.White)
+                        }
+                        // Elimina la casella selezionata
+                        if (selectedItem != null) {
+                            IconButton(onClick = { deleteSelected() }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete Text", tint = Color.White)
+                            }
+                        }
                         IconButton(
                             onClick = {
-                                if (text.isBlank()) {
-                                    isEditing = false
-                                    focusManager.clearFocus()
-                                    onDismiss()
-                                } else {
-                                    isEditing = false
-                                    focusManager.clearFocus()
-                                    // Record the font height relative to the editor's square
-                                    // canvas so the output overlay can reproduce the same
-                                    // proportions on any image resolution.
-                                    val canvasPx = containerWidth.coerceAtMost(containerHeight) * 0.85f
-                                    val fontPx = with(density) { size.sp.toPx() }
-                                    onTextConfigChange(
-                                        TextOverlayConfig(
-                                            text = text.trim(),
-                                            color = color.toArgb(),
-                                            size = size,
-                                            scale = scale,
-                                            offsetX = offsetX,
-                                            offsetY = offsetY,
-                                            rotation = rotation,
-                                            sizeFraction = if (canvasPx > 0f) fontPx / canvasPx else 0f
-                                        )
+                                // Record the font height relative to the editor's square
+                                // canvas so the output overlay can reproduce the same
+                                // proportions on any image resolution.
+                                val canvasPx = containerWidth.coerceAtMost(containerHeight) * 0.85f
+                                val saved = items.map { item ->
+                                    val fontPx = with(density) { item.config.size.sp.toPx() }
+                                    item.config.copy(
+                                        text = item.config.text.trim(),
+                                        sizeFraction = if (canvasPx > 0f) fontPx / canvasPx else 0f
                                     )
-                                    onDismiss()
-                                }
+                                }.filter { it.text.isNotBlank() }
+                                isEditing = false
+                                focusManager.clearFocus()
+                                onTextsChange(saved)
+                                onDismiss()
                             }
                         ) {
                             Icon(
                                 Icons.Default.Check,
                                 contentDescription = "Save Text",
-                                tint = if (text.isNotBlank()) Color.Green else Color.Gray
+                                tint = if (items.any { it.config.text.isNotBlank() }) Color.Green else Color.Gray
                             )
                         }
                         IconButton(onClick = onDismiss) {
@@ -298,136 +317,151 @@ fun TextEditorDialog(
                             .heightIn(max = 320.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        // Colors Section
-                        Text(
-                            "Colors",
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp)
-                        ) {
-                            val containerMaxWidth = this@BoxWithConstraints.maxWidth
-                            val colorSize = if (containerMaxWidth < 600.dp) 32.dp else 40.dp
-                            val colorSpacing = if (containerMaxWidth < 600.dp) 4.dp else 8.dp
-                            
-                            LazyRow(
+                        if (selectedItem == null) {
+                            Text(
+                                stringResource(R.string.tap_text_to_edit),
+                                color = Color.White.copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(min = 48.dp),
-                                contentPadding = PaddingValues(horizontal = 2.dp),
-                                horizontalArrangement = Arrangement.spacedBy(colorSpacing, Alignment.CenterHorizontally)
+                                    .padding(vertical = 24.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        } else {
+                            val selectedConfig = selectedItem.config
+
+                            // Colors Section - colore della casella selezionata
+                            Text(
+                                "Colors",
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp)
                             ) {
-                                val colors = listOf(
-                                    Color.White, Color.Black, Color(0xFFF44336), Color(0xFFE91E63), 
-                                    Color(0xFF9C27B0), Color(0xFF673AB7), Color(0xFF3F51B5), 
-                                    Color(0xFF2196F3), Color(0xFF03A9F4), Color(0xFF00BCD4), 
-                                    Color(0xFF009688), Color(0xFF4CAF50), Color(0xFF8BC34A), 
-                                    Color(0xFFCDDC39), Color(0xFFFFEB3B), Color(0xFFFFC107), 
-                                    Color(0xFFFF9800), Color(0xFFFF5722), Color(0xFF795548), Color(0xFF9E9E9E)
-                                )
-                                items(colors) { c ->
-                                    Box(
-                                        modifier = Modifier
-                                            .size(colorSize)
-                                            .background(c, CircleShape)
-                                            .border(
-                                                if (color == c) 2.dp else 0.dp,
-                                                Color.White,
-                                                CircleShape
-                                            )
-                                            .clickable { color = c }
+                                val containerMaxWidth = this@BoxWithConstraints.maxWidth
+                                val colorSize = if (containerMaxWidth < 600.dp) 32.dp else 40.dp
+                                val colorSpacing = if (containerMaxWidth < 600.dp) 4.dp else 8.dp
+
+                                LazyRow(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 48.dp),
+                                    contentPadding = PaddingValues(horizontal = 2.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(colorSpacing, Alignment.CenterHorizontally)
+                                ) {
+                                    val colors = listOf(
+                                        Color.White, Color.Black, Color(0xFFF44336), Color(0xFFE91E63),
+                                        Color(0xFF9C27B0), Color(0xFF673AB7), Color(0xFF3F51B5),
+                                        Color(0xFF2196F3), Color(0xFF03A9F4), Color(0xFF00BCD4),
+                                        Color(0xFF009688), Color(0xFF4CAF50), Color(0xFF8BC34A),
+                                        Color(0xFFCDDC39), Color(0xFFFFEB3B), Color(0xFFFFC107),
+                                        Color(0xFFFF9800), Color(0xFFFF5722), Color(0xFF795548), Color(0xFF9E9E9E)
                                     )
+                                    items(colors) { c ->
+                                        Box(
+                                            modifier = Modifier
+                                                .size(colorSize)
+                                                .background(c, CircleShape)
+                                                .border(
+                                                    if (Color(selectedConfig.color) == c) 2.dp else 0.dp,
+                                                    Color.White,
+                                                    CircleShape
+                                                )
+                                                .clickable { updateSelected { it.copy(color = c.toArgb()) } }
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                        HorizontalDivider(color = Color.White.copy(alpha = 0.2f), thickness = 0.5.dp)
+                            HorizontalDivider(color = Color.White.copy(alpha = 0.2f), thickness = 0.5.dp)
 
-                        // Control Section - Responsive layout
-                        val containerMaxWidth = this@BoxWithConstraints.maxWidth
-                        if (containerMaxWidth < 600.dp) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 4.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                ControlRow(
-                                    label = "Font",
-                                    value = "%.0f".format(size),
-                                    onDecrease = { size = (size - 5f).coerceIn(20f, 120f) },
-                                    onIncrease = { size = (size + 5f).coerceIn(20f, 120f) },
-                                    onSliderChange = { size = it },
-                                    sliderValue = size,
-                                    sliderRange = 20f..120f,
-                                    isCompact = true
-                                )
-                                ControlRow(
-                                    label = "Scale",
-                                    value = "%.1f".format(scale),
-                                    onDecrease = { scale = (scale - 0.1f).coerceIn(0.5f, 5f) },
-                                    onIncrease = { scale = (scale + 0.1f).coerceIn(0.5f, 5f) },
-                                    onSliderChange = { scale = it },
-                                    sliderValue = scale,
-                                    sliderRange = 0.5f..5f,
-                                    isCompact = true
-                                )
-                                ControlRow(
-                                    label = "Rotate",
-                                    value = "%.0f\u00B0".format(rotation),
-                                    onDecrease = { rotation = (rotation - 15f + 360f) % 360f },
-                                    onIncrease = { rotation = (rotation + 15f) % 360f },
-                                    onSliderChange = { rotation = it },
-                                    sliderValue = rotation,
-                                    sliderRange = 0f..360f,
-                                    isCompact = true
-                                )
-                            }
-                        } else {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                ControlRow(
-                                    label = "Font",
-                                    value = "%.0f".format(size),
-                                    onDecrease = { size = (size - 5f).coerceIn(20f, 120f) },
-                                    onIncrease = { size = (size + 5f).coerceIn(20f, 120f) },
-                                    onSliderChange = { size = it },
-                                    sliderValue = size,
-                                    sliderRange = 20f..120f,
-                                    isCompact = false,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                ControlRow(
-                                    label = "Scale",
-                                    value = "%.1f".format(scale),
-                                    onDecrease = { scale = (scale - 0.1f).coerceIn(0.5f, 5f) },
-                                    onIncrease = { scale = (scale + 0.1f).coerceIn(0.5f, 5f) },
-                                    onSliderChange = { scale = it },
-                                    sliderValue = scale,
-                                    sliderRange = 0.5f..5f,
-                                    isCompact = false,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                ControlRow(
-                                    label = "Rotate",
-                                    value = "%.0f\u00B0".format(rotation),
-                                    onDecrease = { rotation = (rotation - 15f + 360f) % 360f },
-                                    onIncrease = { rotation = (rotation + 15f) % 360f },
-                                    onSliderChange = { rotation = it },
-                                    sliderValue = rotation,
-                                    sliderRange = 0f..360f,
-                                    isCompact = false,
-                                    modifier = Modifier.weight(1f)
-                                )
+                            // Control Section - Responsive layout, tutti i controlli
+                            // agiscono sulla casella selezionata
+                            val containerMaxWidth = this@BoxWithConstraints.maxWidth
+                            if (containerMaxWidth < 600.dp) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    ControlRow(
+                                        label = "Font",
+                                        value = "%.0f".format(selectedConfig.size),
+                                        onDecrease = { updateSelected { it.copy(size = (it.size - 5f).coerceIn(20f, 120f)) } },
+                                        onIncrease = { updateSelected { it.copy(size = (it.size + 5f).coerceIn(20f, 120f)) } },
+                                        onSliderChange = { newSize -> updateSelected { it.copy(size = newSize) } },
+                                        sliderValue = selectedConfig.size,
+                                        sliderRange = 20f..120f,
+                                        isCompact = true
+                                    )
+                                    ControlRow(
+                                        label = "Scale",
+                                        value = "%.1f".format(selectedConfig.scale),
+                                        onDecrease = { updateSelected { it.copy(scale = (it.scale - 0.1f).coerceIn(0.5f, 5f)) } },
+                                        onIncrease = { updateSelected { it.copy(scale = (it.scale + 0.1f).coerceIn(0.5f, 5f)) } },
+                                        onSliderChange = { newScale -> updateSelected { it.copy(scale = newScale) } },
+                                        sliderValue = selectedConfig.scale,
+                                        sliderRange = 0.5f..5f,
+                                        isCompact = true
+                                    )
+                                    ControlRow(
+                                        label = "Rotate",
+                                        value = "%.0f\u00B0".format(selectedConfig.rotation),
+                                        onDecrease = { updateSelected { it.copy(rotation = (it.rotation - 15f + 360f) % 360f) } },
+                                        onIncrease = { updateSelected { it.copy(rotation = (it.rotation + 15f) % 360f) } },
+                                        onSliderChange = { newRotation -> updateSelected { it.copy(rotation = newRotation) } },
+                                        sliderValue = selectedConfig.rotation,
+                                        sliderRange = 0f..360f,
+                                        isCompact = true
+                                    )
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    ControlRow(
+                                        label = "Font",
+                                        value = "%.0f".format(selectedConfig.size),
+                                        onDecrease = { updateSelected { it.copy(size = (it.size - 5f).coerceIn(20f, 120f)) } },
+                                        onIncrease = { updateSelected { it.copy(size = (it.size + 5f).coerceIn(20f, 120f)) } },
+                                        onSliderChange = { newSize -> updateSelected { it.copy(size = newSize) } },
+                                        sliderValue = selectedConfig.size,
+                                        sliderRange = 20f..120f,
+                                        isCompact = false,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    ControlRow(
+                                        label = "Scale",
+                                        value = "%.1f".format(selectedConfig.scale),
+                                        onDecrease = { updateSelected { it.copy(scale = (it.scale - 0.1f).coerceIn(0.5f, 5f)) } },
+                                        onIncrease = { updateSelected { it.copy(scale = (it.scale + 0.1f).coerceIn(0.5f, 5f)) } },
+                                        onSliderChange = { newScale -> updateSelected { it.copy(scale = newScale) } },
+                                        sliderValue = selectedConfig.scale,
+                                        sliderRange = 0.5f..5f,
+                                        isCompact = false,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    ControlRow(
+                                        label = "Rotate",
+                                        value = "%.0f\u00B0".format(selectedConfig.rotation),
+                                        onDecrease = { updateSelected { it.copy(rotation = (it.rotation - 15f + 360f) % 360f) } },
+                                        onIncrease = { updateSelected { it.copy(rotation = (it.rotation + 15f) % 360f) } },
+                                        onSliderChange = { newRotation -> updateSelected { it.copy(rotation = newRotation) } },
+                                        sliderValue = selectedConfig.rotation,
+                                        sliderRange = 0f..360f,
+                                        isCompact = false,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
                             }
                         }
                     }
@@ -541,29 +575,43 @@ fun TextEditorDialog(
                     )
                 }
 
-                // Layer per gesture di trasformazione (pinch/zoom/rotate/drag)
+                // Layer per gesture di trasformazione (pinch/zoom/rotate/drag):
+                // agiscono sulla casella selezionata
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .pointerInput(Unit) {
                             detectTransformGestures { _, pan, zoom, transformRotation ->
                                 if (!isEditing && !isDragging) {
-                                    // Pan: sposta il testo (converte in offset normalizzato)
-                                    val panX = pan.x / maxImageSize
-                                    val panY = pan.y / maxImageSize
-                                    offsetX = (offsetX + panX).coerceIn(0f, 1f)
-                                    offsetY = (offsetY + panY).coerceIn(0f, 1f)
-                                    
-                                    // Zoom: scala il testo
-                                    scale = (scale * zoom).coerceIn(0.5f, 5f)
-                                    
-                                    // Rotazione
-                                    rotation += transformRotation
+                                    updateSelected { c ->
+                                        c.copy(
+                                            // Pan: sposta il testo (converte in offset normalizzato)
+                                            offsetX = (c.offsetX + pan.x / maxImageSize).coerceIn(0f, 1f),
+                                            offsetY = (c.offsetY + pan.y / maxImageSize).coerceIn(0f, 1f),
+                                            // Zoom: scala il testo
+                                            scale = (c.scale * zoom).coerceIn(0.5f, 5f),
+                                            // Rotazione
+                                            rotation = c.rotation + transformRotation
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        .pointerInput(Unit) {
+                            // Tap sul canvas fuori dalle caselle: chiude la tastiera
+                            // o deseleziona la casella corrente
+                            detectTapGestures {
+                                if (isEditing) {
+                                    isEditing = false
+                                    focusManager.clearFocus()
+                                } else {
+                                    selectedId = null
                                 }
                             }
                         }
                 ) {
-                    // Elemento testo - posizionato al centro con offset normalizzato
+                    // Zona quadrata con le caselle di testo, posizionate al centro
+                    // e spostate tramite offset normalizzato [0, 1]
                     Box(
                         modifier = Modifier
                             .width(maxImageSizeDp)
@@ -571,100 +619,167 @@ fun TextEditorDialog(
                             .align(Alignment.Center),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Calcola la posizione usando offset normalizzato [0, 1]
-                        // (0.5, 0.5) = centro, (0, 0) = top-left, (1, 1) = bottom-right
-                        val textModifier = Modifier
-                            .graphicsLayer(
-                                translationX = (offsetX - 0.5f) * maxImageSize,
-                                translationY = (offsetY - 0.5f) * maxImageSize,
-                                scaleX = scale,
-                                scaleY = scale,
-                                rotationZ = rotation
-                            )
-                            .pointerInput(Unit) {
-                                detectDragGestures(
-                                    onDragStart = { isDragging = true },
-                                    onDragEnd = { isDragging = false },
-                                    onDragCancel = { isDragging = false },
-                                    onDrag = { change, dragAmount ->
-                                        if (!isEditing) {
-                                            change.consume()
-                                            // Converte dragAmount in offset normalizzato
-                                            val dragX = dragAmount.x / maxImageSize
-                                            val dragY = dragAmount.y / maxImageSize
-                                            offsetX = (offsetX + dragX).coerceIn(0f, 1f)
-                                            offsetY = (offsetY + dragY).coerceIn(0f, 1f)
-                                        }
-                                    }
-                                )
-                            }
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onTap = { 
-                                        if (isEditing) {
-                                            isEditing = false
-                                            focusManager.clearFocus()
+                        items.forEach { item ->
+                            key(item.id) {
+                                TextItemView(
+                                    item = item,
+                                    isSelected = item.id == selectedId,
+                                    isEditingThis = isEditing && item.id == selectedId,
+                                    maxImageSize = maxImageSize,
+                                    maxImageSizeDp = maxImageSizeDp,
+                                    onTextChange = { newText ->
+                                        updateItem(item.id) { it.copy(text = newText) }
+                                    },
+                                    onTap = {
+                                        when {
+                                            // Tap su una casella non selezionata: la seleziona
+                                            selectedId != item.id -> {
+                                                selectedId = item.id
+                                                isEditing = false
+                                                focusManager.clearFocus()
+                                            }
+                                            // Tap sulla casella mentre si scrive: chiude la tastiera
+                                            isEditing -> {
+                                                isEditing = false
+                                                focusManager.clearFocus()
+                                            }
+                                            // Tap sulla casella già selezionata: apre la tastiera
+                                            else -> isEditing = true
                                         }
                                     },
-                                    onDoubleTap = { 
-                                        if (!isEditing) {
-                                            handleDoubleTap()
+                                    onDoubleTap = {
+                                        // Reset della trasformazione della casella
+                                        selectedId = item.id
+                                        updateItem(item.id) {
+                                            it.copy(scale = 1f, rotation = 0f, offsetX = 0.5f, offsetY = 0.5f)
+                                        }
+                                    },
+                                    onDragStart = {
+                                        selectedId = item.id
+                                        isDragging = true
+                                    },
+                                    onDragEnd = { isDragging = false },
+                                    onDragBy = { dx, dy ->
+                                        updateItem(item.id) {
+                                            it.copy(
+                                                offsetX = (it.offsetX + dx).coerceIn(0f, 1f),
+                                                offsetY = (it.offsetY + dy).coerceIn(0f, 1f)
+                                            )
                                         }
                                     }
                                 )
                             }
-                            .border(
-                                width = if (!isEditing && text.isNotEmpty()) 2.dp else 0.dp,
-                                color = Color.White.copy(alpha = 0.8f),
-                                shape = RoundedCornerShape(4.dp)
+                        }
+                        if (items.isEmpty()) {
+                            Text(
+                                stringResource(R.string.tap_text_to_edit),
+                                color = Color.White.copy(alpha = 0.6f),
+                                style = MaterialTheme.typography.bodyMedium
                             )
-
-                        BasicTextField(
-                            value = text,
-                            onValueChange = { text = it },
-                            textStyle = TextStyle(
-                                color = color,
-                                fontSize = size.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                shadow = androidx.compose.ui.graphics.Shadow(
-                                    color = Color.Black.copy(alpha = 0.7f),
-                                    offset = Offset(2f, 2f),
-                                    blurRadius = 4f
-                                )
-                            ),
-                            cursorBrush = SolidColor(color),
-                            modifier = textModifier
-                                .focusRequester(focusRequester)
-                                .widthIn(min = 50.dp, max = maxImageSizeDp * 0.9f),
-                            singleLine = false,
-                            decorationBox = { innerTextField ->
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.padding(4.dp)
-                                ) {
-                                    if (text.isEmpty()) {
-                                        Text(
-                                            text = if (isEditing) 
-                                                stringResource(R.string.enter_text) 
-                                            else 
-                                                "Tap to add text",
-                                            style = TextStyle(
-                                                color = color.copy(alpha = 0.4f),
-                                                fontSize = size.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                textAlign = TextAlign.Center
-                                            )
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            }
-                        )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+/**
+ * Una singola casella di testo sul canvas. Gestisce la propria posizione
+ * (offset normalizzato), scala, rotazione e colore; il contenuto è editabile
+ * solo quando la casella è selezionata e la tastiera è aperta (readOnly).
+ */
+@Composable
+private fun TextItemView(
+    item: EditableText,
+    isSelected: Boolean,
+    isEditingThis: Boolean,
+    maxImageSize: Float,
+    maxImageSizeDp: Dp,
+    onTextChange: (String) -> Unit,
+    onTap: () -> Unit,
+    onDoubleTap: () -> Unit,
+    onDragStart: () -> Unit,
+    onDragEnd: () -> Unit,
+    onDragBy: (Float, Float) -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val config = item.config
+    val color = Color(config.color)
+
+    LaunchedEffect(isEditingThis) {
+        if (isEditingThis) focusRequester.requestFocus()
+    }
+
+    Box(
+        modifier = Modifier
+            .graphicsLayer(
+                translationX = (config.offsetX - 0.5f) * maxImageSize,
+                translationY = (config.offsetY - 0.5f) * maxImageSize,
+                scaleX = config.scale,
+                scaleY = config.scale,
+                rotationZ = config.rotation
+            )
+            .pointerInput(item.id) {
+                detectDragGestures(
+                    onDragStart = { onDragStart() },
+                    onDragEnd = { onDragEnd() },
+                    onDragCancel = { onDragEnd() },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        onDragBy(dragAmount.x / maxImageSize, dragAmount.y / maxImageSize)
+                    }
+                )
+            }
+            .pointerInput(item.id) {
+                detectTapGestures(onTap = { onTap() }, onDoubleTap = { onDoubleTap() })
+            }
+            .border(
+                width = if (isSelected) 2.dp else 0.dp,
+                color = if (isSelected) Color.White else Color.White.copy(alpha = 0.8f),
+                shape = RoundedCornerShape(4.dp)
+            )
+    ) {
+        BasicTextField(
+            value = config.text,
+            onValueChange = onTextChange,
+            readOnly = !isEditingThis,
+            textStyle = TextStyle(
+                color = color,
+                fontSize = config.size.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                shadow = androidx.compose.ui.graphics.Shadow(
+                    color = Color.Black.copy(alpha = 0.7f),
+                    offset = Offset(2f, 2f),
+                    blurRadius = 4f
+                )
+            ),
+            cursorBrush = SolidColor(color),
+            modifier = Modifier
+                .focusRequester(focusRequester)
+                .widthIn(min = 50.dp, max = maxImageSizeDp * 0.9f),
+            singleLine = false,
+            decorationBox = { innerTextField ->
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.padding(4.dp)
+                ) {
+                    if (config.text.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.enter_text),
+                            style = TextStyle(
+                                color = color.copy(alpha = 0.4f),
+                                fontSize = config.size.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
     }
 }
 

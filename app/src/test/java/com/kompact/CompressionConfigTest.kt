@@ -42,7 +42,7 @@ class CompressionConfigTest {
         val reset = config.withoutVisualEdits()
 
         assertNull(reset.cropBounds)
-        assertNull(reset.textConfig)
+        assertTrue(reset.texts.isEmpty())
         assertNull(reset.resizeConfig)
         assertNull(reset.backgroundConfig)
         assertNull(reset.colorFilterConfig)

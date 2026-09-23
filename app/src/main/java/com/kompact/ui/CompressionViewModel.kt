@@ -2,7 +2,9 @@ package com.kompact.ui
 import com.kompact.R
 
 import android.app.Application
+import android.app.RecoverableSecurityException
 import android.net.Uri
+import android.os.Build
 import android.provider.OpenableColumns
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
@@ -21,6 +23,7 @@ import com.kompact.model.ImageCompressionConfig
 import com.kompact.model.ImageOutputFormat
 import com.kompact.model.LivePreviewState
 import com.kompact.model.ImagePreviewPayload
+import com.kompact.model.PendingDeleteConsent
 import com.kompact.model.PreviewKind
 import com.kompact.model.SelectedFileDescriptor
 import com.kompact.model.SourceCategory
@@ -84,6 +87,81 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
 
     fun updateDeleteOriginals(delete: Boolean) {
         _state.update { it.copy(deleteOriginals = delete) }
+    }
+
+    fun onPendingDeleteResolved(deletedUris: List<Uri>) {
+        // Resolution for MediaStore.createDeleteRequest (Android 11+).
+        _state.update { current ->
+            finalizeDeleteFlow(current.copy(
+                pendingDeleteUris = emptyList(),
+                failedDeleteUris = current.failedDeleteUris + current.pendingDeleteUris.filter { it !in deletedUris },
+                selectedUris = current.selectedUris.filterNot { it in deletedUris },
+                selectedFiles = current.selectedFiles.filterNot { it.uri in deletedUris },
+            ))
+        }
+    }
+
+    fun onConsentResult(granted: Boolean) {
+        // Resolution for RecoverableSecurityException consent dialogs (Android 10).
+        val context = getApplication<Application>()
+        _state.update { current ->
+            val head = current.pendingDeleteConsents.firstOrNull() ?: return@update current
+            val deleted = granted && runCatching {
+                context.contentResolver.delete(head.source, null, null) > 0
+            }.getOrDefault(false)
+            finalizeDeleteFlow(current.copy(
+                pendingDeleteConsents = current.pendingDeleteConsents.drop(1),
+                pendingDeleteUris = current.pendingDeleteUris - head.source,
+                failedDeleteUris = if (deleted) current.failedDeleteUris else current.failedDeleteUris + head.source,
+                selectedUris = if (deleted) current.selectedUris.filterNot { it == head.source } else current.selectedUris,
+                selectedFiles = if (deleted) current.selectedFiles.filterNot { it.uri == head.source } else current.selectedFiles,
+            ))
+        }
+    }
+
+    fun retryPendingDelete() {
+        // Retried after WRITE_EXTERNAL_STORAGE was granted (Android 9 and below).
+        val context = getApplication<Application>()
+        val deletedUris = mutableListOf<Uri>()
+        val stillFailed = mutableListOf<Uri>()
+        _state.value.pendingDeleteUris.forEach { uri ->
+            val deleted = runCatching {
+                val deletedWithDocumentFile = DocumentFile.fromSingleUri(context, uri)?.delete() == true
+                deletedWithDocumentFile || context.contentResolver.delete(uri, null, null) > 0
+            }.getOrDefault(false)
+            if (deleted) deletedUris += uri else stillFailed += uri
+        }
+        _state.update { current ->
+            finalizeDeleteFlow(current.copy(
+                pendingDeleteUris = emptyList(),
+                failedDeleteUris = current.failedDeleteUris + stillFailed,
+                selectedUris = current.selectedUris.filterNot { it in deletedUris },
+                selectedFiles = current.selectedFiles.filterNot { it.uri in deletedUris },
+            ))
+        }
+    }
+
+    fun onPendingDeleteFailed() {
+        _state.update { current ->
+            finalizeDeleteFlow(current.copy(
+                pendingDeleteUris = emptyList(),
+                failedDeleteUris = current.failedDeleteUris + current.pendingDeleteUris,
+            ))
+        }
+    }
+
+    private fun finalizeDeleteFlow(current: CompressionUiState): CompressionUiState {
+        if (current.pendingDeleteUris.isNotEmpty() || current.pendingDeleteConsents.isNotEmpty()) {
+            return current
+        }
+        return current.copy(
+            failedDeleteUris = emptyList(),
+            errorMessage = if (current.failedDeleteUris.isNotEmpty()) {
+                getApplication<Application>().getString(R.string.delete_originals_failed)
+            } else {
+                current.errorMessage
+            },
+        )
     }
 
     fun updatePreserveSourceDate(preserve: Boolean) {
@@ -349,6 +427,8 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 .sumOf { it.compressedSizeBytes }
             val totalCompressedBytes = successfulCompressed.takeIf { total -> total > 0 } ?: finalOriginal
             val deletedSources = mutableSetOf<Uri>()
+            val undeletableSources = mutableListOf<Uri>()
+            val deleteConsents = mutableListOf<PendingDeleteConsent>()
 
             if (snapshot.deleteOriginals) {
                 val context = getApplication<Application>()
@@ -358,16 +438,30 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                     .map { it.source }
                     .distinct()
                     .forEach { sourceUri ->
-                    runCatching {
-                        val deletedWithDocumentFile = DocumentFile.fromSingleUri(context, sourceUri)?.delete() == true
-                        val deletedWithResolver = if (deletedWithDocumentFile) true else {
-                            context.contentResolver.delete(sourceUri, null, null) > 0
+                        val deletedWithDocumentFile = runCatching {
+                            DocumentFile.fromSingleUri(context, sourceUri)?.delete() == true
+                        }.getOrDefault(false)
+                        val deleted = if (deletedWithDocumentFile) true else {
+                            runCatching {
+                                context.contentResolver.delete(sourceUri, null, null) > 0
+                            }.getOrElse { error ->
+                                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q &&
+                                    error is RecoverableSecurityException
+                                ) {
+                                    // Android 10: ask user for consent, then retry the delete.
+                                    deleteConsents += PendingDeleteConsent(
+                                        source = sourceUri,
+                                        intentSender = error.userAction.actionIntent.intentSender,
+                                    )
+                                }
+                                false
+                            }
                         }
-                        if (deletedWithDocumentFile || deletedWithResolver) {
-                            deletedSources += sourceUri
+                        when {
+                            deleted -> deletedSources += sourceUri
+                            else -> undeletableSources += sourceUri
                         }
                     }
-                }
             }
 
             _state.update {
@@ -384,6 +478,8 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                     errorMessage = if (hasSuccess) null else results.lastOrNull()?.message,
                     selectedUris = it.selectedUris.filterNot { uri -> uri in deletedSources },
                     selectedFiles = it.selectedFiles.filterNot { file -> file.uri in deletedSources },
+                    pendingDeleteUris = (undeletableSources + deleteConsents.map { consent -> consent.source }).distinct(),
+                    pendingDeleteConsents = deleteConsents,
                 )
             }
             clearLivePreview()
@@ -504,7 +600,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         val resizeConfig: com.kompact.model.ResizeConfig?,
         val colorFilterConfig: com.kompact.model.ColorFilterConfig?,
         val backgroundConfig: com.kompact.model.BackgroundConfig?,
-        val textConfig: com.kompact.model.TextOverlayConfig?,
+        val texts: List<com.kompact.model.TextOverlayConfig>,
         val drawConfig: com.kompact.model.DrawConfig?,
         val adjustConfig: com.kompact.model.AdjustConfig?,
         val rotationDegrees: Float,
@@ -522,7 +618,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         resizeConfig = resizeConfig,
         colorFilterConfig = colorFilterConfig,
         backgroundConfig = backgroundConfig,
-        textConfig = textConfig,
+        texts = texts,
         drawConfig = drawConfig,
         adjustConfig = adjustConfig,
         rotationDegrees = rotationDegrees,
@@ -670,13 +766,11 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun updateTextConfig(config: com.kompact.model.TextOverlayConfig?) {
-        android.util.Log.d("CompressionViewModel", "updateTextConfig called with: text=${config?.text}, size=${config?.size}, scale=${config?.scale}")
+    fun updateTexts(texts: List<com.kompact.model.TextOverlayConfig>) {
         _state.update { current ->
-            val updatedConfig = current.imageConfig.copy(textConfig = config)
+            val updatedConfig = current.imageConfig.copy(texts = texts)
             current.copy(imageConfig = updatedConfig)
         }
-        android.util.Log.d("CompressionViewModel", "Scheduling live preview after text config update")
         scheduleLivePreview()
     }
 

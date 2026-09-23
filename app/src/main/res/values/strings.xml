@@ -101,6 +101,7 @@
     <string name="warning_jpeg_does_not_support_transparency">Warning: JPEG does not support transparency.</string>
     <string name="hue">Hue</string>
     <string name="add_text">Add Text</string>
+    <string name="tap_text_to_edit">Tap on a text box to edit it</string>
     <string name="save">Save</string>
     <string name="text_content">Text content</string>
     <string name="file_singular">file</string>
@@ -139,6 +140,7 @@
     <string name="delete_original_files">Delete original files</string>
     <string name="delete_originals_title">Delete originals?</string>
     <string name="delete_originals_message">Are you sure you want to delete the original files after processing? This action cannot be undone.</string>
+    <string name="delete_originals_failed">Some original files could not be deleted</string>
     <string name="yes_delete">Yes, delete</string>
     <string name="preserve_source_date">Preserve source file date</string>
 

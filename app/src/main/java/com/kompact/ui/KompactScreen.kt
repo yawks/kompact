@@ -165,7 +165,7 @@ fun KompactScreen(
     onClearDestination: () -> Unit,
     onExifDataChange: (com.kompact.model.ExifData?) -> Unit,
     onToggleTextEditor: () -> Unit,
-    onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
+    onTextsChange: (List<com.kompact.model.TextOverlayConfig>) -> Unit,
     onToggleDrawEditor: () -> Unit,
     onDrawConfigChange: (com.kompact.model.DrawConfig?) -> Unit,
     onToggleAdjustEditor: () -> Unit,
@@ -305,7 +305,7 @@ fun KompactScreen(
                     onClearDestination = onClearDestination,
                     onExifDataChange = onExifDataChange,
                     onToggleTextEditor = onToggleTextEditor,
-                    onTextConfigChange = onTextConfigChange,
+                    onTextsChange = onTextsChange,
                     onToggleDrawEditor = onToggleDrawEditor,
                     onDrawConfigChange = onDrawConfigChange,
                     onToggleAdjustEditor = onToggleAdjustEditor,
@@ -354,7 +354,7 @@ fun HomeScreen(
     onClearDestination: () -> Unit,
     onExifDataChange: (ExifData?) -> Unit,
     onToggleTextEditor: () -> Unit,
-    onTextConfigChange: (com.kompact.model.TextOverlayConfig?) -> Unit,
+    onTextsChange: (List<com.kompact.model.TextOverlayConfig>) -> Unit,
     onToggleDrawEditor: () -> Unit,
     onDrawConfigChange: (com.kompact.model.DrawConfig?) -> Unit,
     onToggleAdjustEditor: () -> Unit,
@@ -448,7 +448,7 @@ fun HomeScreen(
                         onResizeClick = onToggleResizeEditor,
                         canText = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1,
                         isTextEditorVisible = state.isTextEditorVisible,
-                        isTextApplied = state.imageConfig.textConfig != null,
+                        isTextApplied = state.imageConfig.texts.isNotEmpty(),
                         onTextClick = onToggleTextEditor,
                         canAdjust = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1,
                         isAdjustEditorVisible = state.isAdjustEditorVisible,
@@ -605,9 +605,9 @@ fun HomeScreen(
         if (uri != null) {
             TextEditorDialog(
                 imageUri = uri,
-                textConfig = state.imageConfig.textConfig,
-                onTextConfigChange = { config ->
-                    onTextConfigChange(config)
+                texts = state.imageConfig.texts,
+                onTextsChange = { texts ->
+                    onTextsChange(texts)
                     onToggleTextEditor() // close it
                 },
                 onDismiss = onToggleTextEditor,
@@ -2568,7 +2568,7 @@ private fun PreviewKompact() {
             onExifDataChange = { _ -> },
             onToggleExifEditor = {},
             onToggleTextEditor = {},
-            onTextConfigChange = { _ -> },
+            onTextsChange = { _ -> },
             onToggleDrawEditor = {},
             onDrawConfigChange = { _ -> },
             onToggleAdjustEditor = {},

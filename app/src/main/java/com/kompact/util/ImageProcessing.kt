@@ -917,8 +917,13 @@ internal fun Bitmap.applyColorFilter(config: com.kompact.model.ColorFilterConfig
     canvas.drawBitmap(this, 0f, 0f, paint)
     return newBitmap
 }
-internal fun android.graphics.Bitmap.applyTextOverlay(config: com.kompact.model.TextOverlayConfig?): android.graphics.Bitmap {
-    if (config == null || config.text.isBlank()) return this
+internal fun android.graphics.Bitmap.applyTextOverlay(configs: List<com.kompact.model.TextOverlayConfig>?): android.graphics.Bitmap {
+    if (configs.isNullOrEmpty()) return this
+    return configs.fold(this) { acc, config -> acc.applySingleTextOverlay(config) }
+}
+
+private fun android.graphics.Bitmap.applySingleTextOverlay(config: com.kompact.model.TextOverlayConfig): android.graphics.Bitmap {
+    if (config.text.isBlank()) return this
 
     val workingBitmap = if (this.isMutable && this.config == android.graphics.Bitmap.Config.ARGB_8888) this else this.copy(android.graphics.Bitmap.Config.ARGB_8888, true) ?: return this
     val canvas = android.graphics.Canvas(workingBitmap)

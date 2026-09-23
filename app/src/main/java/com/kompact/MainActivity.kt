@@ -1,25 +1,52 @@
 package com.kompact
 
+import android.Manifest
+import android.content.ContentUris
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.provider.DocumentsContract
+import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.kompact.ui.CompressionViewModel
 import com.kompact.ui.KompactScreen
 import com.kompact.ui.theme.KompactTheme
-import android.net.Uri
 
 private val SUPPORTED_MIME_TYPES = arrayOf(
     "image/*",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 )
+
+private fun toMediaStoreUri(uri: Uri): Uri? {
+    return when (uri.authority) {
+        MediaStore.AUTHORITY -> uri
+        "com.android.providers.media.documents" -> {
+            val documentId = DocumentsContract.getDocumentId(uri)
+            val type = documentId.substringBefore(':', "")
+            val id = documentId.substringAfter(':', "").toLongOrNull() ?: return null
+            val collection = when (type) {
+                "images" -> MediaStore.Images.Media.getContentUri("external")
+                "video" -> MediaStore.Video.Media.getContentUri("external")
+                "audio" -> MediaStore.Audio.Media.getContentUri("external")
+                else -> return null
+            }
+            ContentUris.withAppendedId(collection, id)
+        }
+        else -> null
+    }
+}
 
 class MainActivity : AppCompatActivity() {
 
@@ -67,6 +94,61 @@ class MainActivity : AppCompatActivity() {
                         viewModel.setDefaultDestinationFolder(uri.toString())
                     }
                 }
+                val deleteRequestLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+                    val current = viewModel.state.value
+                    if (current.pendingDeleteConsents.isNotEmpty()) {
+                        // Android 10 recoverable consent: retry the delete of the head item.
+                        viewModel.onConsentResult(result.resultCode == RESULT_OK)
+                    } else {
+                        // Android 11+ MediaStore delete request.
+                        val deletedOriginals = if (result.resultCode == RESULT_OK) {
+                            current.pendingDeleteUris.filter { toMediaStoreUri(it) != null }
+                        } else {
+                            emptyList()
+                        }
+                        viewModel.onPendingDeleteResolved(deletedOriginals)
+                    }
+                }
+                val storagePermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+                    if (grants.values.all { it }) {
+                        viewModel.retryPendingDelete()
+                    } else {
+                        viewModel.onPendingDeleteFailed()
+                    }
+                }
+                val pendingDeleteUris = state.pendingDeleteUris
+                val pendingDeleteConsents = state.pendingDeleteConsents
+                LaunchedEffect(pendingDeleteUris, pendingDeleteConsents) {
+                    if (pendingDeleteUris.isEmpty() && pendingDeleteConsents.isEmpty()) return@LaunchedEffect
+                    if (pendingDeleteConsents.isNotEmpty()) {
+                        // Android 10: one recoverable consent dialog at a time.
+                        deleteRequestLauncher.launch(IntentSenderRequest.Builder(pendingDeleteConsents.first().intentSender).build())
+                        return@LaunchedEffect
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        val requestUris = pendingDeleteUris.mapNotNull { toMediaStoreUri(it) }.distinct()
+                        if (requestUris.isNotEmpty()) {
+                            val sender = runCatching {
+                                MediaStore.createDeleteRequest(contentResolver, requestUris).intentSender
+                            }.getOrNull()
+                            if (sender != null) {
+                                deleteRequestLauncher.launch(IntentSenderRequest.Builder(sender).build())
+                                return@LaunchedEffect
+                            }
+                        }
+                        viewModel.onPendingDeleteFailed()
+                    } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        // Android 9 and below: legacy storage allows a direct delete once the runtime permission is granted.
+                        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                            viewModel.retryPendingDelete()
+                        } else {
+                            storagePermissionLauncher.launch(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                        }
+                    } else {
+                        // Android 10 leftovers without a recoverable consent: nothing else to try.
+                        viewModel.onPendingDeleteFailed()
+                    }
+                }
                 KompactScreen(
                     state = state,
                     onPickFiles = { 
@@ -90,7 +172,7 @@ class MainActivity : AppCompatActivity() {
                     onClearDestination = { viewModel.clearDestinationFolder() },
                     onExifDataChange = { viewModel.updateExifData(it) },
                     onToggleTextEditor = { viewModel.toggleTextEditor() },
-                    onTextConfigChange = { viewModel.updateTextConfig(it) },
+                    onTextsChange = { viewModel.updateTexts(it) },
                     onToggleDrawEditor = { viewModel.toggleDrawEditor() },
                     onDrawConfigChange = { viewModel.updateDrawConfig(it) },
                     onToggleAdjustEditor = { viewModel.toggleAdjustEditor() },

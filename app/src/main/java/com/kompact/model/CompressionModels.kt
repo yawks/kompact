@@ -1,5 +1,6 @@
 package com.kompact.model
 
+import android.content.IntentSender
 import android.net.Uri
 
 enum class AppScreen { HOME, SETTINGS, ABOUT, DONATE, CONTACT }
@@ -158,7 +159,7 @@ data class ImageCompressionConfig(
     val stripExif: Boolean = false,
     val outputFileName: String? = null,
     val cropBounds: CropBounds? = null,
-    val textConfig: TextOverlayConfig? = null,
+    val texts: List<TextOverlayConfig> = emptyList(),
     val resizeConfig: ResizeConfig? = null,
     val backgroundConfig: BackgroundConfig? = null,
     val rotationDegrees: Float = 0f,
@@ -175,7 +176,7 @@ data class ImageCompressionConfig(
  */
 fun ImageCompressionConfig.hasVisualEdits(): Boolean =
     cropBounds != null ||
-        textConfig != null ||
+        texts.isNotEmpty() ||
         drawConfig != null ||
         resizeConfig != null ||
         backgroundConfig != null ||
@@ -192,7 +193,7 @@ fun ImageCompressionConfig.hasVisualEdits(): Boolean =
  */
 fun ImageCompressionConfig.withoutVisualEdits(): ImageCompressionConfig = copy(
     cropBounds = null,
-    textConfig = null,
+    texts = emptyList(),
     resizeConfig = null,
     backgroundConfig = null,
     rotationDegrees = 0f,
@@ -249,6 +250,11 @@ data class LivePreviewState(
     val errorMessage: String? = null,
 )
 
+data class PendingDeleteConsent(
+    val source: Uri,
+    val intentSender: IntentSender,
+)
+
 data class CompressionUiState(
     val selectedUris: List<Uri> = emptyList(),
     val selectedFiles: List<SelectedFileDescriptor> = emptyList(),
@@ -284,4 +290,7 @@ data class CompressionUiState(
     val isAdjustEditorVisible: Boolean = false,
     val deleteOriginals: Boolean = false,
     val preserveSourceDate: Boolean = false,
+    val pendingDeleteUris: List<Uri> = emptyList(),
+    val pendingDeleteConsents: List<PendingDeleteConsent> = emptyList(),
+    val failedDeleteUris: List<Uri> = emptyList(),
 )

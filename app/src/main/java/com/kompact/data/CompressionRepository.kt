@@ -115,7 +115,7 @@ class LocalCompressionRepository(
                     .applyResize(config.resizeConfig)
                     .applyColorFilter(config.colorFilterConfig)
                     .applyBackground(config.backgroundConfig)
-                    .applyTextOverlay(config.textConfig)
+                    .applyTextOverlay(config.texts)
                     .applyDraw(config.drawConfig)
                     .applyAdjust(config.adjustConfig)
                 val targetBytes = resolveTargetBytes(config, originalSize)
