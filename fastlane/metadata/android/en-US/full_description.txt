@@ -1,10 +1,21 @@
-Kompact is a privacy-first, fully offline utility for managing and processing digital images. Easily compress photos (JPEG, PNG, WebP), resize dimensions, and apply text watermarks, all without relying on cloud services.
+Kompact Image Editor is a privacy-first, fully offline image editor and compressor for Android. Edit and compress your photos directly on your device, without relying on cloud services.
 
-Features:
-* Smart Compression: Reduce image file sizes while maintaining high visual quality.
-* Image Resizing & Conversion: Adjust dimensions and convert across popular formats (JPEG, PNG, WebP).
-* Custom Text Watermarks: Add personalized, styled text overlays to images.
-* 100% Offline: All image processing happens locally on the device for maximum privacy.
-* Material Design: Clean interface built with Jetpack Compose, supporting dynamic theming and dark mode.
+Editing tools:
+* Crop, resize (pixels or percentage) and rotate images
+* Multiple text overlays with custom size, color and position
+* Draw with pen and highlighter tools
+* Color filters: grayscale, sepia, vintage, cool, warm and custom hue
+* Adjust brightness, contrast, saturation, warmth, shadows and highlights
+* Transparent or custom background
+* Edit or strip EXIF metadata, including GPS position
 
-Kompact provides essential image processing tools in a lightweight, open-source package. No analytics, no network telemetry, and no advertisements.
+Compression and conversion:
+* Batch processing of multiple images at once
+* Compress by quality percentage (default: original quality) or target file size
+* Convert between JPEG, PNG, WebP, BMP, GIF, TIFF, ICO and Telegram PNG (the original format is kept when no edit requires re-encoding)
+* Live preview with estimated output size before processing
+* Custom output file name (defaults to <name>-edit) and destination folder
+* Option to delete original files and preserve the source file date
+* Detailed per-file report with original vs processed size
+
+Kompact Image Editor provides essential image editing and compression tools in a lightweight, open-source package. 100% offline: no analytics, no network telemetry, and no advertisements. Material Design 3 interface with dynamic theming and dark mode.

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">GPSをクリア</string>
+    <string name="coordinates">座標</string>
+    <string name="delete_originals_failed">一部の元ファイルを削除できませんでした</string>
+    <string name="edit">編集</string>
     <string name="permission_rationale">Kompact では、ローカル ファイルを圧縮するためにストレージ アクセスが必要です。</string>
     <string name="nav_home">ホーム</string>
     <string name="nav_settings">設定</string>
@@ -16,6 +20,7 @@
     <string name="default_dest">既定の保存先</string>
     <string name="dest_folder">保存先フォルダー</string>
     <string name="reset_default">デフォルトにリセット</string>
+    <string name="tap_text_to_edit">テキストボックスをタップして編集します</string>
     <string name="theme_title">テーマ</string>
     <string name="about_title">について</string>
     <string name="mission">使命</string>

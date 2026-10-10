@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">GPS törlése</string>
+    <string name="coordinates">Koordináták</string>
+    <string name="delete_originals_failed">Néhány eredeti fájlt nem sikerült törölni</string>
+    <string name="edit">Szerkesztés</string>
     <string name="permission_rationale">A Kompact tárolási hozzáférést igényel a helyi fájlok tömörítéséhez.</string>
     <string name="nav_home">Otthon</string>
     <string name="nav_settings">Beállítások elemre</string>
@@ -11,11 +15,13 @@
     <string name="contact_send_email">E-mail küldése</string>
     <string name="nav_report_issue">Probléma bejelentése</string>
     <string name="nav_donate">Adományoz</string>
+    <string name="select_from_gallery">Kiválasztás a galériából</string>
     <string name="subtitle">Tömörítő eszköz</string>
     <string name="language">Nyelv</string>
     <string name="default_dest">Alapértelmezett cél</string>
     <string name="dest_folder">Cél mappa</string>
     <string name="reset_default">Alapértelmezés visszaállítása</string>
+    <string name="tap_text_to_edit">Érintsen meg egy szövegmezőt a szerkesztéshez</string>
     <string name="theme_title">Téma</string>
     <string name="about_title">Rólunk</string>
     <string name="mission">Misszió</string>
@@ -156,7 +162,7 @@
     <string name="filter_background">Háttér</string>
 
     <string name="intensity">Intenzitás</string>
-    <string name="transp">Transp.</string>
+    <string name="transp">Átlátsz.</string>
     <string name="black">Fekete</string>
     <string name="white">Fehér</string>
     <string name="red">Piros</string>

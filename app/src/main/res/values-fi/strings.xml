@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">Tyhjennä GPS</string>
+    <string name="coordinates">Koordinaatit</string>
+    <string name="delete_originals_failed">Joitakin alkuperäisiä tiedostoja ei voitu poistaa</string>
+    <string name="edit">Muokkaus</string>
     <string name="permission_rationale">Kompact vaatii tallennustilan pääsyn paikallisten tiedostojen pakkaamiseen.</string>
     <string name="nav_home">Koti</string>
     <string name="nav_settings">Asetukset</string>
@@ -16,6 +20,7 @@
     <string name="default_dest">Oletuskohde</string>
     <string name="dest_folder">Kohdekansio</string>
     <string name="reset_default">Palauta oletus</string>
+    <string name="tap_text_to_edit">Muokkaa tekstiruutua napauttamalla sitä</string>
     <string name="theme_title">Teema</string>
     <string name="about_title">Tietoja</string>
     <string name="mission">Tehtävä</string>
@@ -157,7 +162,7 @@
     <string name="filter_background">Tausta</string>
 
     <string name="intensity">Intensiteetti</string>
-    <string name="transp">Transp.</string>
+    <string name="transp">Läpin.</string>
     <string name="black">Musta</string>
     <string name="white">Valkoinen</string>
     <string name="red">Punainen</string>

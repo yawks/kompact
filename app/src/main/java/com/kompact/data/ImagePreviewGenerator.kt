@@ -17,6 +17,7 @@ import com.kompact.util.applyTextOverlay
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
+import com.kompact.util.resolveEffectiveFormat
 import com.kompact.util.resolveImageExtension
 import com.kompact.util.resolveTargetBytes
 import com.kompact.util.supportsExif
@@ -43,15 +44,16 @@ class ImagePreviewGenerator(context: Context) {
             .applyDraw(config.drawConfig)
             .applyAdjust(config.adjustConfig)
         val originalBytes = resolver.getFileSize(appContext, source)
-        val extension = resolveImageExtension(appContext, resolver, source, config.format)
+        val effectiveFormat = resolveEffectiveFormat(appContext, resolver, source, config.format)
+        val extension = resolveImageExtension(appContext, resolver, source, effectiveFormat)
         val targetBytes = resolveTargetBytes(config, originalBytes)
         val (previewBytes, appliedQuality) = encodeBitmapWithTarget(
             bitmap = bitmap,
-            outputFormat = config.format,
+            outputFormat = effectiveFormat,
             requestedQuality = config.percentage,
             targetBytes = targetBytes,
         )
-        val exifBytes = if (supportsExif(config.format)) {
+        val exifBytes = if (supportsExif(effectiveFormat)) {
             if (config.stripExif) writeExifData(previewBytes, null) else writeExifData(previewBytes, config.exifData)
         } else previewBytes
         bitmap.recycle()

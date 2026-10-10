@@ -1,1 +1,1 @@
-Offline compression for images
+Offline image editing and compression

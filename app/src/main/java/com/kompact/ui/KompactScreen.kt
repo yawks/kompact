@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
@@ -97,6 +98,7 @@ import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
@@ -125,11 +127,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 
 import androidx.documentfile.provider.DocumentFile
-import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.kompact.ui.theme.KompactTheme
 import com.kompact.util.asReadableBytes
+import com.kompact.util.extractEmbeddedBitmap
+import com.kompact.util.formatGpsPosition
+import com.kompact.util.isRawExtension
+import com.kompact.util.isRawFileName
+import com.kompact.util.isRawMime
 import com.kompact.util.parseBytes
 import com.kompact.model.AppScreen
 import com.kompact.model.CompressionType
@@ -381,6 +388,15 @@ fun HomeScreen(
         inferDefaultFormatLabel(firstImageDescriptor)
     }
     val singleImageSelected = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1
+    // I Raw sono decodificati via JPEG embedded: gli editor visivi (crop, text,
+    // draw, adjust, rotate, filtri) usano Coil che non supporta i Raw, quindi
+    // vengono disabilitati. L'utente converte prima il Raw, poi edita.
+    val isRawSelected = remember(state.selectedFiles) {
+        state.selectedFiles.any { file ->
+            val ext = file.displayName.substringAfterLast('.', "").lowercase(Locale.ROOT)
+            isRawExtension(ext) || isRawMime(file.mimeType)
+        }
+    }
     val exifEditingEnabled = state.sourceCategory == SourceCategory.IMAGE // Modificato per abilitare il tasto in batch
     val originalFormat = remember(firstImageDescriptor) {
         inferOriginalFormat(firstImageDescriptor)
@@ -396,7 +412,8 @@ fun HomeScreen(
     val defaultFileName = remember(state.selectedFiles) {
         if (state.selectedFiles.size == 1) {
             val file = state.selectedFiles.first()
-            file.displayName.substringBeforeLast('.', "").ifBlank { file.displayName }
+            val base = file.displayName.substringBeforeLast('.', "").ifBlank { file.displayName }
+            "$base-edit"
         } else null
     }
     val referenceBytes = state.selectedFiles.sumOf { it.sizeBytes }.coerceAtLeast(1L)
@@ -436,25 +453,24 @@ fun HomeScreen(
         item {
             Box {
                 Box(modifier = if (state.selectedFiles.isEmpty()) Modifier.alpha(0.38f) else Modifier) {
-                    LivePreviewCard(
-                        livePreview = state.livePreview,
-                        canCrop = singleImageSelected || state.selectedFiles.isEmpty(),
+                    EditCard(
+                        canCrop = (singleImageSelected && !isRawSelected) || state.selectedFiles.isEmpty(),
                         isCropEditorVisible = state.isCropEditorVisible,
                         isCropApplied = cropApplied,
                         onCropClick = onToggleCropEditor,
-                        canResize = state.sourceCategory == SourceCategory.IMAGE || state.selectedFiles.isEmpty(),
+                        canResize = (state.sourceCategory == SourceCategory.IMAGE && !isRawSelected) || state.selectedFiles.isEmpty(),
                         isResizeEditorVisible = state.isResizeEditorVisible,
                         isResizeApplied = state.imageConfig.resizeConfig != null,
                         onResizeClick = onToggleResizeEditor,
-                        canText = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1,
+                        canText = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1 && !isRawSelected,
                         isTextEditorVisible = state.isTextEditorVisible,
                         isTextApplied = state.imageConfig.texts.isNotEmpty(),
                         onTextClick = onToggleTextEditor,
-                        canAdjust = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1,
+                        canAdjust = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1 && !isRawSelected,
                         isAdjustEditorVisible = state.isAdjustEditorVisible,
                         isAdjustApplied = state.imageConfig.adjustConfig != null,
                         onAdjustClick = onToggleAdjustEditor,
-                        canDraw = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1,
+                        canDraw = state.sourceCategory == SourceCategory.IMAGE && state.selectedFiles.size == 1 && !isRawSelected,
                         isDrawEditorVisible = state.isDrawEditorVisible,
                         isDrawApplied = state.imageConfig.drawConfig != null,
                         onDrawClick = onToggleDrawEditor,
@@ -464,8 +480,28 @@ fun HomeScreen(
                         isEditingExif = state.isExifEditorVisible,
                         onToggleExifEditor = onToggleExifEditor,
                         onResetEditsClick = onResetEditsClick,
-                        isMultipleImages = state.selectedFiles.size > 1, // Passa se sono multiple
-                        stripExif = state.imageConfig.stripExif,         // Passa lo stato attuale
+                        isMultipleImages = state.selectedFiles.size > 1,
+                        stripExif = state.imageConfig.stripExif,
+                        isRawSelected = isRawSelected,
+                    )
+                }
+                if (state.selectedFiles.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {}
+                    )
+                }
+            }
+        }
+        item {
+            Box {
+                Box(modifier = if (state.selectedFiles.isEmpty()) Modifier.alpha(0.38f) else Modifier) {
+                    LivePreviewCard(
+                        livePreview = state.livePreview,
                     )
                 }
                 if (state.selectedFiles.isEmpty()) {
@@ -914,10 +950,26 @@ fun DonateScreen(modifier: Modifier = Modifier) {
                         stringResource(R.string.if_kompact_has_saved_you_space_or_time_please_consider_supporting_its_development_your_donation_directly_helps_me_dedicate_more_hours_to_adding_features_like_pdf_audio_and_video_support_and_keeps_the_project_independent_and_sustainable),
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    Button(onClick = { uriHandler.openUri("https://liberapay.com/naxod/") }) {
-                        Icon(Icons.Default.Favorite, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.nav_donate))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { uriHandler.openUri("https://ko-fi.com/naxod") },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.LocalCafe, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Ko-fi")
+                        }
+                        Button(
+                            onClick = { uriHandler.openUri("https://liberapay.com/naxod/") },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Favorite, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Liberapay")
+                        }
                     }
                 }
             }
@@ -925,6 +977,37 @@ fun DonateScreen(modifier: Modifier = Modifier) {
     }
 }
 
+
+/**
+ * Thumbnail per file Raw: Coil non decodifica i formati Raw proprietari,
+ * quindi estraiamo il JPEG embedded (preview) in background e lo mostriamo
+ * come bitmap. Il maxEdge=96 (2x per densità di una thumbnail 48dp) limita
+ * la memoria usada in decode.
+ */
+@Composable
+private fun RawThumbnail(
+    uri: Uri,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    var bitmap by remember(uri) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    LaunchedEffect(uri) {
+        bitmap = withContext(Dispatchers.IO) {
+            extractEmbeddedBitmap(context.contentResolver, uri, maxEdge = 96)
+        }
+    }
+    val bmp = bitmap
+    if (bmp != null) {
+        Image(
+            bitmap = bmp.asImageBitmap(),
+            contentDescription = null,
+            modifier = modifier,
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant))
+    }
+}
 
 @Composable
 fun SourceCard(
@@ -992,15 +1075,23 @@ fun SourceCard(
                 ) {
                     items(count = files.size) { index ->
                         val file = files[index]
-                        if (file.mimeType?.startsWith("image/") == true) {
+                        val isRaw = isRawFileName(file.displayName) || isRawMime(file.mimeType)
+                        if (file.mimeType?.startsWith("image/") == true || isRaw) {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    AsyncImage(
-                                        model = file.uri,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
-                                        contentScale = ContentScale.Crop
-                                    )
+                                    if (isRaw) {
+                                        RawThumbnail(
+                                            uri = file.uri,
+                                            modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp))
+                                        )
+                                    } else {
+                                        AsyncImage(
+                                            model = file.uri,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(48.dp).clip(RoundedCornerShape(4.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
                                     Spacer(Modifier.width(12.dp))
                                     Column(Modifier.weight(1f)) {
                                         Text(file.displayName, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -1527,30 +1618,73 @@ fun ExifEditorDialog(
                 )
 
                 Text(stringResource(R.string.location), style = MaterialTheme.typography.titleSmall)
+
+                // Coordinate GPS (read-only): mostra le coordinate formattate
+                // se presenti, così l'utente vede subito dove è stata scattata la foto.
+                val coordsText = if (currentExif.latitude != null && currentExif.longitude != null) {
+                    formatGpsPosition(currentExif.latitude!!, currentExif.longitude!!)
+                } else ""
+                if (coordsText.isNotEmpty()) {
+                    OutlinedTextField(
+                        value = coordsText,
+                        onValueChange = {},
+                        label = { Text(stringResource(R.string.coordinates)) },
+                        readOnly = true,
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                // Campi editabili: lat/long/altitude (tastiera numerica decimale)
                 OutlinedTextField(
                     value = currentExif.latitude?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(latitude = it.toDoubleOrNull())) },
                     label = { Text(stringResource(R.string.lat)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.longitude?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(longitude = it.toDoubleOrNull())) },
                     label = { Text(stringResource(R.string.lon)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = currentExif.altitude?.toString() ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(altitude = it.toDoubleOrNull())) },
                     label = { Text(stringResource(R.string.alt)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // Position = nome luogo (testo libero, indipendente dalle coordinate)
                 OutlinedTextField(
                     value = currentExif.position ?: "",
                     onValueChange = { onExifDataChange(currentExif.copy(position = it.takeIf { it.isNotBlank() })) },
                     label = { Text(stringResource(R.string.position)) },
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // Bottone per cancellare tutti i dati GPS
+                val hasGps = currentExif.latitude != null || currentExif.longitude != null ||
+                    currentExif.altitude != null || !currentExif.position.isNullOrBlank()
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(Modifier.weight(1f))
+                    TextButton(
+                        onClick = {
+                            onExifDataChange(currentExif.copy(
+                                latitude = null,
+                                longitude = null,
+                                altitude = null,
+                                position = null
+                            ))
+                        },
+                        enabled = hasGps
+                    ) {
+                        Text(stringResource(R.string.clear_gps))
+                    }
+                }
 
                 Text(stringResource(R.string.camera_settings), style = MaterialTheme.typography.titleSmall)
                 OutlinedTextField(
@@ -2597,8 +2731,7 @@ private fun PreviewKompact() {
 }
 
 @Composable
-fun LivePreviewCard(
-    livePreview: LivePreviewState,
+fun EditCard(
     canCrop: Boolean,
     isCropEditorVisible: Boolean,
     isCropApplied: Boolean,
@@ -2607,15 +2740,14 @@ fun LivePreviewCard(
     isResizeEditorVisible: Boolean,
     isResizeApplied: Boolean,
     onResizeClick: () -> Unit,
-    
     onRotateClick: () -> Unit,
     onColorFilterClick: () -> Unit,
     exifEditingEnabled: Boolean = false,
     isEditingExif: Boolean = false,
     onToggleExifEditor: () -> Unit = {},
     onResetEditsClick: () -> Unit,
-    isMultipleImages: Boolean = false, // NUOVO
-    stripExif: Boolean = false,        // NUOVO
+    isMultipleImages: Boolean = false,
+    stripExif: Boolean = false,
     canText: Boolean = false,
     isTextEditorVisible: Boolean = false,
     isTextApplied: Boolean = false,
@@ -2628,123 +2760,134 @@ fun LivePreviewCard(
     isDrawEditorVisible: Boolean = false,
     isDrawApplied: Boolean = false,
     onDrawClick: () -> Unit = {},
+    // Quando true (file Raw selezionato) disabilita Rotate e Color Filter:
+    // i loro editor usano Coil che non decodifica i Raw.
+    isRawSelected: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    Card(modifier) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(stringResource(R.string.edit), style = MaterialTheme.typography.titleMedium)
+                TextButton(
+                    onClick = onResetEditsClick,
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
+                    androidx.compose.material3.Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.Refresh,
+                        contentDescription = stringResource(R.string.reset),
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.reset))
+                }
+            }
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            androidx.compose.foundation.layout.FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (canCrop) {
+                    TextButton(onClick = onCropClick) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Crop, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        val label = when {
+                            isCropEditorVisible -> stringResource(R.string.crop)
+                            isCropApplied -> stringResource(R.string.edit_crop)
+                            else -> stringResource(R.string.crop)
+                        }
+                        Text(label)
+                    }
+                }
+                if (canResize) {
+                    TextButton(onClick = onResizeClick) {
+                        Icon(androidx.compose.material.icons.Icons.Default.PhotoSizeSelectLarge, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        val label = when {
+                            isResizeEditorVisible -> stringResource(R.string.resize)
+                            isResizeApplied -> stringResource(R.string.edit_resize)
+                            else -> stringResource(R.string.resize)
+                        }
+                        Text(label)
+                    }
+                }
+                TextButton(onClick = onRotateClick, enabled = !isRawSelected) {
+                    Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.RotateRight, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.rotate))
+                }
+                TextButton(onClick = onAdjustClick, enabled = canAdjust) {
+                    Icon(androidx.compose.material.icons.Icons.Default.Tune, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    val label = when {
+                        isAdjustEditorVisible -> stringResource(R.string.adjust)
+                        isAdjustApplied -> stringResource(R.string.edit_adjust)
+                        else -> stringResource(R.string.adjust)
+                    }
+                    Text(label)
+                }
+                TextButton(onClick = onColorFilterClick, enabled = !isRawSelected) {
+                    Icon(androidx.compose.material.icons.Icons.Default.Palette, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.color_filter))
+                }
+                TextButton(onClick = onToggleExifEditor, enabled = exifEditingEnabled) {
+                    Icon(androidx.compose.material.icons.Icons.Default.Settings, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    val exifLabel = if (isMultipleImages) {
+                        if (stripExif) "Restore EXIF" else "Remove EXIF"
+                    } else {
+                        "EXIF"
+                    }
+                    Text(exifLabel)
+                }
+                TextButton(
+                    onClick = onTextClick,
+                    enabled = canText
+                ) {
+                    Icon(androidx.compose.material.icons.Icons.Default.TextFields, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    val label = when {
+                        isTextEditorVisible -> stringResource(R.string.text_label)
+                        isTextApplied -> stringResource(R.string.edit_text)
+                        else -> stringResource(R.string.text_label)
+                    }
+                    Text(label)
+                }
+                TextButton(
+                    onClick = onDrawClick,
+                    enabled = canDraw
+                ) {
+                    Icon(androidx.compose.material.icons.Icons.Default.Edit, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    val label = when {
+                        isDrawEditorVisible -> stringResource(R.string.draw)
+                        isDrawApplied -> stringResource(R.string.edit_draw)
+                        else -> stringResource(R.string.draw)
+                    }
+                    Text(label)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LivePreviewCard(
+    livePreview: LivePreviewState,
     modifier: Modifier = Modifier,
 ) {
     var zoomTarget by remember { mutableStateOf<Uri?>(null) }
     var zoomLabel by remember { mutableStateOf<String?>(null) }
     Card(modifier) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(stringResource(R.string.live_preview), style = MaterialTheme.typography.titleMedium)
-                    TextButton(
-                        onClick = onResetEditsClick,
-                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    ) {
-                        androidx.compose.material3.Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.Refresh,
-                            contentDescription = stringResource(R.string.reset),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.reset))
-                    }
-                }
-                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
-                androidx.compose.foundation.layout.FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (canCrop) {
-                        TextButton(onClick = onCropClick) {
-                            Icon(androidx.compose.material.icons.Icons.Default.Crop, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            val label = when {
-                                isCropEditorVisible -> stringResource(R.string.crop)
-                                isCropApplied -> stringResource(R.string.edit_crop)
-                                else -> stringResource(R.string.crop)
-                            }
-                            Text(label)
-                        }
-                    }
-                    if (canResize) {
-                        TextButton(onClick = onResizeClick) {
-                            Icon(androidx.compose.material.icons.Icons.Default.PhotoSizeSelectLarge, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            val label = when {
-                                isResizeEditorVisible -> stringResource(R.string.resize)
-                                isResizeApplied -> stringResource(R.string.edit_resize)
-                                else -> stringResource(R.string.resize)
-                            }
-                            Text(label)
-                        }
-                    }
-                    TextButton(onClick = onRotateClick) {
-                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.RotateRight, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.rotate))
-                    }
-                    TextButton(onClick = onAdjustClick, enabled = canAdjust) {
-                        Icon(androidx.compose.material.icons.Icons.Default.Tune, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        val label = when {
-                            isAdjustEditorVisible -> stringResource(R.string.adjust)
-                            isAdjustApplied -> stringResource(R.string.edit_adjust)
-                            else -> stringResource(R.string.adjust)
-                        }
-                        Text(label)
-                    }
-                    TextButton(onClick = onColorFilterClick) {
-                        Icon(androidx.compose.material.icons.Icons.Default.Palette, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.color_filter))
-                    }
-                    TextButton(onClick = onToggleExifEditor, enabled = exifEditingEnabled) {
-                        Icon(androidx.compose.material.icons.Icons.Default.Settings, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        val exifLabel = if (isMultipleImages) {
-                            if (stripExif) "Restore EXIF" else "Remove EXIF"
-                        } else {
-                            "EXIF"
-                        }
-                        Text(exifLabel)
-                    }
-                    TextButton(
-                        onClick = onTextClick,
-                        enabled = canText
-                    ) {
-                        Icon(androidx.compose.material.icons.Icons.Default.TextFields, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        val label = when {
-                            isTextEditorVisible -> stringResource(R.string.text_label)
-                            isTextApplied -> stringResource(R.string.edit_text)
-                            else -> stringResource(R.string.text_label)
-                        }
-                        Text(label)
-                    }
-                    TextButton(
-                        onClick = onDrawClick,
-                        enabled = canDraw
-                    ) {
-                        Icon(androidx.compose.material.icons.Icons.Default.Edit, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        val label = when {
-                            isDrawEditorVisible -> stringResource(R.string.draw)
-                            isDrawApplied -> stringResource(R.string.edit_draw)
-                            else -> stringResource(R.string.draw)
-                        }
-                        Text(label)
-                    }
-                }
-            }
+            Text(stringResource(R.string.live_preview), style = MaterialTheme.typography.titleMedium)
             val hasPreviews = livePreview.kind == PreviewKind.IMAGE && livePreview.previews.isNotEmpty()
             val showLoadingOnly = livePreview.isGenerating && !hasPreviews
 
@@ -2865,7 +3008,7 @@ fun LivePreviewRow(
                 Text(stringResource(R.string.cropped), style = MaterialTheme.typography.bodySmall)
                 val context = androidx.compose.ui.platform.LocalContext.current
                 val croppedRequest = remember(preview) {
-                    coil.request.ImageRequest.Builder(context)
+                    coil3.request.ImageRequest.Builder(context)
                         .data(preview.croppedPreviewUri)
                         .memoryCacheKey("crop_${System.identityHashCode(preview)}")
                         .diskCacheKey("crop_${System.identityHashCode(preview)}")
@@ -2889,7 +3032,7 @@ fun LivePreviewRow(
             Text(stringResource(R.string.after), style = MaterialTheme.typography.bodySmall)
             val context = androidx.compose.ui.platform.LocalContext.current
             val request = remember(preview) {
-                coil.request.ImageRequest.Builder(context)
+                coil3.request.ImageRequest.Builder(context)
                     .data(preview.previewUri)
                     .memoryCacheKey("after_${System.identityHashCode(preview)}")
                     .diskCacheKey("after_${System.identityHashCode(preview)}")
@@ -2924,7 +3067,7 @@ fun ZoomableImage(
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val request = remember(uri) {
-        coil.request.ImageRequest.Builder(context)
+        coil3.request.ImageRequest.Builder(context)
             .data(uri)
             .memoryCacheKey(uri?.toString() + "_" + System.currentTimeMillis())
             .diskCacheKey(uri?.toString() + "_" + System.currentTimeMillis())
@@ -2965,6 +3108,8 @@ private fun inferOriginalFormat(file: SelectedFileDescriptor?): ImageOutputForma
     if (file == null) return null
     val mime = file.mimeType?.lowercase(Locale.ROOT)
     val extension = file.displayName.substringAfterLast('.', "").lowercase(Locale.ROOT)
+    // I Raw vengono convertiti in JPG (default) — vedi resolveEffectiveFormat
+    if (isRawMime(mime) || isRawExtension(extension)) return ImageOutputFormat.JPG
     val source = mime ?: extension
     return when {
         source.contains("jpeg") || source.contains("jpg") -> ImageOutputFormat.JPG
@@ -2973,11 +3118,11 @@ private fun inferOriginalFormat(file: SelectedFileDescriptor?): ImageOutputForma
         source.contains("bmp") -> ImageOutputFormat.BMP
         source.contains("gif") -> ImageOutputFormat.GIF
         source.contains("tif") || source.contains("tiff") -> ImageOutputFormat.TIF
-        source.contains("heif") -> ImageOutputFormat.HEIF
+        source.contains("ico") || source.contains("x-icon") -> ImageOutputFormat.ICO
         source.contains("heic") -> ImageOutputFormat.HEIC
+        source.contains("heif") -> ImageOutputFormat.HEIF
         source.contains("avif") -> ImageOutputFormat.AVIF
         source.contains("jxl") -> ImageOutputFormat.JXL
-        source.contains("ico") || source.contains("x-icon") -> ImageOutputFormat.ICO
         else -> null
     }
 }
@@ -2991,11 +3136,11 @@ private fun inferDefaultFormatLabel(file: SelectedFileDescriptor?): String? {
             ImageOutputFormat.BMP -> "BMP"
             ImageOutputFormat.GIF -> "GIF"
             ImageOutputFormat.TIF -> "TIF"
+            ImageOutputFormat.ICO -> "ICO"
             ImageOutputFormat.HEIF -> "HEIF"
             ImageOutputFormat.HEIC -> "HEIC"
             ImageOutputFormat.AVIF -> "AVIF"
             ImageOutputFormat.JXL -> "JXL"
-            ImageOutputFormat.ICO -> "ICO"
             else -> format.name
         }
     }
@@ -3084,7 +3229,7 @@ fun ResizeEditorDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     if (previewUri != null) {
-                        coil.compose.AsyncImage(
+                        coil3.compose.AsyncImage(
                             model = previewUri,
                             contentDescription = "Preview",
                             modifier = Modifier.fillMaxSize(),
@@ -3257,7 +3402,7 @@ fun FiltersEditorDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     if (previewUri != null) {
-                        coil.compose.AsyncImage(
+                        coil3.compose.AsyncImage(
                             model = previewUri,
                             contentDescription = "Preview",
                             modifier = Modifier.fillMaxSize(),
@@ -3331,7 +3476,7 @@ fun FiltersEditorDialog(
                                     }
                                 } else {
                                     val fType = com.kompact.model.ColorFilterType.valueOf(item)
-                                    coil.compose.AsyncImage(
+                                    coil3.compose.AsyncImage(
                                         model = previewUri ?: R.drawable.ic_launcher,
                                         contentDescription = item,
                                         modifier = Modifier.fillMaxSize(),
@@ -3550,7 +3695,7 @@ fun RotateEditorDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     if (previewUri != null) {
-                        coil.compose.AsyncImage(
+                        coil3.compose.AsyncImage(
                             model = previewUri,
                             contentDescription = "Preview",
                             modifier = Modifier

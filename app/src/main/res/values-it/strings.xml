@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
     <string name="permission_rationale">Kompact richiede l\'accesso all\'archiviazione per comprimere i file locali.</string>
     <string name="nav_home">Principale</string>
     <string name="nav_settings">Impostazioni</string>
@@ -16,6 +16,7 @@
     <string name="default_dest">Destinazione Predefinita</string>
     <string name="dest_folder">Cartella di Destinazione</string>
     <string name="reset_default">Ripristina Predefinito</string>
+    <string name="tap_text_to_edit">Tocca una casella di testo per modificarla</string>
     <string name="theme_title">Tema</string>
     <string name="about_title">Informazioni</string>
     <string name="mission">Missione</string>
@@ -33,6 +34,7 @@
     <string name="support">Supporto</string>
     <string name="if_kompact_has_saved_you_space_or_time_please_consider_supporting_its_development_your_donation_directly_helps_me_dedicate_more_hours_to_adding_features_like_pdf_audio_and_video_support_and_keeps_the_project_independent_and_sustainable">Se Kompact ti ha fatto risparmiare spazio o tempo, per favore considera di supportarne lo sviluppo. La tua donazione mi aiuta direttamente a dedicare più ore per aggiungere funzionalità come il supporto a PDF, Audio e Video, e mantiene il progetto indipendente e sostenibile.</string>
     <string name="files">File</string>
+    <string name="edit">Modifica</string>
     <string name="clear_all">Cancella tutto</string>
     <string name="select_images_to_compress">Seleziona immagine da modificare</string>
     <string name="working">Elaborazione…</string>
@@ -53,6 +55,8 @@
     <string name="lon">Longitudine</string>
     <string name="alt">Altitudine</string>
     <string name="position">Posizione</string>
+    <string name="coordinates">Coordinate</string>
+    <string name="clear_gps">Cancella GPS</string>
     <string name="camera_settings">Impostazioni Fotocamera</string>
     <string name="exp_time">Tempo di esposizione</string>
     <string name="f">F#</string>
@@ -139,6 +143,7 @@
     <string name="delete_original_files">Elimina file originali</string>
     <string name="delete_originals_title">Eliminare gli originali?</string>
     <string name="delete_originals_message">Sei sicuro di voler eliminare i file originali dopo l\'elaborazione? Questa azione non può essere annullata.</string>
+    <string name="delete_originals_failed">Non è stato possibile eliminare alcuni file originali</string>
     <string name="yes_delete">Sì, elimina</string>
     <string name="preserve_source_date">Mantieni data file originale</string>
 

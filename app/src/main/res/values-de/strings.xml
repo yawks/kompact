@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">GPS löschen</string>
+    <string name="coordinates">Koordinaten</string>
+    <string name="delete_originals_failed">Einige Originaldateien konnten nicht gelöscht werden</string>
+    <string name="edit">Bearbeiten</string>
     <string name="permission_rationale">Kompact benötigt Speicherzugriff, um lokale Dateien zu komprimieren.</string>
     <string name="nav_home">Startseite</string>
     <string name="nav_settings">Einstellungen</string>
@@ -16,6 +20,7 @@
     <string name="default_dest">Standardziel</string>
     <string name="dest_folder">Zielordner</string>
     <string name="reset_default">Standard zurücksetzen</string>
+    <string name="tap_text_to_edit">Tippen Sie auf ein Textfeld, um es zu bearbeiten</string>
     <string name="theme_title">Design</string>
     <string name="about_title">Über</string>
     <string name="mission">Mission</string>

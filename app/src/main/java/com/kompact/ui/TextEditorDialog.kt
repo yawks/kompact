@@ -15,6 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -48,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.exifinterface.media.ExifInterface
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import com.kompact.R
 import com.kompact.model.CropBounds
 import com.kompact.model.TextOverlayConfig
@@ -281,8 +283,10 @@ fun TextEditorDialog(
                                 }.filter { it.text.isNotBlank() }
                                 isEditing = false
                                 focusManager.clearFocus()
+                                // onTextsChange salva e chiude già l'editor (via onToggleTextEditor
+                                // nel wiring): chiamare anche onDismiss() farebbe un doppio toggle
+                                // e il dialog resterebbe aperto.
                                 onTextsChange(saved)
-                                onDismiss()
                             }
                         ) {
                             Icon(
@@ -314,7 +318,11 @@ fun TextEditorDialog(
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 8.dp)
                             .padding(bottom = 56.dp)
-                            .heightIn(max = 320.dp),
+                            // heightIn prima di verticalScroll: limita il viewport,
+                            // non il contenuto — così su display piccoli i controlli
+                            // restano accessibili scrollando.
+                            .heightIn(max = 320.dp)
+                            .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         if (selectedItem == null) {
@@ -740,46 +748,51 @@ private fun TextItemView(
                 shape = RoundedCornerShape(4.dp)
             )
     ) {
-        BasicTextField(
-            value = config.text,
-            onValueChange = onTextChange,
-            readOnly = !isEditingThis,
-            textStyle = TextStyle(
-                color = color,
-                fontSize = config.size.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                shadow = androidx.compose.ui.graphics.Shadow(
-                    color = Color.Black.copy(alpha = 0.7f),
-                    offset = Offset(2f, 2f),
-                    blurRadius = 4f
-                )
-            ),
-            cursorBrush = SolidColor(color),
-            modifier = Modifier
-                .focusRequester(focusRequester)
-                .widthIn(min = 50.dp, max = maxImageSizeDp * 0.9f),
-            singleLine = false,
-            decorationBox = { innerTextField ->
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.padding(4.dp)
-                ) {
-                    if (config.text.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.enter_text),
-                            style = TextStyle(
-                                color = color.copy(alpha = 0.4f),
-                                fontSize = config.size.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
+        // Ricrea il BasicTextField quando cambia isEditingThis: il toggle di
+        // readOnly sullo stesso nodo corrompe lo stato interno del focus e causa
+        // il freeze alla seconda apertura della casella di testo.
+        key(isEditingThis) {
+            BasicTextField(
+                value = config.text,
+                onValueChange = onTextChange,
+                readOnly = !isEditingThis,
+                textStyle = TextStyle(
+                    color = color,
+                    fontSize = config.size.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    shadow = androidx.compose.ui.graphics.Shadow(
+                        color = Color.Black.copy(alpha = 0.7f),
+                        offset = Offset(2f, 2f),
+                        blurRadius = 4f
+                    )
+                ),
+                cursorBrush = SolidColor(color),
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .widthIn(min = 50.dp, max = maxImageSizeDp * 0.9f),
+                singleLine = false,
+                decorationBox = { innerTextField ->
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        if (config.text.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.enter_text),
+                                style = TextStyle(
+                                    color = color.copy(alpha = 0.4f),
+                                    fontSize = config.size.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
                             )
-                        )
+                        }
+                        innerTextField()
                     }
-                    innerTextField()
                 }
-            }
-        )
+            )
+        }
     }
 }
 

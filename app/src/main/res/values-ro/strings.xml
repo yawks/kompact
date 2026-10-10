@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">Șterge GPS</string>
+    <string name="coordinates">Coordonate</string>
+    <string name="delete_originals_failed">Unele fișiere originale nu au putut fi șterse</string>
+    <string name="edit">Editare</string>
     <string name="permission_rationale">Kompact necesită acces la stocare pentru a comprima fișierele locale.</string>
     <string name="nav_home">Acasă</string>
     <string name="nav_settings">Setări</string>
@@ -16,6 +20,7 @@
     <string name="default_dest">Destinație implicită</string>
     <string name="dest_folder">Folder destinație</string>
     <string name="reset_default">Resetare implicită</string>
+    <string name="tap_text_to_edit">Atingeți o casetă de text pentru a o edita</string>
     <string name="theme_title">Temă</string>
     <string name="about_title">Despre</string>
     <string name="mission">Misiune</string>

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">Očisti GPS</string>
+    <string name="coordinates">Koordinate</string>
+    <string name="delete_originals_failed">Neke izvorne datoteke nisu se mogle izbrisati</string>
+    <string name="edit">Uredi</string>
     <string name="permission_rationale">Kompact zahtijeva pristup pohrani za komprimiranje lokalnih datoteka.</string>
     <string name="nav_home">Dom</string>
     <string name="nav_settings">postavke</string>
@@ -11,11 +15,13 @@
     <string name="contact_send_email">Pošalji e-poštu</string>
     <string name="nav_report_issue">Prijavi problem</string>
     <string name="nav_donate">Donirajte</string>
+    <string name="select_from_gallery">Odaberite iz galerije</string>
     <string name="subtitle">Alat za kompresiju</string>
     <string name="language">Jezik</string>
     <string name="default_dest">Zadano odredište</string>
     <string name="dest_folder">Odredišna mapa</string>
     <string name="reset_default">Resetiraj zadano</string>
+    <string name="tap_text_to_edit">Dodirnite tekstni okvir da biste ga uredili</string>
     <string name="theme_title">Tema</string>
     <string name="about_title">O aplikaciji</string>
     <string name="mission">Misija</string>

@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">清除 GPS</string>
+    <string name="contact_description">有疑问、反馈或发现漏洞？请联系我们。</string>
+    <string name="contact_send_email">发送邮件</string>
+    <string name="contact_title">联系我们</string>
+    <string name="coordinates">坐标</string>
+    <string name="delete_originals_failed">无法删除某些原始文件</string>
+    <string name="edit">编辑</string>
+    <string name="nav_contact_us">联系我们</string>
     <string name="permission_rationale">Kompact 需要存储访问权限来压缩本地文件。</string>
     <string name="nav_home">首页</string>
     <string name="nav_settings">设置</string>
@@ -12,6 +20,7 @@
     <string name="default_dest">默认目标位置</string>
     <string name="dest_folder">目标文件夹</string>
     <string name="reset_default">重置默认值</string>
+    <string name="tap_text_to_edit">点按文本框以编辑</string>
     <string name="theme_title">主题</string>
     <string name="about_title">关于</string>
     <string name="mission">使命</string>

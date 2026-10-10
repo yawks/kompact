@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
@@ -46,8 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import com.kompact.R
 import com.kompact.model.CropBounds
 import com.kompact.model.DrawConfig
@@ -143,8 +144,8 @@ fun DrawEditorDialog(
     var currentOpacity by remember { mutableStateOf(drawConfig?.opacity ?: 1.0f) }
     
     // State for strokes
-    var strokes by remember { 
-        mutableStateOf(drawConfig?.strokes?.toMutableStateList() ?: mutableStateListOf()) 
+    var strokes by remember {
+        mutableStateOf(drawConfig?.strokes?.toMutableStateList() ?: mutableStateListOf<DrawStroke>())
     }
     
     // Undo/Redo stack
@@ -236,9 +237,28 @@ fun DrawEditorDialog(
                         ) 
                     },
                     actions = {
+                        // Reset: ripristina i default del draw editor — cancella
+                        // tutti i tratti (con undo) e riporta colore, spessore,
+                        // tool e opacità ai valori iniziali.
                         IconButton(
                             onClick = {
-                                // Save and close
+                                handleClearAll()
+                                currentColor = Color(android.graphics.Color.RED)
+                                currentStrokeWidth = 5f
+                                currentToolType = DrawToolType.PEN
+                                currentOpacity = 1.0f
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Refresh,
+                                contentDescription = "Reset",
+                                tint = Color.White
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                // Save and close: onDrawConfigChange salva e chiude già
+                                // l'editor (via onToggleDrawEditor nel wiring).
                                 val newConfig = DrawConfig(
                                     strokes = strokes.toList(),
                                     color = currentColor.toArgb(),
@@ -247,7 +267,6 @@ fun DrawEditorDialog(
                                     opacity = currentOpacity
                                 )
                                 onDrawConfigChange(newConfig)
-                                onDismiss()
                             }
                         ) {
                             Icon(
@@ -273,8 +292,13 @@ fun DrawEditorDialog(
                         .navigationBarsPadding()
                         .imePadding()
                         .background(Color.Black.copy(alpha = 0.9f))
-                        .verticalScroll(rememberScrollState())
-                        .heightIn(max = 400.dp),
+                        // heightIn PRIMA di verticalScroll: limita l'altezza del
+                        // viewport (max 400dp), così il contenuto può essere più alto
+                        // e scrollare. Se l'ordine è invertito, heightIn limita il
+                        // contenuto a 400dp e i figli in eccesso vengono tagliati
+                        // senza possibilità di scroll (scroll range = 0).
+                        .heightIn(max = 400.dp)
+                        .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Tool Type Selector

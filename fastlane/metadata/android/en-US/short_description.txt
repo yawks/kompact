@@ -1,1 +1,1 @@
-Offline image compressor, resizer and converter.
+Offline image editor, compressor, resizer and converter.

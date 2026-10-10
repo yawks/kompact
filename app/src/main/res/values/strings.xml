@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
     <string name="permission_rationale">Kompact requires storage access to compress local files.</string>
     <string name="nav_home">Home</string>
     <string name="nav_settings">Settings</string>
@@ -33,6 +33,7 @@
     <string name="support">Support</string>
     <string name="if_kompact_has_saved_you_space_or_time_please_consider_supporting_its_development_your_donation_directly_helps_me_dedicate_more_hours_to_adding_features_like_pdf_audio_and_video_support_and_keeps_the_project_independent_and_sustainable">If Kompact has saved you space or time, please consider supporting its development. Your donation directly helps me dedicate more hours to adding features like PDF, Audio and Video support, and keeps the project independent and sustainable.</string>
     <string name="files">Files</string>
+    <string name="edit">Edit</string>
     <string name="clear_all">Clear all</string>
     <string name="select_images_to_compress">Select image to edit</string>
     <string name="working">Working…</string>
@@ -53,6 +54,8 @@
     <string name="lon">Lon</string>
     <string name="alt">Alt</string>
     <string name="position">Position</string>
+    <string name="coordinates">Coordinates</string>
+    <string name="clear_gps">Clear GPS</string>
     <string name="camera_settings">Camera Settings</string>
     <string name="exp_time">Exp Time</string>
     <string name="f">F#</string>

@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import com.kompact.util.RAW_MIME_TYPES
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -155,6 +156,10 @@ class MainActivity : AppCompatActivity() {
                         // Use ACTION_GET_CONTENT with chooser to allow selection from gallery apps
                         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                             type = "image/*"
+                            // Aggiungi i MIME Raw oltre a image/*: permette di
+                            // selezionare file Raw anche quando il provider non
+                            // mappa l'estensione a un image/x-* (es. octet-stream).
+                            putExtra(Intent.EXTRA_MIME_TYPES, RAW_MIME_TYPES.toTypedArray())
                             putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                             addCategory(Intent.CATEGORY_OPENABLE)
                         }

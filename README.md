@@ -1,16 +1,24 @@
 <p><img src="https://naxod.com/assets/kompact/logo.png" width="200"></p>
 
-# Kompact
+# Kompact Image Editor
 
-Kompact is an open-source Android app written in Kotlin with Jetpack Compose that compresses images (JPEG, PNG, WebP, BMP, GIF, TIFF, HEIF, HEIC, AVIF, JXL, ICO) quickly and transparently. Official builds are produced and signed by the maintainer to keep a single line of trust that stays compliant with F-Droid and Google Play policies.
+Kompact Image Editor is an open-source Android app written in Kotlin with Jetpack Compose that edits and compresses images (JPEG, PNG, WebP, BMP, GIF, TIFF, ICO, HEIF, HEIC, AVIF, JXL) quickly and transparently. Official builds are produced and signed by the maintainer to keep a single line of trust that stays compliant with F-Droid and Google Play policies.
 
 ## Key Features
-- Multi-selection of images through the Storage Access Framework.
-- Fully configurable compression parameters (quality, max size, output format).
+- Multi-selection of images through the Storage Access Framework, with batch processing.
+- Compression by quality percentage (default: original quality) or target file size.
+- Conversion between JPEG, PNG, WebP, BMP, GIF, TIFF, ICO, HEIF, HEIC, AVIF, JXL and Telegram PNG (the original format is kept when no edit requires re-encoding). HEIF/HEIC/AVIF/JXL are encoded with the open-source libheif/libavif/libjxl codecs via [awxkee's Android wrappers](https://github.com/awxkee) (Apache 2.0).
+- Crop, resize (pixels or percentage) and rotate images.
+- Multiple text overlays with custom size, color and position.
+- Draw with pen and highlighter tools.
+- Color filters (grayscale, sepia, vintage, cool, warm, custom hue) and adjustable brightness, contrast, saturation, warmth, shadows and highlights.
+- Transparent or custom background.
+- Edit or strip EXIF metadata, including GPS position.
+- Side-by-side preview of source/output with synchronized quality and target size controls and estimated output size.
+- Custom output file name (defaults to `<name>-edit`) and destination folder, with the option to delete original files and preserve the source file date.
 - Result cards summarize original vs compressed size and the status of each operation.
 - Modern Material 3 UI with light/dark support.
 - Automatic export to the Pictures/Kompact directory with the option to pick any other destination.
-- Side-by-side preview of source/output with synchronized quality and target size controls.
 
 > **Note:** PDF documents, audio tracks, and video files are not supported yet. They remain on the roadmap and will arrive in future releases once the image workflow is fully battle-tested.
 

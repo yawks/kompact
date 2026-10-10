@@ -1,11 +1,11 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
     namespace = "com.kompact"
-    compileSdk = 36
+    compileSdk = 37
 
     val keystorePath = System.getenv("KS_PATH")
     val keystorePassword = System.getenv("KS_PASS")
@@ -17,9 +17,9 @@ android {
     defaultConfig {
         applicationId = "com.kompact"
         minSdk = 24
-        targetSdk = 36
-        versionCode = 24
-        versionName = "2.0.2"
+        targetSdk = 37
+        versionCode = 25
+        versionName = "2.0.3"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -62,21 +62,18 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
     }
 
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+        jniLibs {
+            // awxkee avif-coder and jxl-coder both ship native .so files;
+            // pick the first occurrence to avoid duplicate-library build errors.
+            pickFirsts += "**/*.so"
         }
     }
 
@@ -87,36 +84,79 @@ android {
     }
 }
 
+// AGP 9 built-in Kotlin: configura il JVM target via l'estensione top-level kotlin{}
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    // AGP 9.4 built-in Kotlin è 2.2.10 (legge metadata fino a 2.3.0).
+    // Forza kotlin-stdlib a 2.3.21 per compatibilità — le librerie moderne
+    // (Coil 3.6, Compose 1.12) pulled stdlib 2.4.x che il compilatore
+    // built-in non riesce a leggere.
+    configurations.all {
+        resolutionStrategy {
+            force("org.jetbrains.kotlin:kotlin-stdlib:2.3.21")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.3.21")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.21")
+            force("org.jetbrains.kotlin:kotlin-stdlib-common:2.3.21")
+        }
+    }
+
+    // --- AndroidX Core (1.19.1 richiede compileSdk 37) ---
+    implementation("androidx.core:core-ktx:1.19.1")
+
+    // --- Lifecycle ---
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+
+    // --- Coroutines ---
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+
+    // --- Activity ---
+    implementation("androidx.activity:activity-compose:1.13.0")
+
+    // --- Jetpack Compose (BOM 2026.09.00 → Compose 1.12.x, richiede AGP 9.1+ / compileSdk 37) ---
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.compose.foundation:foundation-layout-android")
     implementation("androidx.compose.animation:animation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("io.coil-kt:coil-compose:2.6.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
-    implementation("androidx.documentfile:documentfile:1.0.1")
-    implementation("androidx.exifinterface:exifinterface:1.3.7")
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // --- Material Views ---
+    implementation("com.google.android.material:material:1.13.0")
+    // Nota: material 1.13.x è l'ultima stable; le alpha 1.14.x sono instabili
 
+    // --- Coil 3 (image loading, latest 3.6.x) ---
+    implementation("io.coil-kt.coil3:coil-compose:3.6.3")
+
+    // --- Document / EXIF / DataStore ---
+    implementation("androidx.documentfile:documentfile:1.1.0")
+    implementation("androidx.exifinterface:exifinterface:1.4.1")
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
+    // Nota: datastore 1.2.0 è l'ultima stable; documentfile 1.1.0 è l'ultima release
+
+    // --- Open-source native codecs (Apache 2.0) ---
+    // avif-coder wraps libheif/libavif for HEIF/HEIC/AVIF encode+decode
+    // jxl-coder wraps libjxl for JPEG XL encode+decode
+    // Maven Central versions, compiled with Kotlin 2.3.x metadata.
+    implementation("io.github.awxkee:avif-coder:3.0.0")
+    implementation("io.github.awxkee:jxl-coder:2.6.1")
+
+    // --- Testing ---
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.12.2")
+    testImplementation("org.robolectric:robolectric:4.16")
     testImplementation("androidx.compose.ui:ui-test-junit4")
-    testImplementation("androidx.test:core:1.6.1")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    testImplementation("androidx.test:core:1.7.0")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }

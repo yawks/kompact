@@ -15,7 +15,15 @@ enum class PreviewKind { NONE, IMAGE }
 
 enum class CompressionGoal { PERCENTAGE, TARGET_SIZE }
 
-enum class ImageOutputFormat { ORIGINAL, JPG, PNG, WEBP, BMP, GIF, TIF, HEIF, HEIC, AVIF, JXL, ICO, TELEGRAM_PNG }
+// Every selectable format results in a genuine re-encode, never a renamed
+// file. GIF and TIFF use the pure Kotlin encoders in util/GifEncoder.kt and
+// util/TiffEncoder.kt. HEIF/HEIC/AVIF/JXL use the open-source native codecs
+// from io.github.awxkee (avif-coder / jxl-coder, Apache 2.0), which wrap
+// libheif/libavif/libjxl.
+enum class ImageOutputFormat {
+    ORIGINAL, JPG, PNG, WEBP, BMP, GIF, TIF, ICO, TELEGRAM_PNG,
+    HEIF, HEIC, AVIF, JXL,
+}
 
 data class CropBounds(
     val left: Float = 0f,
@@ -151,7 +159,7 @@ data class AdjustConfig(
 
 data class ImageCompressionConfig(
     val goal: CompressionGoal = CompressionGoal.PERCENTAGE,
-    val percentage: Int = 70,
+    val percentage: Int = 0,
     val targetSizeBytes: Long? = null,
     val format: ImageOutputFormat = ImageOutputFormat.ORIGINAL,
     val exifData: ExifData? = null,

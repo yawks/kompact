@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.kompact.R
 import com.kompact.model.AdjustConfig
 import com.kompact.model.CropBounds
@@ -45,13 +45,13 @@ import com.kompact.util.applyRotation
 import com.kompact.util.decodeBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// Lato massimo del bitmap di preview: sufficiente per la visualizzazione,
-// evita di decodificare l'immagine a piena risoluzione a ogni cambio slider
-private const val ADJUST_PREVIEW_MAX_EDGE = 2048
+// Lato massimo del bitmap di preview: 1024px è più che sufficiente per la
+// visualizzazione (~300dp) e rende applyAdjust veloce abbastanza per un
+// feedback realtime durante il trascinamento dello slider.
+private const val ADJUST_PREVIEW_MAX_EDGE = 1024
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +75,12 @@ fun AdjustEditorDialog(
     // when reopening an image already adjusted)
     var selectedEffect by remember { mutableStateOf(initialSelectedEffect(adjustConfig)) }
 
+    // Bitmap base cacheato (decodificato + ruotato + crop): viene ricaricato
+    // solo quando cambia immagine/rotazione/crop, non a ogni movimento slider.
+    // Deve restare immutable: applyAdjust modifica in place i bitmap mutable,
+    // quindi con un base immutable ogni chiamata lavora su una copia fresca.
+    var baseBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+
     // Preview bitmap state
     var previewBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
@@ -83,37 +89,25 @@ fun AdjustEditorDialog(
     val context = LocalContext.current
     var previewJob by remember { mutableStateOf<Job?>(null) }
 
-    // Load and apply preview
-    fun updatePreview() {
-        if (imageUri == null) return
-
+    // Applica gli adjust correnti al bitmap base cacheato.
+    // Nessun debounce: con il base già decodificato, applyAdjust su 1024px è
+    // abbastanza veloce da dare un feedback realtime durante il drag dello slider.
+    // Il job precedente viene cancellato così viene processato solo il valore più recente.
+    fun applyAdjustToPreview(base: android.graphics.Bitmap) {
         previewJob?.cancel()
         previewJob = coroutineScope.launch {
-            // Debounce: gli slider emettono molti cambi durante il trascinamento
-            delay(150)
             val processed = withContext(Dispatchers.IO) {
                 runCatching {
-                    val bitmap = decodeBitmap(
-                        context.contentResolver,
-                        imageUri,
-                        ADJUST_PREVIEW_MAX_EDGE
-                    ) ?: return@withContext null
-
-                    val config = AdjustConfig(
-                        brightness = brightness,
-                        contrast = contrast,
-                        saturation = saturation,
-                        warmth = warmth,
-                        shadows = shadows,
-                        highlights = highlights
+                    base.applyAdjust(
+                        AdjustConfig(
+                            brightness = brightness,
+                            contrast = contrast,
+                            saturation = saturation,
+                            warmth = warmth,
+                            shadows = shadows,
+                            highlights = highlights
+                        )
                     )
-
-                    // Mostra la stessa immagine che avrà l'output: EXIF (già
-                    // normalizzato in decodeBitmap) -> rotazione -> crop -> adjust
-                    bitmap
-                        .applyRotation(rotationDegrees)
-                        .applyCrop(cropBounds)
-                        .applyAdjust(config)
                 }.getOrNull()
             }
             if (processed != null) {
@@ -121,10 +115,38 @@ fun AdjustEditorDialog(
             }
         }
     }
-    
-    // Update preview when any value changes
+
+    // Carica il bitmap base una sola volta (decode + rotazione + crop),
+    // poi applica subito gli adjust correnti.
+    LaunchedEffect(imageUri, rotationDegrees, cropBounds) {
+        baseBitmap = null
+        if (imageUri == null) {
+            previewBitmap = null
+            return@LaunchedEffect
+        }
+        val loaded = withContext(Dispatchers.IO) {
+            runCatching {
+                val bitmap = decodeBitmap(context.contentResolver, imageUri, ADJUST_PREVIEW_MAX_EDGE)
+                    ?: return@withContext null
+                // Stessa catena dell'output: EXIF (normalizzato in decodeBitmap) -> rotazione -> crop
+                val result = bitmap
+                    .applyRotation(rotationDegrees)
+                    .applyCrop(cropBounds)
+                // Assicura immutabilità: applyAdjust copia solo i bitmap non-mutable
+                if (result.isMutable) result.copy(android.graphics.Bitmap.Config.ARGB_8888, false) else result
+            }.getOrNull()
+        }
+        baseBitmap = loaded
+        if (loaded != null) {
+            applyAdjustToPreview(loaded)
+        } else {
+            previewBitmap = null
+        }
+    }
+
+    // Aggiorna la preview quando cambia qualsiasi slider (realtime, senza debounce)
     LaunchedEffect(brightness, contrast, saturation, warmth, shadows, highlights) {
-        updatePreview()
+        baseBitmap?.let { applyAdjustToPreview(it) }
     }
     
     Dialog(
@@ -172,8 +194,10 @@ fun AdjustEditorDialog(
                                     shadows = shadows,
                                     highlights = highlights
                                 )
+                                // onAdjustConfigChange salva e chiude già l'editor (via
+                                // onToggleAdjustEditor nel wiring): chiamare anche onDismiss()
+                                // farebbe un doppio toggle e il dialog resterebbe aperto.
                                 onAdjustConfigChange(newConfig)
-                                onDismiss()
                             }
                         ) {
                             Icon(

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">GPS\'yi temizle</string>
+    <string name="coordinates">Koordinatlar</string>
+    <string name="delete_originals_failed">Bazı orijinal dosyalar silinemedi</string>
+    <string name="edit">Düzenle</string>
     <string name="permission_rationale">Kompact, yerel dosyaları sıkıştırmak için depolama erişimi gerektirir.</string>
     <string name="nav_home">Ev</string>
     <string name="nav_settings">Ayarlar</string>
@@ -11,11 +15,13 @@
     <string name="contact_send_email">E-posta Gönder</string>
     <string name="nav_report_issue">Sorunu Bildir</string>
         <string name="nav_donate">Bağış yap</string>
+    <string name="preserve_source_date">Kaynak dosya tarihini koru</string>
     <string name="subtitle">Sıkıştırma Aracı</string>
     <string name="language">Dil</string>
     <string name="default_dest">Varsayılan Hedef</string>
     <string name="dest_folder">Hedef Klasörü</string>
     <string name="reset_default">Varsayılanı Sıfırla</string>
+    <string name="tap_text_to_edit">Düzenlemek için bir metin kutusuna dokunun</string>
     <string name="theme_title">Tema</string>
     <string name="about_title">Hakkında</string>
     <string name="mission">Misyon</string>

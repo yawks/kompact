@@ -30,7 +30,9 @@ import com.kompact.util.applyTextOverlay
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
+import com.kompact.util.isRawFile
 import com.kompact.util.readExifData
+import com.kompact.util.resolveEffectiveFormat
 import com.kompact.util.resolveImageExtension
 import com.kompact.util.supportsExif
 import com.kompact.util.writeExifData
@@ -82,11 +84,18 @@ class LocalCompressionRepository(
         val start = System.currentTimeMillis()
         val originalSize = resolver.getFileSize(context, uri)
         return runCatching {
-            val extension = resolveImageExtension(context, resolver, uri, config.format)
-            val outFile = cacheFile(extension)
             val hasVisualEdits = config.hasVisualEdits()
+            // I Raw non possono essere copiati byte-identical: vanno sempre
+            // decodificati (via embedded JPEG) e ricodificati in un formato standard.
+            val isRaw = isRawFile(resolver, uri)
+            val copiesOriginal = !isRaw && !hasVisualEdits && config.percentage == 0 && config.format == ImageOutputFormat.ORIGINAL && config.exifData == config.originalExifData
+            val effectiveFormat = resolveEffectiveFormat(context, resolver, uri, config.format)
+            // Keep the source extension only for a byte-identical copy; a real
+            // re-encode always gets the extension of the format it is encoded in.
+            val extension = resolveImageExtension(context, resolver, uri, if (copiesOriginal) ImageOutputFormat.ORIGINAL else effectiveFormat)
+            val outFile = cacheFile(extension)
 
-            if (!hasVisualEdits && config.percentage == 0 && config.format == ImageOutputFormat.ORIGINAL && config.exifData == config.originalExifData) {
+            if (copiesOriginal) {
                 // Copy original without re-encoding or exif modification
                 val filePath = getFilePath(uri)
                 if (filePath != null) {
@@ -121,11 +130,11 @@ class LocalCompressionRepository(
                 val targetBytes = resolveTargetBytes(config, originalSize)
                 val (compressedBytes, _) = encodeBitmapWithTarget(
                     bitmap = bitmap,
-                    outputFormat = config.format,
+                    outputFormat = effectiveFormat,
                     requestedQuality = config.percentage,
                     targetBytes = targetBytes,
                 )
-                val finalBytes = if (supportsExif(config.format)) {
+                val finalBytes = if (supportsExif(effectiveFormat)) {
                     if (config.stripExif) {
                         writeExifData(compressedBytes, null, null, null)
                     } else {
@@ -378,7 +387,7 @@ class LocalCompressionRepository(
         } else {
             sourceName
         }
-        return "$base.$extension"
+        return "$base-edit.$extension"
     }
 
     private fun mimeFromExtension(extension: String): String {
@@ -389,11 +398,11 @@ class LocalCompressionRepository(
             "bmp" -> "image/bmp"
             "gif" -> "image/gif"
             "tif", "tiff" -> "image/tiff"
+            "ico" -> "image/x-icon"
             "heif" -> "image/heif"
             "heic" -> "image/heic"
             "avif" -> "image/avif"
             "jxl" -> "image/jxl"
-            "ico" -> "image/x-icon"
             else -> "application/octet-stream"
         }
     }

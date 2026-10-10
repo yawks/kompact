@@ -65,9 +65,11 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
                 }
             }
             
-            // Generate position string from GPS coordinates if available
+            // Position = nome luogo (TAG_GPS_AREA_INFORMATION, raramente popolato
+            // dalle fotocamere). NON generare da coordinate: le coordinate hanno
+            // un campo read-only dedicato nell'editor, e generarle qui rendeva
+            // "position" fittizio (sempre riempito con coordinate formattate).
             val position = exif.getAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION)
-                ?: (if (latitude != null && longitude != null) formatGpsPosition(latitude, longitude) else null)
             
             ExifData(
                 dateTime = exif.getAttribute(ExifInterface.TAG_DATETIME),
@@ -129,26 +131,28 @@ internal fun readExifData(resolver: ContentResolver, uri: Uri): ExifData? {
  * Format: "dd/ddddd,mm/mm,ss/sss" or array of rational strings
  */
 private fun parseGpsCoordinate(coordinateValue: String?, referenceValue: String?): Double? {
-    if (coordinateValue.isNullOrBlank() || referenceValue.isNullOrBlank()) return null
-    
+    if (coordinateValue.isNullOrBlank()) return null
+
     return try {
         // Parse the coordinate array (format: "deg/1,min/1,sec/1" or "deg_num/deg_den,min_num/min_den,sec_num/sec_den")
         val parts = coordinateValue.split(",")
         if (parts.size != 3) return null
-        
+
         val degrees = parseRational(parts[0]) ?: return null
         val minutes = parseRational(parts[1]) ?: return null
         val seconds = parseRational(parts[2]) ?: return null
-        
+
         // Convert to decimal degrees: degrees + minutes/60 + seconds/3600
         val decimalDegrees = degrees + (minutes / 60.0) + (seconds / 3600.0)
-        
-        // Apply reference (N/S for latitude, E/W for longitude)
-        val sign = when (referenceValue.uppercase()) {
+
+        // Apply reference (N/S for latitude, E/W for longitude).
+        // Molte fotocamere scrivono le coordinate SENZA il tag di reference:
+        // in quel caso assumiamo positivo (N/E) invece di scartare il valore.
+        val sign = when (referenceValue?.uppercase()) {
             "S", "W" -> -1.0
-            else -> 1.0  // "N", "E" or unknown (default to positive)
+            else -> 1.0  // "N", "E", null o sconosciuto → positivo
         }
-        
+
         decimalDegrees * sign
     } catch (e: Exception) {
         null
@@ -214,7 +218,7 @@ private fun ExifInterface.getAttributeIntOrNull(tag: String): Int? {
  * Formats GPS coordinates as a human-readable position string.
  * Format: "latitude, longitude" (e.g., "45.4642, 9.1900")
  */
-private fun formatGpsPosition(latitude: Double, longitude: Double): String {
+internal fun formatGpsPosition(latitude: Double, longitude: Double): String {
     return "%1$.6f, %2$.6f".format(latitude, longitude)
 }
 
@@ -413,30 +417,31 @@ internal fun writeExifData(bytes: ByteArray, exifData: ExifData?, resolver: Cont
             // orientation (see decodeBitmap), so the output must not rotate again.
             exif.setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL.toString())
             
-            // Handle GPS coordinates - write both using setLatLong for compatibility
-            // and also set individual tags for completeness
+            // Handle GPS coordinates: scrivi le coordinate se presenti, altrimenti
+            // pulisci i tag GPS. La position (nome luogo) è un tag testuale
+            // indipendente: scrivila solo se non vuota, MAI generarla da coordinate.
             if (exifData.latitude != null && exifData.longitude != null) {
                 exif.setLatLong(exifData.latitude, exifData.longitude)
-                // Also write the position string if coordinates are available
-                if (exifData.position.isNullOrBlank()) {
-                    exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, 
-                        formatGpsPosition(exifData.latitude, exifData.longitude))
-                } else {
-                    exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, exifData.position)
-                }
             } else {
+                // Nessuna coordinata: rimuovi i tag GPS di coordinate
                 exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, null)
                 exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, null)
                 exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, null)
                 exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, null)
+            }
+
+            // Position (nome luogo): tag testuale indipendente dalle coordinate
+            if (!exifData.position.isNullOrBlank()) {
+                exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, exifData.position)
+            } else {
                 exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, null)
             }
-            
+
             // Handle altitude - set it if provided, otherwise clear GPS altitude tags
             if (exifData.altitude != null) {
                 exif.setAltitude(exifData.altitude)
                 // Ensure altitude reference is set (0 = above sea level, 1 = below sea level)
-                exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF, 
+                exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF,
                     if (exifData.altitude >= 0) "0" else "1")
             } else {
                 exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, null)
@@ -484,11 +489,6 @@ internal fun writeExifData(bytes: ByteArray, exifData: ExifData?, resolver: Cont
             exif.setAttribute(ExifInterface.TAG_SUBSEC_TIME, exifData.subsecTime)
             exif.setAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, exifData.subsecTimeOriginal)
             exif.setAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED, exifData.subsecTimeDigitized)
-            
-            // Ensure position is written even if it was set directly
-            if (!exifData.position.isNullOrBlank()) {
-                exif.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, exifData.position)
-            }
         }
         exif.saveAttributes()
         tempFile.readBytes().also { tempFile.delete() }
@@ -509,8 +509,32 @@ internal fun decodeBitmap(resolver: ContentResolver, uri: Uri, maxEdge: Int = MA
         inScaled = false
     }
     val decoded = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
-        ?: return null
-    return applyExifOrientation(decoded, resolver, uri)
+    if (decoded != null) {
+        return applyExifOrientation(decoded, resolver, uri)
+    }
+
+    // Fallback per formati Raw (DNG, CR2, CR3, NEF, ARW, ORF, RW2, PEF, ...):
+    // BitmapFactory non li decodifica — estrai il JPEG embedded (preview a
+    // piena risoluzione) e scala al maxEdge richiesto.
+    val embedded = extractEmbeddedBitmap(resolver, uri) ?: return null
+    val sampled = sampleBitmap(embedded, maxEdge)
+    return applyExifOrientation(sampled, resolver, uri)
+}
+
+/**
+ * Scala un bitmap al maxEdge dato (mantiene l'aspect ratio). Se il bitmap è
+ * già piccolo, lo restituisce così com'è. Usato per i Raw dopo l'estrazione
+ * dell'embedded JPEG (decodificato a piena risoluzione).
+ */
+private fun sampleBitmap(bitmap: Bitmap, maxEdge: Int): Bitmap {
+    val maxDim = maxOf(bitmap.width, bitmap.height)
+    if (maxDim <= maxEdge) return bitmap
+    val scale = maxEdge.toFloat() / maxDim
+    val w = (bitmap.width * scale).roundToInt().coerceAtLeast(1)
+    val h = (bitmap.height * scale).roundToInt().coerceAtLeast(1)
+    val scaled = Bitmap.createScaledBitmap(bitmap, w, h, true)
+    if (scaled != bitmap) bitmap.recycle()
+    return scaled
 }
 
 /**
@@ -561,18 +585,31 @@ internal fun encodeBitmapWithTarget(
     val normalizedQuality = (100 - requestedQuality).coerceIn(10, 100)
     return when (outputFormat) {
         ImageOutputFormat.BMP -> encodeToBmp(bitmap) to 100 // BMP is lossless
-        ImageOutputFormat.GIF -> encodeToPng(bitmap, 100) to 100 // For now, save as PNG with gif extension
-        ImageOutputFormat.TIF -> encodeToPng(bitmap, 100) to 100 // Same
-        ImageOutputFormat.AVIF -> encodeToWebp(bitmap, normalizedQuality) to normalizedQuality // AVIF not supported, use WEBP
-        ImageOutputFormat.JXL -> encodeToPng(bitmap, 100) to 100 // JXL not supported, use PNG
+        ImageOutputFormat.GIF -> encodeToGif(bitmap) to 100 // GIF89a, 256-color palette
+        ImageOutputFormat.TIF -> encodeToTiff(bitmap) to 100 // TIFF, deflate when smaller
         ImageOutputFormat.ICO -> encodeToIco(bitmap) to 100 // ICO is lossless (PNG inside)
         ImageOutputFormat.TELEGRAM_PNG -> encodeToPng(bitmap, normalizedQuality) to normalizedQuality // PNG optimized
+        ImageOutputFormat.HEIF -> encodeModernWithTarget(
+            bitmap, normalizedQuality, targetBytes,
+            encode = { q -> encodeToHeif(bitmap, q) }
+        )
+        ImageOutputFormat.HEIC -> encodeModernWithTarget(
+            bitmap, normalizedQuality, targetBytes,
+            encode = { q -> encodeToHeic(bitmap, q) }
+        )
+        ImageOutputFormat.AVIF -> encodeModernWithTarget(
+            bitmap, normalizedQuality, targetBytes,
+            encode = { q -> encodeToAvif(bitmap, q) }
+        )
+        ImageOutputFormat.JXL -> encodeModernWithTarget(
+            bitmap, normalizedQuality, targetBytes,
+            encode = { q -> encodeToJxl(bitmap, q) }
+        )
         else -> {
             val compressFormat = when (outputFormat) {
                 ImageOutputFormat.JPG -> Bitmap.CompressFormat.JPEG
                 ImageOutputFormat.PNG -> Bitmap.CompressFormat.PNG
                 ImageOutputFormat.WEBP -> webpFormat()
-                ImageOutputFormat.HEIF, ImageOutputFormat.HEIC -> Bitmap.CompressFormat.JPEG // HEIF not supported in CompressFormat, use JPG
                 else -> Bitmap.CompressFormat.JPEG // fallback
             }
             if (targetBytes == null || compressFormat == Bitmap.CompressFormat.PNG) {
@@ -596,6 +633,29 @@ internal fun encodeBitmapWithTarget(
     }
 }
 
+/**
+ * Quality-search loop for the modern native encoders (HEIF/HEIC/AVIF/JXL).
+ * Mirrors the JPEG target-bytes strategy: encode at the requested quality,
+ * then step down until the output fits the target size.
+ */
+private fun encodeModernWithTarget(
+    bitmap: Bitmap,
+    normalizedQuality: Int,
+    targetBytes: Long?,
+    encode: (quality: Int) -> ByteArray,
+): Pair<ByteArray, Int> {
+    if (targetBytes == null) {
+        return encode(normalizedQuality) to normalizedQuality
+    }
+    var currentQuality = normalizedQuality
+    var bytes = encode(currentQuality)
+    while (bytes.size.toLong() > targetBytes && currentQuality > MIN_JPG_QUALITY) {
+        currentQuality = (currentQuality - QUALITY_STEP).coerceAtLeast(MIN_JPG_QUALITY)
+        bytes = encode(currentQuality)
+    }
+    return bytes to currentQuality
+}
+
 internal fun Bitmap.toJpg(quality: Int): ByteArray {
     val stream = ByteArrayOutputStream()
     this.compress(Bitmap.CompressFormat.JPEG, quality.coerceIn(10, 100), stream)
@@ -608,10 +668,22 @@ internal fun encodeToPng(bitmap: Bitmap, quality: Int): ByteArray {
     return stream.toByteArray()
 }
 
-internal fun encodeToWebp(bitmap: Bitmap, quality: Int): ByteArray {
-    val stream = ByteArrayOutputStream()
-    bitmap.compress(webpFormat(), quality, stream)
-    return stream.toByteArray()
+internal fun encodeToGif(bitmap: Bitmap): ByteArray {
+    val width = bitmap.width
+    val height = bitmap.height
+    val pixels = IntArray(width * height)
+    bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+    val quantized = quantizeToPalette(pixels)
+    return gifEncode(quantized.indices, width, height, quantized.palette, quantized.transparentIndex)
+}
+
+internal fun encodeToTiff(bitmap: Bitmap): ByteArray {
+    val width = bitmap.width
+    val height = bitmap.height
+    val pixels = IntArray(width * height)
+    bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+    val hasAlpha = pixels.any { (it ushr 24) < 255 }
+    return tiffEncode(pixels, width, height, hasAlpha)
 }
 
 internal fun encodeToBmp(bitmap: Bitmap): ByteArray {
@@ -769,12 +841,48 @@ internal fun resolveImageExtension(
         ImageOutputFormat.BMP -> "bmp"
         ImageOutputFormat.GIF -> "gif"
         ImageOutputFormat.TIF -> "tif"
+        ImageOutputFormat.ICO -> "ico"
+        ImageOutputFormat.TELEGRAM_PNG -> "png"
         ImageOutputFormat.HEIF -> "heif"
         ImageOutputFormat.HEIC -> "heic"
         ImageOutputFormat.AVIF -> "avif"
         ImageOutputFormat.JXL -> "jxl"
-        ImageOutputFormat.ICO -> "ico"
-        ImageOutputFormat.TELEGRAM_PNG -> "png"
+    }
+}
+
+/**
+ * Formato di codifica effettivo: mai ORIGINAL. Quando l'utente lascia
+ * "Originale" ma i pixel vanno comunque ricodificati (edit visivi o
+ * compressione), l'immagine viene codificata nel formato reale della
+ * sorgente. Ora che HEIF/HEIC/AVIF/JXL sono producibili tramite le
+ * librerie native awxkee, anche questi formati vengono mantenuti.
+ * I formati non producibili (GIF, TIFF, ICO) ripiegano su PNG lossless.
+ */
+internal fun resolveEffectiveFormat(
+    context: Context,
+    resolver: ContentResolver,
+    uri: Uri,
+    format: ImageOutputFormat,
+): ImageOutputFormat {
+    if (format != ImageOutputFormat.ORIGINAL) return format
+    val document = DocumentFile.fromSingleUri(context, uri)
+    val mime = document?.type ?: resolver.getType(uri)
+    val docName = document?.name
+    // I Raw non sono codificabili: convertili in JPG (default pratico per la compressione)
+    if (isRawMime(mime) || (docName != null && isRawFileName(docName))) {
+        return ImageOutputFormat.JPG
+    }
+    return when {
+        mime?.contains("jpeg", ignoreCase = true) == true || mime?.contains("jpg", ignoreCase = true) == true -> ImageOutputFormat.JPG
+        mime?.contains("png", ignoreCase = true) == true -> ImageOutputFormat.PNG
+        mime?.contains("webp", ignoreCase = true) == true -> ImageOutputFormat.WEBP
+        mime?.contains("bmp", ignoreCase = true) == true -> ImageOutputFormat.BMP
+        mime?.contains("heic", ignoreCase = true) == true -> ImageOutputFormat.HEIC
+        mime?.contains("heif", ignoreCase = true) == true -> ImageOutputFormat.HEIF
+        mime?.contains("avif", ignoreCase = true) == true -> ImageOutputFormat.AVIF
+        mime?.contains("jxl", ignoreCase = true) == true || mime?.contains("jpeg-xl", ignoreCase = true) == true -> ImageOutputFormat.JXL
+        mime?.contains("ico", ignoreCase = true) == true || mime?.contains("x-icon", ignoreCase = true) == true -> ImageOutputFormat.ICO
+        else -> ImageOutputFormat.PNG
     }
 }
 
@@ -783,7 +891,11 @@ private fun inferOriginalExtension(
     resolver: ContentResolver,
     uri: Uri,
 ): String {
-    val mime = DocumentFile.fromSingleUri(context, uri)?.type ?: resolver.getType(uri)
+    val document = DocumentFile.fromSingleUri(context, uri)
+    val mime = document?.type ?: resolver.getType(uri)
+    val docName = document?.name
+    // I Raw vengono convertiti: estensione di output di default = jpg
+    if (isRawMime(mime) || (docName != null && isRawFileName(docName))) return "jpg"
     return when {
         mime?.contains("png", ignoreCase = true) == true -> "png"
         mime?.contains("webp", ignoreCase = true) == true -> "webp"
@@ -827,7 +939,14 @@ internal fun ContentResolver.getFileSize(context: Context, uri: Uri): Long {
 
 internal fun supportsExif(format: ImageOutputFormat): Boolean {
     return when (format) {
-        ImageOutputFormat.JPG, ImageOutputFormat.PNG, ImageOutputFormat.WEBP, ImageOutputFormat.HEIF, ImageOutputFormat.HEIC, ImageOutputFormat.TIF, ImageOutputFormat.ORIGINAL -> true
+        // TELEGRAM_PNG is a real PNG, so it carries EXIF like PNG does.
+        // HEIF/HEIC/AVIF containers carry EXIF/XMP natively; JXL carries EXIF/XMP too.
+        // Note: the awxkee encoders do not expose a direct EXIF-injection API, so
+        // EXIF writing for these formats is best-effort (see CompressionRepository).
+        ImageOutputFormat.JPG, ImageOutputFormat.PNG, ImageOutputFormat.WEBP,
+        ImageOutputFormat.TELEGRAM_PNG, ImageOutputFormat.ORIGINAL,
+        ImageOutputFormat.HEIF, ImageOutputFormat.HEIC, ImageOutputFormat.AVIF,
+        ImageOutputFormat.JXL -> true
         else -> false
     }
 }

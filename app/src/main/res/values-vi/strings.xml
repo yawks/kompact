@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">Xóa GPS</string>
+    <string name="coordinates">Tọa độ</string>
+    <string name="delete_originals_failed">Không thể xóa một số tệp gốc</string>
+    <string name="edit">Chỉnh sửa</string>
     <string name="permission_rationale">Kompact yêu cầu quyền truy cập vào bộ lưu trữ để nén các tệp cục bộ.</string>
     <string name="nav_home">Trang chủ</string>
     <string name="nav_settings">Cài đặt</string>
@@ -16,6 +20,7 @@
     <string name="default_dest">Đích mặc định</string>
     <string name="dest_folder">Thư mục đích</string>
     <string name="reset_default">Đặt lại mặc định</string>
+    <string name="tap_text_to_edit">Nhấn vào hộp văn bản để chỉnh sửa</string>
     <string name="theme_title">Chủ đề</string>
     <string name="about_title">Giới thiệu</string>
     <string name="mission">Nhiệm vụ</string>
@@ -156,7 +161,7 @@
     <string name="filter_background">Nền</string>
 
     <string name="intensity">Cường độ</string>
-    <string name="transp">Transp.</string>
+    <string name="transp">Trong suốt</string>
     <string name="black">Đen</string>
     <string name="white">Trắng</string>
     <string name="red">Đỏ</string>

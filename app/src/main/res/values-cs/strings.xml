@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">Vymazat GPS</string>
+    <string name="coordinates">Souřadnice</string>
+    <string name="delete_originals_failed">Některé původní soubory se nepodařilo odstranit</string>
+    <string name="edit">Úpravy</string>
     <string name="permission_rationale">Kompact vyžaduje přístup k úložišti pro komprimaci místních souborů.</string>
     <string name="nav_home">Domov</string>
     <string name="nav_settings">Nastavení</string>
@@ -16,6 +20,7 @@
     <string name="default_dest">Výchozí cíl</string>
     <string name="dest_folder">Cílová složka</string>
     <string name="reset_default">Obnovit výchozí</string>
+    <string name="tap_text_to_edit">Klepnutím na textové pole ho upravíte</string>
     <string name="theme_title">Motiv</string>
     <string name="about_title">O aplikaci</string>
     <string name="mission">Mise</string>

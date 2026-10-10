@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">Διαγραφή GPS</string>
+    <string name="coordinates">Συντεταγμένες</string>
+    <string name="delete_originals_failed">Δεν ήταν δυνατή η διαγραφή ορισμένων αρχικών αρχείων</string>
+    <string name="edit">Επεξεργασία</string>
     <string name="permission_rationale">Το Kompact απαιτεί πρόσβαση στον χώρο αποθήκευσης για τη συμπίεση τοπικών αρχείων.</string>
     <string name="nav_home">Σπίτι</string>
     <string name="nav_settings">Ρυθμίσεις</string>
@@ -11,11 +15,13 @@
     <string name="contact_send_email">Αποστολή Email</string>
     <string name="nav_report_issue">Αναφορά ζητήματος</string>
     <string name="nav_donate">Προσφέρω</string>
+    <string name="select_from_gallery">Επιλέξτε από τη συλλογή</string>
     <string name="subtitle">Εργαλείο συμπίεσης</string>
     <string name="language">Γλώσσα</string>
     <string name="default_dest">Προεπιλεγμένος προορισμός</string>
     <string name="dest_folder">Φάκελος Dest</string>
     <string name="reset_default">Επαναφορά προεπιλογής</string>
+    <string name="tap_text_to_edit">Πατήστε ένα πλαίσιο κειμένου για να το επεξεργαστείτε</string>
     <string name="theme_title">Θέμα</string>
     <string name="about_title">Σχετικά με</string>
     <string name="mission">Αποστολή</string>
@@ -156,7 +162,7 @@
     <string name="filter_background">Φόντο</string>
 
     <string name="intensity">Ένταση</string>
-    <string name="transp">Transp.</string>
+    <string name="transp">Διαφ.</string>
     <string name="black">Μαύρος</string>
     <string name="white">Λευκός</string>
     <string name="red">Κόκκινος</string>

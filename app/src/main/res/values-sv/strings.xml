@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact</string>
+    <string name="app_name">Kompact Image Editor</string>
+    <string name="clear_gps">Rensa GPS</string>
+    <string name="coordinates">Koordinater</string>
+    <string name="delete_originals_failed">Vissa originalfiler kunde inte tas bort</string>
+    <string name="edit">Redigera</string>
     <string name="permission_rationale">Kompact kräver lagringsåtkomst för att komprimera lokala filer.</string>
     <string name="nav_home">Hem</string>
     <string name="nav_settings">Inställningar</string>
@@ -16,6 +20,7 @@
     <string name="default_dest">Standardmål</string>
     <string name="dest_folder">Målmapp</string>
     <string name="reset_default">Återställ standard</string>
+    <string name="tap_text_to_edit">Tryck på en textruta för att redigera den</string>
     <string name="theme_title">Tema</string>
     <string name="about_title">Om</string>
     <string name="mission">Uppdrag</string>

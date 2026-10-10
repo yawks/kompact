@@ -45,7 +45,13 @@ private val DOC_MIME_TYPES = setOf(
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 )
 private val DOC_EXTENSIONS = setOf("doc", "docx")
-private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "heic", "heif", "bmp")
+private val IMAGE_EXTENSIONS = setOf(
+    "jpg", "jpeg", "png", "webp", "heic", "heif", "bmp", "gif", "tif", "tiff", "ico",
+    // Formati Raw (decodificati via JPEG embedded, vedi util/RawFormat.kt)
+    "dng", "cr2", "cr3", "crw", "nef", "nrw", "arw", "srf", "sr2",
+    "orf", "rw2", "raw", "raf", "pef", "ptx", "srw", "x3f",
+    "3fr", "fff", "erf", "mos", "mef", "mrw", "kdc", "dcr", "iiq", "gpr",
+)
 
 class CompressionViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -129,7 +135,11 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 val deletedWithDocumentFile = DocumentFile.fromSingleUri(context, uri)?.delete() == true
                 deletedWithDocumentFile || context.contentResolver.delete(uri, null, null) > 0
             }.getOrDefault(false)
-            if (deleted) deletedUris += uri else stillFailed += uri
+            // File già inesistente = rimosso (non un fallimento)
+            val gone = deleted || runCatching {
+                DocumentFile.fromSingleUri(context, uri)?.exists() == false
+            }.getOrDefault(false)
+            if (gone) deletedUris += uri else stillFailed += uri
         }
         _state.update { current ->
             finalizeDeleteFlow(current.copy(
@@ -156,7 +166,9 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         }
         return current.copy(
             failedDeleteUris = emptyList(),
-            errorMessage = if (current.failedDeleteUris.isNotEmpty()) {
+            // Non sovrascrivere un errore di processamento esistente: il messaggio
+            // di delete è secondario, l'errore reale deve restare visibile.
+            errorMessage = if (current.failedDeleteUris.isNotEmpty() && current.errorMessage == null) {
                 getApplication<Application>().getString(R.string.delete_originals_failed)
             } else {
                 current.errorMessage
@@ -359,15 +371,33 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
 
     fun resetImageEdits() {
         _state.update { current ->
-            val baseConfig = com.kompact.model.ImageCompressionConfig(
-                format = current.imageConfig.format, 
-                goal = current.imageConfig.goal,
-                percentage = current.imageConfig.percentage,
-                targetSizeBytes = current.imageConfig.targetSizeBytes,
-                exifData = current.imageConfig.exifData,
-                originalExifData = current.imageConfig.originalExifData 
+            // Ripristina i dati EXIF originali dell'immagine sorgente
+            val originalExif = current.originalExifData ?: current.imageConfig.originalExifData
+            // Reset completo: edit visivi, compressione, formato, EXIF modificati.
+            // Rimangono solo le preferenze utente (preserveSourceDate) e i file selezionati.
+            current.copy(
+                imageConfig = ImageCompressionConfig(
+                    exifData = originalExif,
+                    originalExifData = originalExif,
+                    preserveSourceDate = current.imageConfig.preserveSourceDate,
+                ),
+                exifData = originalExif,
+                stripExif = false,
+                results = emptyList(),
+                processedCount = 0,
+                lastResult = null,
+                errorMessage = null,
+                totalOriginalBytes = 0,
+                totalCompressedBytes = 0,
+                isExifEditorVisible = false,
+                isCropEditorVisible = false,
+                isTextEditorVisible = false,
+                isResizeEditorVisible = false,
+                isBackgroundEditorVisible = false,
+                isColorFilterEditorVisible = false,
+                isDrawEditorVisible = false,
+                isAdjustEditorVisible = false,
             )
-            current.copy(imageConfig = baseConfig)
         }
         scheduleLivePreview()
     }
@@ -457,8 +487,14 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                                 false
                             }
                         }
+                        // Un file che non esiste più (già cancellato manualmente o da
+                        // un tentativo precedente) è considerato rimosso: non è un
+                        // fallimento, altrimenti esce un falso allarme all'utente.
+                        val gone = deleted || runCatching {
+                            DocumentFile.fromSingleUri(context, sourceUri)?.exists() == false
+                        }.getOrDefault(false)
                         when {
-                            deleted -> deletedSources += sourceUri
+                            gone -> deletedSources += sourceUri
                             else -> undeletableSources += sourceUri
                         }
                     }
@@ -654,6 +690,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         val extension = displayName.substringAfterLast('.', "").lowercase(Locale.getDefault())
         return when {
             normalizedMime.startsWith("image/") -> SourceCategory.IMAGE
+            normalizedMime in RAW_MIME_TYPES -> SourceCategory.IMAGE
             normalizedMime in DOC_MIME_TYPES -> SourceCategory.DOCUMENT
             extension in IMAGE_EXTENSIONS -> SourceCategory.IMAGE
             extension in DOC_EXTENSIONS -> SourceCategory.DOCUMENT
