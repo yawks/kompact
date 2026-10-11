@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="clear_gps">GPS törlése</string>
     <string name="coordinates">Koordináták</string>
     <string name="delete_originals_failed">Néhány eredeti fájlt nem sikerült törölni</string>
@@ -16,7 +16,7 @@
     <string name="nav_report_issue">Probléma bejelentése</string>
     <string name="nav_donate">Adományoz</string>
     <string name="select_from_gallery">Kiválasztás a galériából</string>
-    <string name="subtitle">Tömörítő eszköz</string>
+    <string name="subtitle">Képszerkesztő</string>
     <string name="language">Nyelv</string>
     <string name="default_dest">Alapértelmezett cél</string>
     <string name="dest_folder">Cél mappa</string>

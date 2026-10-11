@@ -640,19 +640,20 @@ fun TextEditorDialog(
                                     },
                                     onTap = {
                                         when {
-                                            // Tap su una casella non selezionata: la seleziona
-                                            selectedId != item.id -> {
+                                            // Tap sulla casella mentre si scrive: chiude la
+                                            // tastiera (toggle off). L'edit resta applicato:
+                                            // il testo è già in items e viene salvato con Ok.
+                                            isEditing && selectedId == item.id -> {
+                                                isEditing = false
+                                                focusManager.clearFocus()
+                                            }
+                                            // Tap su una casella (selezionata o meno): la
+                                            // seleziona e apre subito la tastiera, così non
+                                            // serve un doppio tap per riaprire l'edit.
+                                            else -> {
                                                 selectedId = item.id
-                                                isEditing = false
-                                                focusManager.clearFocus()
+                                                isEditing = true
                                             }
-                                            // Tap sulla casella mentre si scrive: chiude la tastiera
-                                            isEditing -> {
-                                                isEditing = false
-                                                focusManager.clearFocus()
-                                            }
-                                            // Tap sulla casella già selezionata: apre la tastiera
-                                            else -> isEditing = true
                                         }
                                     },
                                     onDoubleTap = {

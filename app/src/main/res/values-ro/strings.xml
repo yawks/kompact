@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="clear_gps">Șterge GPS</string>
     <string name="coordinates">Coordonate</string>
     <string name="delete_originals_failed">Unele fișiere originale nu au putut fi șterse</string>
@@ -15,7 +15,7 @@
     <string name="contact_send_email">Trimite e-mail</string>
     <string name="nav_report_issue">Raportați o problemă</string>
     <string name="nav_donate">Donează</string>
-    <string name="subtitle">Instrument de compresie</string>
+    <string name="subtitle">Editor de imagini</string>
     <string name="language">Limbă</string>
     <string name="default_dest">Destinație implicită</string>
     <string name="dest_folder">Folder destinație</string>

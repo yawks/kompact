@@ -1,6 +1,7 @@
 package com.kompact
 
 import android.Manifest
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -30,7 +31,7 @@ private val SUPPORTED_MIME_TYPES = arrayOf(
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 )
 
-private fun toMediaStoreUri(uri: Uri): Uri? {
+private fun toMediaStoreUri(resolver: ContentResolver, uri: Uri): Uri? {
     return when (uri.authority) {
         MediaStore.AUTHORITY -> uri
         "com.android.providers.media.documents" -> {
@@ -44,6 +45,40 @@ private fun toMediaStoreUri(uri: Uri): Uri? {
                 else -> return null
             }
             ContentUris.withAppendedId(collection, id)
+        }
+        "com.android.externalstorage.documents" -> {
+            // URI SAF del file manager stock (ExternalStorageProvider), es.
+            // content://com.android.externalstorage.documents/document/primary%3APictures%2Ffoto.jpg
+            // Il document ID ha formato "volume:path". Lo convertiamo in path
+            // assoluto e cerchiamo il corrispondente URI in MediaStore, così
+            // MediaStore.createDeleteRequest() può eliminarlo su Android 11+.
+            val documentId = runCatching { DocumentsContract.getDocumentId(uri) }.getOrNull() ?: return null
+            val splitIndex = documentId.indexOf(':')
+            if (splitIndex <= 0) return null
+            val volume = documentId.substring(0, splitIndex)
+            val relativePath = documentId.substring(splitIndex + 1)
+            val storagePath = if (volume.equals("primary", ignoreCase = true)) {
+                "/storage/emulated/0/$relativePath"
+            } else {
+                "/storage/$volume/$relativePath"
+            }
+            @Suppress("DEPRECATION")
+            val filesUri = MediaStore.Files.getContentUri("external")
+            @Suppress("DEPRECATION")
+            val cursor = resolver.query(
+                filesUri,
+                arrayOf(MediaStore.Files.FileColumns._ID),
+                "${MediaStore.Files.FileColumns.DATA} = ?",
+                arrayOf(storagePath),
+                null
+            )
+            cursor?.use { c ->
+                if (c.moveToFirst()) {
+                    val id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID))
+                    return ContentUris.withAppendedId(filesUri, id)
+                }
+            }
+            null
         }
         else -> null
     }
@@ -103,7 +138,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         // Android 11+ MediaStore delete request.
                         val deletedOriginals = if (result.resultCode == RESULT_OK) {
-                            current.pendingDeleteUris.filter { toMediaStoreUri(it) != null }
+                            current.pendingDeleteUris.filter { toMediaStoreUri(contentResolver, it) != null }
                         } else {
                             emptyList()
                         }
@@ -127,7 +162,7 @@ class MainActivity : AppCompatActivity() {
                         return@LaunchedEffect
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        val requestUris = pendingDeleteUris.mapNotNull { toMediaStoreUri(it) }.distinct()
+                        val requestUris = pendingDeleteUris.mapNotNull { toMediaStoreUri(contentResolver, it) }.distinct()
                         if (requestUris.isNotEmpty()) {
                             val sender = runCatching {
                                 MediaStore.createDeleteRequest(contentResolver, requestUris).intentSender
@@ -152,14 +187,18 @@ class MainActivity : AppCompatActivity() {
                 }
                 KompactScreen(
                     state = state,
-                    onPickFiles = { 
+                    onPickFiles = {
                         // Use ACTION_GET_CONTENT with chooser to allow selection from gallery apps
                         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                             type = "image/*"
-                            // Aggiungi i MIME Raw oltre a image/*: permette di
-                            // selezionare file Raw anche quando il provider non
+                            // EXTRA_MIME_TYPES deve includere "image/*": alcuni file
+                            // manager stock (Samsung My Files, AOSP DocumentsUI, ecc.)
+                            // usano EXTRA_MIME_TYPES come filtro esclusivo ignorando
+                            // il campo type. Senza "image/*" i file JPEG/PNG escono
+                            // grigi e non selezionabili. I MIME Raw extra permettono
+                            // di selezionare file Raw anche quando il provider non
                             // mappa l'estensione a un image/x-* (es. octet-stream).
-                            putExtra(Intent.EXTRA_MIME_TYPES, RAW_MIME_TYPES.toTypedArray())
+                            putExtra(Intent.EXTRA_MIME_TYPES, (setOf("image/*") + RAW_MIME_TYPES).toTypedArray())
                             putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                             addCategory(Intent.CATEGORY_OPENABLE)
                         }

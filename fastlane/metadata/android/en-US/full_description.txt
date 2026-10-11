@@ -1,4 +1,4 @@
-Kompact Image Editor is a privacy-first, fully offline image editor and compressor for Android. Edit and compress your photos directly on your device, without relying on cloud services.
+Kompact is a privacy-first, fully offline image editor and compressor for Android. Edit and compress your photos directly on your device, without relying on cloud services.
 
 Editing tools:
 * Crop, resize (pixels or percentage) and rotate images
@@ -18,4 +18,4 @@ Compression and conversion:
 * Option to delete original files and preserve the source file date
 * Detailed per-file report with original vs processed size
 
-Kompact Image Editor provides essential image editing and compression tools in a lightweight, open-source package. 100% offline: no analytics, no network telemetry, and no advertisements. Material Design 3 interface with dynamic theming and dark mode.
+Kompact provides essential image editing and compression tools in a lightweight, open-source package. 100% offline: no analytics, no network telemetry, and no advertisements. Material Design 3 interface with dynamic theming and dark mode.

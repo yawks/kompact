@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="clear_gps">Vymazat GPS</string>
     <string name="coordinates">Souřadnice</string>
     <string name="delete_originals_failed">Některé původní soubory se nepodařilo odstranit</string>
@@ -15,7 +15,7 @@
     <string name="contact_send_email">Odeslat e-mail</string>
     <string name="nav_report_issue">Nahlásit problém</string>
     <string name="nav_donate">Darovat</string>
-    <string name="subtitle">Nástroj pro kompresi</string>
+    <string name="subtitle">Editor obrázků</string>
     <string name="language">Jazyk</string>
     <string name="default_dest">Výchozí cíl</string>
     <string name="dest_folder">Cílová složka</string>

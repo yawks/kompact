@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="clear_gps">Hapus GPS</string>
     <string name="coordinates">Koordinat</string>
     <string name="delete_originals_failed">Beberapa file asli tidak dapat dihapus</string>
@@ -16,7 +16,7 @@
     <string name="nav_report_issue">Laporkan Masalah</string>
     <string name="nav_donate">Menyumbangkan</string>
     <string name="select_from_gallery">Pilih dari galeri</string>
-    <string name="subtitle">Alat Kompresi</string>
+    <string name="subtitle">Editor Gambar</string>
     <string name="language">Bahasa</string>
     <string name="default_dest">Tujuan Default</string>
     <string name="dest_folder">Folder Tujuan</string>

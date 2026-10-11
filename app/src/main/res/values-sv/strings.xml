@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="clear_gps">Rensa GPS</string>
     <string name="coordinates">Koordinater</string>
     <string name="delete_originals_failed">Vissa originalfiler kunde inte tas bort</string>
@@ -15,7 +15,7 @@
     <string name="contact_send_email">Skicka e-post</string>
     <string name="nav_report_issue">Rapportera problem</string>
     <string name="nav_donate">Donera</string>
-    <string name="subtitle">Kompressionsverktyg</string>
+    <string name="subtitle">Bildredigerare</string>
     <string name="language">Språk</string>
     <string name="default_dest">Standardmål</string>
     <string name="dest_folder">Målmapp</string>

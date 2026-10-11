@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="clear_gps">Διαγραφή GPS</string>
     <string name="coordinates">Συντεταγμένες</string>
     <string name="delete_originals_failed">Δεν ήταν δυνατή η διαγραφή ορισμένων αρχικών αρχείων</string>
@@ -16,7 +16,7 @@
     <string name="nav_report_issue">Αναφορά ζητήματος</string>
     <string name="nav_donate">Προσφέρω</string>
     <string name="select_from_gallery">Επιλέξτε από τη συλλογή</string>
-    <string name="subtitle">Εργαλείο συμπίεσης</string>
+    <string name="subtitle">Επεξεργαστής εικόνων</string>
     <string name="language">Γλώσσα</string>
     <string name="default_dest">Προεπιλεγμένος προορισμός</string>
     <string name="dest_folder">Φάκελος Dest</string>

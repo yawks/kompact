@@ -1,8 +1,8 @@
-<p><img src="https://naxod.com/assets/kompact/logo.png" width="200"></p>
+<p><img src="icon.png" width="200" alt="Kompact"></p>
 
-# Kompact Image Editor
+# Kompact - Image Editor
 
-Kompact Image Editor is an open-source Android app written in Kotlin with Jetpack Compose that edits and compresses images (JPEG, PNG, WebP, BMP, GIF, TIFF, ICO, HEIF, HEIC, AVIF, JXL) quickly and transparently. Official builds are produced and signed by the maintainer to keep a single line of trust that stays compliant with F-Droid and Google Play policies.
+Kompact is an open-source Android app written in Kotlin with Jetpack Compose that edits and compresses images (JPEG, PNG, WebP, BMP, GIF, TIFF, ICO, HEIF, HEIC, AVIF, JXL) quickly and transparently. Official builds are produced and signed by the maintainer to keep a single line of trust that stays compliant with F-Droid and Google Play policies.
 
 ## Key Features
 - Multi-selection of images through the Storage Access Framework, with batch processing.

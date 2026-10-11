@@ -34,6 +34,7 @@ import com.kompact.data.ImagePreviewGenerator
 import com.kompact.util.*
 import com.kompact.util.readExifData
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -63,6 +64,15 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
 
     private var currentJob: Job? = null
     private var previewJob: Job? = null
+    private var previewDebounceJob: Job? = null
+
+    private companion object {
+        // Debounce per la live preview: evita di rigenerare l'anteprima a
+        // ogni tick dello slider. La generazione è full-res (necessaria per
+        // una stima accurata della dimensione), quindi va lanciata solo dopo
+        // che l'utente smette di modificare i parametri.
+        const val PREVIEW_DEBOUNCE_MS = 200L
+    }
 
     init {
         _state.update {
@@ -523,14 +533,18 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun scheduleLivePreview() {
-        previewJob?.cancel()
-        val snapshot = _state.value
-        when (snapshot.sourceCategory) {
-            SourceCategory.IMAGE -> scheduleImagePreview(snapshot)
-            SourceCategory.DOCUMENT -> showPreviewMessage("Live preview available for images only")
-            SourceCategory.MIXED -> showPreviewMessage("Preview requires files of the same type")
-            SourceCategory.UNSUPPORTED -> showPreviewMessage("Preview unavailable for this file type")
-            SourceCategory.NONE -> clearLivePreview()
+        previewDebounceJob?.cancel()
+        previewDebounceJob = viewModelScope.launch {
+            delay(PREVIEW_DEBOUNCE_MS)
+            previewJob?.cancel()
+            val snapshot = _state.value
+            when (snapshot.sourceCategory) {
+                SourceCategory.IMAGE -> scheduleImagePreview(snapshot)
+                SourceCategory.DOCUMENT -> showPreviewMessage("Live preview available for images only")
+                SourceCategory.MIXED -> showPreviewMessage("Preview requires files of the same type")
+                SourceCategory.UNSUPPORTED -> showPreviewMessage("Preview unavailable for this file type")
+                SourceCategory.NONE -> clearLivePreview()
+            }
         }
     }
 
@@ -614,6 +628,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun clearLivePreview() {
+        previewDebounceJob?.cancel()
         previewJob?.cancel()
         previewGenerator.clear()
         _state.update { it.copy(livePreview = LivePreviewState()) }
@@ -622,6 +637,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     override fun onCleared() {
         super.onCleared()
         currentJob?.cancel()
+        previewDebounceJob?.cancel()
         previewJob?.cancel()
         previewGenerator.clear()
     }

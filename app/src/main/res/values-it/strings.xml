@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="permission_rationale">Kompact richiede l\'accesso all\'archiviazione per comprimere i file locali.</string>
     <string name="nav_home">Principale</string>
     <string name="nav_settings">Impostazioni</string>
@@ -11,7 +11,7 @@
     <string name="contact_send_email">Invia e-mail</string>
     <string name="nav_report_issue">Segnala Problema</string>
     <string name="nav_donate">Dona</string>
-    <string name="subtitle">Strumento di Compressione</string>
+    <string name="subtitle">Editor di immagini</string>
     <string name="language">Lingua</string>
     <string name="default_dest">Destinazione Predefinita</string>
     <string name="dest_folder">Cartella di Destinazione</string>

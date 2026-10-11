@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="clear_gps">GPSをクリア</string>
     <string name="coordinates">座標</string>
     <string name="delete_originals_failed">一部の元ファイルを削除できませんでした</string>
@@ -15,7 +15,7 @@
     <string name="contact_send_email">メールを送信</string>
     <string name="nav_report_issue">問題を報告</string>
     <string name="nav_donate">寄付する</string>
-    <string name="subtitle">圧縮ツール</string>
+    <string name="subtitle">画像エディター</string>
     <string name="language">言語</string>
     <string name="default_dest">既定の保存先</string>
     <string name="dest_folder">保存先フォルダー</string>

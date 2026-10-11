@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="clear_gps">Esborra el GPS</string>
     <string name="coordinates">Coordenades</string>
     <string name="delete_originals_failed">No s\'han pogut eliminar alguns fitxers originals</string>
@@ -16,7 +16,7 @@
     <string name="nav_report_issue">Informar d\'un problema</string>
     <string name="nav_donate">Donar</string>
     <string name="select_from_gallery">Selecciona des de la galeria</string>
-    <string name="subtitle">Eina de compressió</string>
+    <string name="subtitle">Editor d\'imatges</string>
     <string name="language">Llengua</string>
     <string name="default_dest">Dest. predeterminat</string>
     <string name="dest_folder">Carpeta Dest</string>

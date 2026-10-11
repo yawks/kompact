@@ -18,8 +18,8 @@ android {
         applicationId = "com.kompact"
         minSdk = 24
         targetSdk = 37
-        versionCode = 25
-        versionName = "2.0.3"
+        versionCode = 26
+        versionName = "2.0.4"
 
         vectorDrawables {
             useSupportLibrary = true

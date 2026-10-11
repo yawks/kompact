@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kompact Image Editor</string>
+    <string name="app_name">Kompact</string>
     <string name="clear_gps">清除 GPS</string>
     <string name="contact_description">有疑问、反馈或发现漏洞？请联系我们。</string>
     <string name="contact_send_email">发送邮件</string>
@@ -15,7 +15,7 @@
     <string name="nav_about">关于</string>
     <string name="nav_report_issue">报告问题</string>
     <string name="nav_donate">捐赠</string>
-    <string name="subtitle">压缩工具</string>
+    <string name="subtitle">图像编辑器</string>
     <string name="language">语言</string>
     <string name="default_dest">默认目标位置</string>
     <string name="dest_folder">目标文件夹</string>
