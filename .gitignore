@@ -21,5 +21,7 @@ keys/
 docs/
 promt.md
 
+# Signing keys — never commit these
+*.keystore
+*.jks
 upload_certificate.pem
-upload-key.jks
