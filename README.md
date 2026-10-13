@@ -1,4 +1,4 @@
-<p><img src="https://naxod.com/assets/kompact/logo.webp" width="200" alt="Kompact"></p>
+<p><img src="https://git.naxod.com/luca/kompact/raw/commit/def6ef3cf88d30306fd173079c53eb90c7f2aa37/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="200" alt="Kompact"></p>
 
 # Kompact - Image Editor
 
