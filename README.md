@@ -1,4 +1,4 @@
-<p><img src="icon.png" width="200" alt="Kompact"></p>
+<p><img src="https://naxod.com/assets/kompact/logo.webp" width="200" alt="Kompact"></p>
 
 # Kompact - Image Editor
 
