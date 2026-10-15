@@ -18,8 +18,10 @@ android {
         applicationId = "com.kompact"
         minSdk = 24
         targetSdk = 37
-        versionCode = 26
-        versionName = "2.0.4"
+        versionCode = 27
+        versionName = "2.0.5"
+        // NDK r28+: allineamento a 16 kB delle librerie native (warning Play Console)
+        ndkVersion = "28.2.13676358"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -46,7 +48,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -71,6 +73,8 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
         jniLibs {
+            // 16 kB: .so uncompressed e page-aligned nell'APK (extractNativeLibs=false)
+            useLegacyPackaging = false
             // awxkee avif-coder and jxl-coder both ship native .so files;
             // pick the first occurrence to avoid duplicate-library build errors.
             pickFirsts += "**/*.so"

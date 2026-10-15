@@ -5,11 +5,8 @@ License: AGPL-3.0-only
 SourceCode: https://gitlab.com/naxodlab/kompact
 IssueTracker: https://gitlab.com/naxodlab/kompact/-/issues
 Changelog: https://gitlab.com/naxodlab/kompact/-/releases
-Donate:
-  - https://liberapay.com/naxodlab/
-  - https://ko-fi.com/naxod
-
-Liberapay: ~naxodlab
+Donate: https://ko-fi.com/naxod
+Liberapay: Naxod
 AuthorEmail: lab@naxod.com
 WebSite: https://naxod.com
 AuthorWebSite: https://naxod.com
@@ -172,7 +169,16 @@ Builds:
       - yes
     output: app/build/outputs/apk/release/app-release-unsigned.apk
 
+  - versionName: 2.0.5
+    versionCode: 27
+    commit: HEAD
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 2.0.4
-CurrentVersionCode: 26
+CurrentVersion: 2.0.5
+CurrentVersionCode: 27

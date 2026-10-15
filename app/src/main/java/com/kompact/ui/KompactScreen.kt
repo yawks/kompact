@@ -107,6 +107,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -3652,6 +3653,12 @@ fun FiltersEditorDialog(
     }
 }
 
+/** Formatta la rotazione come intero con segno esplicito: 112 -> "+112", -79 -> "-79", 0 -> "0". */
+private fun formatRotationDegrees(value: Float): String {
+    val i = value.toInt()
+    return if (i > 0) "+$i" else "$i"
+}
+
 @Composable
 fun RotateEditorDialog(
     currentRotation: Float,
@@ -3661,6 +3668,14 @@ fun RotateEditorDialog(
     onDismiss: () -> Unit
 ) {
     var localRotation by remember { mutableFloatStateOf(if (currentRotation > 180f) currentRotation - 360f else currentRotation) }
+    // Testo editabile dei gradi, allineato a localRotation: digitando si aggiorna
+    // la rotazione in tempo reale (cifra per cifra); slider e pulsanti lo
+    // riaggiornano al valore canonico (intero con segno).
+    var rotationText by remember { mutableStateOf(formatRotationDegrees(localRotation)) }
+    val applyRotation: (Float) -> Unit = { v ->
+        localRotation = v
+        rotationText = formatRotationDegrees(v)
+    }
 
     androidx.compose.ui.window.Dialog(
         onDismissRequest = onDismiss,
@@ -3713,43 +3728,68 @@ fun RotateEditorDialog(
                 
                 Text(text = stringResource(R.string.degrees_format, localRotation.toInt()), style = MaterialTheme.typography.bodyMedium)
                 androidx.compose.material3.Slider(
-                    value = localRotation,
-                    onValueChange = { localRotation = it },
+                    // localRotation puo' uscire dal range se l'utente digita un
+                    // valore esatto fuori scala: lo slider mostra il valore coerente.
+                    value = localRotation.coerceIn(-180f, 180f),
+                    onValueChange = { applyRotation(it) },
                     valueRange = -180f..180f,
                     steps = 35,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().testTag("rotation_slider")
                 )
                 
                 Row(
                     horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(onClick = { 
+                    Button(onClick = {
                         val rem = kotlin.math.abs((localRotation % 90f).toInt())
                         if (rem != 0) {
-                            localRotation = -90f
+                            applyRotation(-90f)
                         } else {
-                            localRotation -= 90f
-                            if (localRotation < -180f) localRotation += 360f
+                            val v = localRotation - 90f
+                            applyRotation(if (v < -180f) v + 360f else v)
                         }
-                    }) { 
+                    }) {
                         Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.RotateLeft, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.rotate_left)) 
+                        Text(stringResource(R.string.rotate_left))
                     }
-                    Spacer(Modifier.width(16.dp))
-                    Button(onClick = { 
+                    Spacer(Modifier.width(8.dp))
+                    // Casella con il valore esatto dei gradi, tra i pulsanti -90° e +90°:
+                    // editabile, applica la rotazione in tempo reale cifra per cifra e
+                    // si allinea al valore quando si usano slider o pulsanti.
+                    OutlinedTextField(
+                        value = rotationText,
+                        onValueChange = { newText ->
+                            // Accetta solo un numero con segno opzionale (es. +112, -79).
+                            if (newText.matches(Regex("^[+-]?\\d*\\.?\\d*$"))) {
+                                rotationText = newText
+                                val parsed = newText.toFloatOrNull()
+                                if (parsed != null) {
+                                    localRotation = parsed.coerceIn(-9999f, 9999f)
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.rotation_input_label)) },
+                        modifier = Modifier
+                            .width(100.dp)
+                            .testTag("rotation_input")
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = {
                         val rem = kotlin.math.abs((localRotation % 90f).toInt())
                         if (rem != 0) {
-                            localRotation = 90f
+                            applyRotation(90f)
                         } else {
-                            localRotation += 90f
-                            if (localRotation > 180f) localRotation -= 360f
+                            val v = localRotation + 90f
+                            applyRotation(if (v > 180f) v - 360f else v)
                         }
-                    }) { 
+                    }) {
                         Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.RotateRight, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.rotate_right)) 
+                        Text(stringResource(R.string.rotate_right))
                     }
                 }
 
@@ -3757,7 +3797,7 @@ fun RotateEditorDialog(
                 Row(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    TextButton(onClick = { localRotation = 0f }) { Text(stringResource(R.string.reset)) }
+                    TextButton(onClick = { applyRotation(0f) }) { Text(stringResource(R.string.reset)) }
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
                     Button(onClick = {

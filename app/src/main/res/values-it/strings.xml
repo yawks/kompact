@@ -167,6 +167,7 @@
     <string name="white">Bianco</string>
     <string name="red">Rosso</string>
     <string name="degrees_format">Gradi: %d°</string>
+    <string name="rotation_input_label">Gradi</string>
     <string name="draw">Disegna</string>
     <string name="edit_draw">Modifica Disegno</string>
     <string name="adjust">Regola</string>

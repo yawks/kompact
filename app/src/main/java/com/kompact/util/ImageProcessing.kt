@@ -1206,20 +1206,35 @@ internal fun android.graphics.Bitmap.applyAdjust(config: com.kompact.model.Adjus
         colorMatrix.postConcat(warmthMatrix)
     }
     
-    // Apply shadows and highlights using curves (simplified with contrast adjustments)
+    // Apply shadows and highlights via a tone curve (256-entry LUT).
+    // A linear ColorMatrix cannot isolate dark or bright tones: the previous
+    // implementation ignored `highlights` entirely and applied `shadows` as a
+    // plain brightness shift. The LUT weights each input level so `shadows`
+    // only affects dark tones and `highlights` only bright tones.
     if (config.shadows != 0f || config.highlights != 0f) {
         val shadows = config.shadows / 100f
         val highlights = config.highlights / 100f
-        
-        // Simple shadow/highlight adjustment via RGB curves
-        // This is a simplified approximation
-        val shadowHighlightMatrix = android.graphics.ColorMatrix(floatArrayOf(
-            1f, 0f, 0f, 0f, shadows * 255f,
-            0f, 1f, 0f, 0f, shadows * 255f,
-            0f, 0f, 1f, 0f, shadows * 255f,
-            0f, 0f, 0f, 1f, 0f
-        ))
-        colorMatrix.postConcat(shadowHighlightMatrix)
+
+        val lut = IntArray(256) { i ->
+            val x = i / 255f
+            val shadowWeight = (1f - x) * (1f - x)   // 1 at black, 0 at white
+            val highlightWeight = x * x               // 0 at black, 1 at white
+            val v = x + (shadows * shadowWeight + highlights * highlightWeight) * 0.5f
+            (v.coerceIn(0f, 1f) * 255f + 0.5f).toInt()
+        }
+
+        val width = workingBitmap.width
+        val height = workingBitmap.height
+        val pixels = IntArray(width * height)
+        workingBitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        for (idx in pixels.indices) {
+            val p = pixels[idx]
+            pixels[idx] = (p and (0xFF shl 24)) or
+                (lut[(p shr 16) and 0xFF] shl 16) or
+                (lut[(p shr 8) and 0xFF] shl 8) or
+                lut[p and 0xFF]
+        }
+        workingBitmap.setPixels(pixels, 0, width, 0, 0, width, height)
     }
     
     paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)

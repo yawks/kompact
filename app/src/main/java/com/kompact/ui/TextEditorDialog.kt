@@ -40,6 +40,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -588,6 +589,7 @@ fun TextEditorDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .testTag("text_canvas")
                         .pointerInput(Unit) {
                             detectTransformGestures { _, pan, zoom, transformRotation ->
                                 if (!isEditing && !isDragging) {
@@ -656,13 +658,6 @@ fun TextEditorDialog(
                                             }
                                         }
                                     },
-                                    onDoubleTap = {
-                                        // Reset della trasformazione della casella
-                                        selectedId = item.id
-                                        updateItem(item.id) {
-                                            it.copy(scale = 1f, rotation = 0f, offsetX = 0.5f, offsetY = 0.5f)
-                                        }
-                                    },
                                     onDragStart = {
                                         selectedId = item.id
                                         isDragging = true
@@ -707,7 +702,6 @@ private fun TextItemView(
     maxImageSizeDp: Dp,
     onTextChange: (String) -> Unit,
     onTap: () -> Unit,
-    onDoubleTap: () -> Unit,
     onDragStart: () -> Unit,
     onDragEnd: () -> Unit,
     onDragBy: (Float, Float) -> Unit,
@@ -715,6 +709,24 @@ private fun TextItemView(
     val focusRequester = remember { FocusRequester() }
     val config = item.config
     val color = Color(config.color)
+    val textStyle = TextStyle(
+        color = color,
+        fontSize = config.size.sp,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
+        shadow = androidx.compose.ui.graphics.Shadow(
+            color = Color.Black.copy(alpha = 0.7f),
+            offset = Offset(2f, 2f),
+            blurRadius = 4f
+        )
+    )
+    // Placeholder (casella vuota): stesso stile ma colore attenuato e senza ombra.
+    val placeholderStyle = TextStyle(
+        color = color.copy(alpha = 0.4f),
+        fontSize = config.size.sp,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center
+    )
 
     LaunchedEffect(isEditingThis) {
         if (isEditingThis) focusRequester.requestFocus()
@@ -741,7 +753,10 @@ private fun TextItemView(
                 )
             }
             .pointerInput(item.id) {
-                detectTapGestures(onTap = { onTap() }, onDoubleTap = { onDoubleTap() })
+                // Solo onTap, niente onDoubleTap: il doppio tap ritarderebbe
+                // onTap di ~300ms (doubleTapTimeout) e il tap sulla casella deve
+                // entrare subito in edit mode.
+                detectTapGestures(onTap = { onTap() })
             }
             .border(
                 width = if (isSelected) 2.dp else 0.dp,
@@ -749,50 +764,47 @@ private fun TextItemView(
                 shape = RoundedCornerShape(4.dp)
             )
     ) {
-        // Ricrea il BasicTextField quando cambia isEditingThis: il toggle di
-        // readOnly sullo stesso nodo corrompe lo stato interno del focus e causa
-        // il freeze alla seconda apertura della casella di testo.
+        // Fuori dall'edit mode la casella mostra un Text semplice (non
+        // focusable): un BasicTextField readOnly intercetterebbe il tap con il
+        // proprio tap-to-focus, mandando il campo a fuoco ma lasciando la
+        // casella in readOnly (niente tastiera, niente edit). In edit mode torna
+        // il BasicTextField editabile; key(isEditingThis) lo ricrea così il
+        // focus riparte pulito ad ogni apertura.
         key(isEditingThis) {
-            BasicTextField(
-                value = config.text,
-                onValueChange = onTextChange,
-                readOnly = !isEditingThis,
-                textStyle = TextStyle(
-                    color = color,
-                    fontSize = config.size.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    shadow = androidx.compose.ui.graphics.Shadow(
-                        color = Color.Black.copy(alpha = 0.7f),
-                        offset = Offset(2f, 2f),
-                        blurRadius = 4f
-                    )
-                ),
-                cursorBrush = SolidColor(color),
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .widthIn(min = 50.dp, max = maxImageSizeDp * 0.9f),
-                singleLine = false,
-                decorationBox = { innerTextField ->
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(4.dp)
-                    ) {
-                        if (config.text.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.enter_text),
-                                style = TextStyle(
-                                    color = color.copy(alpha = 0.4f),
-                                    fontSize = config.size.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center
+            if (isEditingThis) {
+                BasicTextField(
+                    value = config.text,
+                    onValueChange = onTextChange,
+                    textStyle = textStyle,
+                    cursorBrush = SolidColor(color),
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .widthIn(min = 50.dp, max = maxImageSizeDp * 0.9f),
+                    singleLine = false,
+                    decorationBox = { innerTextField ->
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(4.dp)
+                        ) {
+                            if (config.text.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.enter_text),
+                                    style = placeholderStyle
                                 )
-                            )
+                            }
+                            innerTextField()
                         }
-                        innerTextField()
                     }
-                }
-            )
+                )
+            } else {
+                Text(
+                    text = if (config.text.isEmpty()) stringResource(R.string.enter_text) else config.text,
+                    style = if (config.text.isEmpty()) placeholderStyle else textStyle,
+                    modifier = Modifier
+                        .widthIn(min = 50.dp, max = maxImageSizeDp * 0.9f)
+                        .padding(4.dp)
+                )
+            }
         }
     }
 }
