@@ -145,8 +145,11 @@ dependencies {
     // --- Document / EXIF / DataStore ---
     implementation("androidx.documentfile:documentfile:1.1.0")
     implementation("androidx.exifinterface:exifinterface:1.4.1")
-    implementation("androidx.datastore:datastore-preferences:1.2.0")
-    // Nota: datastore 1.2.0 è l'ultima stable; documentfile 1.1.0 è l'ultima release
+    // datastore 1.2.1: ricompila libdatastore_shared_counter.so con GNU_RELRO
+    // allineato a 16 kB (in 1.2.0 il RELRO non è un suffisso del suo LOAD e il
+    // suo end non è allineato a 16 kB → warning Play Console su dispositivi 16 kB)
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
+    // Nota: datastore 1.2.1 è l'ultima stable; documentfile 1.1.0 è l'ultima release
 
     // --- Open-source native codecs (Apache 2.0) ---
     // avif-coder wraps libheif/libavif for HEIF/HEIC/AVIF encode+decode
