@@ -32,7 +32,7 @@ Description: |-
   - Compression by quality percentage (default: original quality) or target file size
   - Convert between JPEG, PNG, WebP, BMP, GIF, TIFF, ICO and Telegram PNG (the original format is kept when no edit requires re-encoding)
   - Live preview with estimated output size before processing
-  - Custom output file name (defaults to <name>-edit) and destination folder
+  - Custom output file name (defaults to the original file name) and destination folder
   - Option to delete original files and preserve the source file date
 
   - Detailed per-file report with original vs processed size
@@ -178,7 +178,16 @@ Builds:
       - yes
     output: app/build/outputs/apk/release/app-release-unsigned.apk
 
+  - versionName: 2.0.6
+    versionCode: 28
+    commit: HEAD
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 2.0.5
-CurrentVersionCode: 27
+CurrentVersion: 2.0.6
+CurrentVersionCode: 28
