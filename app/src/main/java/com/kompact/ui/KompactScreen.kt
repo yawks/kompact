@@ -413,8 +413,7 @@ fun HomeScreen(
     val defaultFileName = remember(state.selectedFiles) {
         if (state.selectedFiles.size == 1) {
             val file = state.selectedFiles.first()
-            val base = file.displayName.substringBeforeLast('.', "").ifBlank { file.displayName }
-            "$base-edit"
+            file.displayName.substringBeforeLast('.', "").ifBlank { file.displayName }
         } else null
     }
     val referenceBytes = state.selectedFiles.sumOf { it.sizeBytes }.coerceAtLeast(1L)
@@ -1463,6 +1462,15 @@ fun ImageConfigSection(
                 }
             }
 
+            // A draft equal to the default name (or blank) means "no custom name":
+            // outputFileName stays null so the repository keeps the original file
+            // name, adding "-edit" only if the destination folder already contains
+            // a file with the same name.
+            val draftToConfigName: (String) -> String? = { draft ->
+                val normalized = draft.trim().takeIf { it.isNotBlank() }
+                if (normalized == null || normalized == defaultFileName) null else normalized
+            }
+
             val focusManager = LocalFocusManager.current
 
             // Update local draft immediately, but debounce applying to the shared config
@@ -1476,8 +1484,7 @@ fun ImageConfigSection(
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(onDone = {
-                    val trimmed = fileNameDraft.trim()
-                    val normalized = trimmed.takeIf { it.isNotBlank() }
+                    val normalized = draftToConfigName(fileNameDraft)
                     if (normalized != config.outputFileName) {
                         onConfigChange(config.copy(outputFileName = normalized))
                     }
@@ -1490,8 +1497,7 @@ fun ImageConfigSection(
                 val current = fileNameDraft
                 kotlinx.coroutines.delay(350)
                 if (current == fileNameDraft) {
-                    val trimmed = current.trim()
-                    val normalized = trimmed.takeIf { it.isNotBlank() }
+                    val normalized = draftToConfigName(current)
                     if (normalized != config.outputFileName) {
                         onConfigChange(config.copy(outputFileName = normalized))
                     }

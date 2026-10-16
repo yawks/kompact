@@ -268,16 +268,52 @@ class LocalCompressionRepository(
         destinationFolder: Uri?,
         config: ImageCompressionConfig,
     ): Pair<Uri, Long> {
-        val targetName = buildOutputName(sourceUri, extension, config)
+        // Nome richiesto: nome originale del file (o quello personalizzato
+        // dall'utente). Il suffisso "-edit" viene aggiunto solo se nella
+        // cartella di destinazione esiste già un file con lo stesso nome.
+        val requestedName = buildOutputName(sourceUri, extension, config)
+        val isCustomName = !config.outputFileName.isNullOrBlank()
         val mimeType = mimeFromExtension(extension)
         val tempSize = tempFile.length()
-        
+
         // Get source file date if preserveSourceDate is enabled
         val sourceDate = if (config.preserveSourceDate) getSourceFileDate(sourceUri) else null
-        
+
         destinationFolder?.let { folderUri ->
-            DocumentFile.fromTreeUri(context, folderUri)
-                ?.createOrReplaceFile(mimeType, targetName)
+            DocumentFile.fromTreeUri(context, folderUri)?.let { folder ->
+                val targetName = resolveOutputName(requestedName, isCustomName) { folder.findFile(it) != null }
+                folder.createOrReplaceFile(mimeType, targetName)
+                    ?.let { target ->
+                        if (copyTempToDocument(tempFile, target)) {
+                            tempFile.delete()
+                            if (config.preserveSourceDate) {
+                                setOutputFileDate(target.uri, sourceDate)
+                            }
+                            return target.uri to tempSize
+                        }
+                    }
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val (collection, relativePath) = mediaStoreDestination(mimeType)
+            val targetName = resolveOutputName(requestedName, isCustomName) { name ->
+                mediaStoreHasFile(collection, relativePath, name)
+            }
+            createDefaultMediaStoreEntry(collection, relativePath, targetName, mimeType, sourceDate)?.let { targetUri ->
+                if (copyTempToUri(tempFile, targetUri)) {
+                    finalizePendingEntry(targetUri)
+                    tempFile.delete()
+                    return targetUri to tempSize
+                } else {
+                    resolver.delete(targetUri, null, null)
+                }
+            }
+        }
+
+        DocumentFile.fromSingleUri(context, sourceUri)?.parentFile?.let { parent ->
+            val targetName = resolveOutputName(requestedName, isCustomName) { parent.findFile(it) != null }
+            parent.createOrReplaceFile(mimeType, targetName)
                 ?.let { target ->
                     if (copyTempToDocument(tempFile, target)) {
                         tempFile.delete()
@@ -288,29 +324,10 @@ class LocalCompressionRepository(
                     }
                 }
         }
-
-        createDefaultMediaStoreEntry(targetName, mimeType, sourceDate)?.let { targetUri ->
-            if (copyTempToUri(tempFile, targetUri)) {
-                finalizePendingEntry(targetUri)
-                tempFile.delete()
-                return targetUri to tempSize
-            } else {
-                resolver.delete(targetUri, null, null)
-            }
+        val cacheTargetName = resolveOutputName(requestedName, isCustomName) { name ->
+            File(tempFile.parentFile, name).exists()
         }
-
-        DocumentFile.fromSingleUri(context, sourceUri)?.parentFile
-            ?.createOrReplaceFile(mimeType, targetName)
-            ?.let { target ->
-                if (copyTempToDocument(tempFile, target)) {
-                    tempFile.delete()
-                    if (config.preserveSourceDate) {
-                        setOutputFileDate(target.uri, sourceDate)
-                    }
-                    return target.uri to tempSize
-                }
-            }
-        val cacheTarget = File(tempFile.parentFile, targetName)
+        val cacheTarget = File(tempFile.parentFile, cacheTargetName)
         return if (tempFile.renameTo(cacheTarget)) {
             if (config.preserveSourceDate && sourceDate != null) {
                 cacheTarget.setLastModified(sourceDate)
@@ -343,13 +360,35 @@ class LocalCompressionRepository(
         }.getOrElse { false }
     }
 
-    private fun createDefaultMediaStoreEntry(name: String, mimeType: String, sourceDate: Long? = null): Uri? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
-        val (collection, relativePath) = when {
-            mimeType.startsWith("image/") -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY) to
+    private fun mediaStoreDestination(mimeType: String): Pair<Uri, String> {
+        return if (mimeType.startsWith("image/")) {
+            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY) to
                 DefaultDestinationResolver.picturesRelativePath()
-            else -> MediaStore.Files.getContentUri("external") to DefaultDestinationResolver.picturesRelativePath()
+        } else {
+            MediaStore.Files.getContentUri("external") to DefaultDestinationResolver.picturesRelativePath()
         }
+    }
+
+    private fun mediaStoreHasFile(collection: Uri, relativePath: String, displayName: String): Boolean {
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        // MediaStore normalizza RELATIVE_PATH con la barra finale
+        val normalizedPath = if (relativePath.endsWith("/")) relativePath else "$relativePath/"
+        val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ? AND ${MediaStore.MediaColumns.RELATIVE_PATH} = ?"
+        val selectionArgs = arrayOf(displayName, normalizedPath)
+        return runCatching {
+            resolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
+                cursor.moveToFirst()
+            } ?: false
+        }.getOrDefault(false)
+    }
+
+    private fun createDefaultMediaStoreEntry(
+        collection: Uri,
+        relativePath: String,
+        name: String,
+        mimeType: String,
+        sourceDate: Long? = null,
+    ): Uri? {
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
@@ -372,22 +411,9 @@ class LocalCompressionRepository(
     }
 
     private fun buildOutputName(sourceUri: Uri, extension: String, config: ImageCompressionConfig): String {
-        val customName = config.outputFileName
-        if (customName != null && customName.isNotBlank()) {
-            if (customName.endsWith(".$extension", ignoreCase = true)) {
-                return customName
-            }
-            return "$customName.$extension"
-        }
         val sourceName = DocumentFile.fromSingleUri(context, sourceUri)?.name
             ?: sourceUri.lastPathSegment
-            ?: "file"
-        val base = if (sourceName.contains('.')) {
-            sourceName.substringBeforeLast('.')
-        } else {
-            sourceName
-        }
-        return "$base-edit.$extension"
+        return buildRequestedOutputName(sourceName, extension, config.outputFileName)
     }
 
     private fun mimeFromExtension(extension: String): String {
@@ -450,5 +476,45 @@ class LocalCompressionRepository(
             }
             resolver.update(targetUri, values, null, null)
         }
+    }
+}
+
+/**
+ * Nome di output richiesto: nome personalizzato dall'utente se presente,
+ * altrimenti il nome originale del file sorgente con l'estensione del formato
+ * effettivo. Nessun suffisso "-edit" viene aggiunto qui.
+ */
+internal fun buildRequestedOutputName(sourceName: String?, extension: String, customName: String?): String {
+    if (!customName.isNullOrBlank()) {
+        return if (customName.endsWith(".$extension", ignoreCase = true)) {
+            customName
+        } else {
+            "$customName.$extension"
+        }
+    }
+    val base = sourceName
+        ?.substringBeforeLast('.', "")
+        .orEmpty()
+        .ifBlank { sourceName ?: "file" }
+    return "$base.$extension"
+}
+
+/**
+ * Aggiunge il suffisso "-edit" prima dell'estensione solo quando il nome
+ * generato (non personalizzato dall'utente) collide con un file già esistente
+ * nella cartella di destinazione. I nomi scelti dall'utente restano invariati:
+ * createOrReplaceFile li deduplica già con un suffisso " (n)".
+ */
+internal fun resolveOutputName(
+    requestedName: String,
+    isCustomName: Boolean,
+    existsInDestination: (String) -> Boolean,
+): String {
+    if (isCustomName || !existsInDestination(requestedName)) return requestedName
+    val dotIndex = requestedName.lastIndexOf('.')
+    return if (dotIndex > 0) {
+        requestedName.substring(0, dotIndex) + "-edit" + requestedName.substring(dotIndex)
+    } else {
+        requestedName + "-edit"
     }
 }
