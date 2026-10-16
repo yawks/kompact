@@ -274,6 +274,9 @@ data class CompressionUiState(
     val isProcessing: Boolean = false,
     val results: List<CompressionResult> = emptyList(),
     val errorMessage: String? = null,
+    // Errore dedicato all'eliminazione dei sorgenti dopo il processamento:
+    // viene mostrato nella scheda dei risultati, non nel banner in alto.
+    val deleteErrorMessage: String? = null,
     val processedCount: Int = 0,
     val totalCount: Int = 0,
     val totalOriginalBytes: Long = 0,

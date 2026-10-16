@@ -574,7 +574,7 @@ fun HomeScreen(
             item { ProgressCard(state = state) }
         }
         if (state.results.isNotEmpty()) {
-            item { ResultsCard(state.results) }
+            item { ResultsCard(state.results, deleteErrorMessage = state.deleteErrorMessage) }
         }
     }
 
@@ -2559,7 +2559,7 @@ fun ProgressCard(state: CompressionUiState) {
 }
 
 @Composable
-fun ResultsCard(results: List<CompressionResult>) {
+fun ResultsCard(results: List<CompressionResult>, deleteErrorMessage: String? = null) {
     val successfulResults = results.filter { it.success }
     val totalOriginal = successfulResults.sumOf { it.originalSizeBytes }
     val totalCompressed = successfulResults.sumOf { it.compressedSizeBytes }
@@ -2569,6 +2569,9 @@ fun ResultsCard(results: List<CompressionResult>) {
     Card {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.results), style = MaterialTheme.typography.titleMedium)
+            if (deleteErrorMessage != null) {
+                Text(deleteErrorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
             if (successfulResults.isNotEmpty()) {
                 Text("${stringResource(R.string.total_label)} ${totalOriginal.asReadableBytes()} → ${totalCompressed.asReadableBytes()}", style = MaterialTheme.typography.bodyMedium)
             }

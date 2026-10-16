@@ -176,12 +176,13 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         }
         return current.copy(
             failedDeleteUris = emptyList(),
-            // Non sovrascrivere un errore di processamento esistente: il messaggio
-            // di delete è secondario, l'errore reale deve restare visibile.
-            errorMessage = if (current.failedDeleteUris.isNotEmpty() && current.errorMessage == null) {
+            // Canale dedicato: l'errore di eliminazione viene mostrato nella
+            // scheda dei risultati. errorMessage resta riservato agli errori di
+            // processamento, che restano visibili nel banner in alto.
+            deleteErrorMessage = if (current.failedDeleteUris.isNotEmpty()) {
                 getApplication<Application>().getString(R.string.delete_originals_failed)
             } else {
-                current.errorMessage
+                current.deleteErrorMessage
             },
         )
     }
@@ -207,7 +208,8 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 results = emptyList(),
                 processedCount = 0,
                 lastResult = null,
-                errorMessage = null
+                errorMessage = null,
+                deleteErrorMessage = null
             )
         }
 
@@ -245,6 +247,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 canProcessSelection = true,
                 selectionMessage = null,
                 errorMessage = null,
+                deleteErrorMessage = null,
                 results = emptyList(),
                 lastResult = null,
                 totalOriginalBytes = 0,
@@ -263,7 +266,8 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 results = emptyList(),
                 processedCount = 0,
                 lastResult = null,
-                errorMessage = null
+                errorMessage = null,
+                deleteErrorMessage = null
             ) 
         }
     }
@@ -285,6 +289,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 canProcessSelection = classification.canProcess && descriptors.isNotEmpty(),
                 selectionMessage = classification.message,
                 errorMessage = null,
+                deleteErrorMessage = null,
                 totalCount = uris.size,
                 processedCount = 0,
                 totalOriginalBytes = 0,
@@ -397,6 +402,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 processedCount = 0,
                 lastResult = null,
                 errorMessage = null,
+                deleteErrorMessage = null,
                 totalOriginalBytes = 0,
                 totalCompressedBytes = 0,
                 isExifEditorVisible = false,
@@ -430,6 +436,7 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                 it.copy(
                     isProcessing = true,
                     errorMessage = null,
+                    deleteErrorMessage = null,
                     results = emptyList(),
                     processedCount = 0,
                     totalCount = snapshot.selectedUris.size,
