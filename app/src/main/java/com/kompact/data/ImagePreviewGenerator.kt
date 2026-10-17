@@ -17,6 +17,8 @@ import com.kompact.util.applyTextOverlay
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
+import com.kompact.util.isModernFormat
+import com.kompact.util.preserveExifFromOriginal
 import com.kompact.util.resolveEffectiveFormat
 import com.kompact.util.resolveImageExtension
 import com.kompact.util.resolveTargetBytes
@@ -54,7 +56,21 @@ class ImagePreviewGenerator(context: Context) {
             targetBytes = targetBytes,
         )
         val exifBytes = if (supportsExif(effectiveFormat)) {
-            if (config.stripExif) writeExifData(previewBytes, null) else writeExifData(previewBytes, config.exifData)
+            if (config.stripExif) {
+                writeExifData(previewBytes, null)
+            } else if (isModernFormat(effectiveFormat)) {
+                // Modern formats: preserve EXIF by copying the raw box from
+                // the original, since ExifInterface cannot write into these
+                // containers.
+                val originalBytes = resolver.openInputStream(source)?.use { it.readBytes() }
+                if (originalBytes != null) {
+                    preserveExifFromOriginal(originalBytes, previewBytes, effectiveFormat)
+                } else {
+                    previewBytes
+                }
+            } else {
+                writeExifData(previewBytes, config.exifData)
+            }
         } else previewBytes
         bitmap.recycle()
         val previewFile = cachePreviewFile(source, extension)

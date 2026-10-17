@@ -634,9 +634,15 @@ internal fun encodeBitmapWithTarget(
 }
 
 /**
- * Quality-search loop for the modern native encoders (HEIF/HEIC/AVIF/JXL).
- * Mirrors the JPEG target-bytes strategy: encode at the requested quality,
- * then step down until the output fits the target size.
+ * Encoding strategy for the modern native encoders (HEIF/HEIC/AVIF/JXL).
+ *
+ * Unlike JPEG, these codecs are 10-100x slower per encode. A full
+ * quality-search loop (up to ~18 encodes, stepping down by 5) makes a
+ * single HEIC/JXL take 5-10 minutes — unacceptable. We limit to at most
+ * 2 encodes: one at the requested quality, and one at minimum quality
+ * if the first result exceeds the target. The smaller of the two is
+ * returned, so the output is never worse than a single encode at the
+ * requested quality.
  */
 private fun encodeModernWithTarget(
     bitmap: Bitmap,
@@ -647,13 +653,17 @@ private fun encodeModernWithTarget(
     if (targetBytes == null) {
         return encode(normalizedQuality) to normalizedQuality
     }
-    var currentQuality = normalizedQuality
-    var bytes = encode(currentQuality)
-    while (bytes.size.toLong() > targetBytes && currentQuality > MIN_JPG_QUALITY) {
-        currentQuality = (currentQuality - QUALITY_STEP).coerceAtLeast(MIN_JPG_QUALITY)
-        bytes = encode(currentQuality)
+    val bytes = encode(normalizedQuality)
+    if (bytes.size.toLong() <= targetBytes) {
+        return bytes to normalizedQuality
     }
-    return bytes to currentQuality
+    // First attempt too large: try minimum quality once.
+    val minBytes = encode(MIN_JPG_QUALITY)
+    return if (minBytes.size.toLong() < bytes.size.toLong()) {
+        minBytes to MIN_JPG_QUALITY
+    } else {
+        bytes to normalizedQuality
+    }
 }
 
 internal fun Bitmap.toJpg(quality: Int): ByteArray {
@@ -941,8 +951,10 @@ internal fun supportsExif(format: ImageOutputFormat): Boolean {
     return when (format) {
         // TELEGRAM_PNG is a real PNG, so it carries EXIF like PNG does.
         // HEIF/HEIC/AVIF containers carry EXIF/XMP natively; JXL carries EXIF/XMP too.
-        // Note: the awxkee encoders do not expose a direct EXIF-injection API, so
-        // EXIF writing for these formats is best-effort (see CompressionRepository).
+        // For modern formats, EXIF is preserved by raw box injection
+        // (see util/ExifPreserver.kt) since the awxkee encoders do not
+        // expose an EXIF-injection API and ExifInterface cannot write
+        // into these containers.
         ImageOutputFormat.JPG, ImageOutputFormat.PNG, ImageOutputFormat.WEBP,
         ImageOutputFormat.TELEGRAM_PNG, ImageOutputFormat.ORIGINAL,
         ImageOutputFormat.HEIF, ImageOutputFormat.HEIC, ImageOutputFormat.AVIF,

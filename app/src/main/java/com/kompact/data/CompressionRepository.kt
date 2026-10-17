@@ -30,7 +30,9 @@ import com.kompact.util.applyTextOverlay
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
+import com.kompact.util.isModernFormat
 import com.kompact.util.isRawFile
+import com.kompact.util.preserveExifFromOriginal
 import com.kompact.util.readExifData
 import com.kompact.util.resolveEffectiveFormat
 import com.kompact.util.resolveImageExtension
@@ -137,11 +139,23 @@ class LocalCompressionRepository(
                 val finalBytes = if (supportsExif(effectiveFormat)) {
                     if (config.stripExif) {
                         writeExifData(compressedBytes, null, null, null)
+                    } else if (isModernFormat(effectiveFormat)) {
+                        // Modern formats (HEIF/HEIC/AVIF/JXL): AndroidX
+                        // ExifInterface cannot write EXIF into these containers,
+                        // and the awxkee encoders do not expose an EXIF-injection
+                        // API. Preserve all metadata by copying the raw Exif box
+                        // from the original file at the container level.
+                        val originalBytes = resolver.openInputStream(uri)?.use { it.readBytes() }
+                        if (originalBytes != null) {
+                            preserveExifFromOriginal(originalBytes, compressedBytes, effectiveFormat)
+                        } else {
+                            compressedBytes
+                        }
                     } else {
                         val originalExifFromFile = readExifData(resolver, uri)
                         val baseExif = config.originalExifData ?: originalExifFromFile
                         val userExif = config.exifData
-                        
+
                         val exifToWrite = if (userExif != null && userExif != baseExif) {
                             baseExif?.copy(
                                 dateTime = userExif.dateTime ?: baseExif.dateTime,
