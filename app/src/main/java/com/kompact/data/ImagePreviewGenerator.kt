@@ -14,6 +14,7 @@ import com.kompact.util.applyResize
 import com.kompact.util.applyRotation
 import com.kompact.util.applyColorFilter
 import com.kompact.util.applyTextOverlay
+import com.kompact.util.applyExifModifications
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
@@ -60,11 +61,16 @@ class ImagePreviewGenerator(context: Context) {
                 writeExifData(previewBytes, null)
             } else if (isModernFormat(effectiveFormat)) {
                 // Modern formats: preserve EXIF by copying the raw box from
-                // the original, since ExifInterface cannot write into these
-                // containers.
+                // the original, then apply user modifications on top.
                 val originalBytes = resolver.openInputStream(source)?.use { it.readBytes() }
                 if (originalBytes != null) {
-                    preserveExifFromOriginal(originalBytes, previewBytes, effectiveFormat)
+                    var result = preserveExifFromOriginal(originalBytes, previewBytes, effectiveFormat)
+                    val userExif = config.exifData
+                    val baseExif = config.originalExifData
+                    if (userExif != null && userExif != baseExif) {
+                        result = applyExifModifications(result, userExif, effectiveFormat)
+                    }
+                    result
                 } else {
                     previewBytes
                 }

@@ -30,6 +30,7 @@ import com.kompact.util.applyTextOverlay
 import com.kompact.util.decodeBitmap
 import com.kompact.util.encodeBitmapWithTarget
 import com.kompact.util.getFileSize
+import com.kompact.util.applyExifModifications
 import com.kompact.util.isModernFormat
 import com.kompact.util.isRawFile
 import com.kompact.util.preserveExifFromOriginal
@@ -143,11 +144,43 @@ class LocalCompressionRepository(
                         // Modern formats (HEIF/HEIC/AVIF/JXL): AndroidX
                         // ExifInterface cannot write EXIF into these containers,
                         // and the awxkee encoders do not expose an EXIF-injection
-                        // API. Preserve all metadata by copying the raw Exif box
-                        // from the original file at the container level.
+                        // API. Two-step strategy:
+                        //  1. Preserve all metadata by copying the raw Exif box
+                        //     from the original file (container-level copy).
+                        //  2. If the user modified EXIF fields, apply the changes
+                        //     by building a fresh Exif box from a temporary JPEG
+                        //     and replacing the one from step 1.
                         val originalBytes = resolver.openInputStream(uri)?.use { it.readBytes() }
                         if (originalBytes != null) {
-                            preserveExifFromOriginal(originalBytes, compressedBytes, effectiveFormat)
+                            var result = preserveExifFromOriginal(originalBytes, compressedBytes, effectiveFormat)
+                            val originalExifFromFile = readExifData(resolver, uri)
+                            val baseExif = config.originalExifData ?: originalExifFromFile
+                            val userExif = config.exifData
+                            if (userExif != null && userExif != baseExif) {
+                                val exifToWrite = baseExif?.copy(
+                                    dateTime = userExif.dateTime ?: baseExif.dateTime,
+                                    make = userExif.make ?: baseExif.make,
+                                    model = userExif.model ?: baseExif.model,
+                                    orientation = userExif.orientation ?: baseExif.orientation,
+                                    latitude = userExif.latitude ?: baseExif.latitude,
+                                    longitude = userExif.longitude ?: baseExif.longitude,
+                                    altitude = userExif.altitude ?: baseExif.altitude,
+                                    position = userExif.position ?: baseExif.position,
+                                    exposureTime = userExif.exposureTime ?: baseExif.exposureTime,
+                                    fNumber = userExif.fNumber ?: baseExif.fNumber,
+                                    iso = userExif.iso ?: baseExif.iso,
+                                    focalLength = userExif.focalLength ?: baseExif.focalLength,
+                                    flash = userExif.flash ?: baseExif.flash,
+                                    whiteBalance = userExif.whiteBalance ?: baseExif.whiteBalance,
+                                    artist = userExif.artist ?: baseExif.artist,
+                                    copyright = userExif.copyright ?: baseExif.copyright,
+                                    software = userExif.software ?: baseExif.software,
+                                    description = userExif.description ?: baseExif.description,
+                                    userComment = userExif.userComment ?: baseExif.userComment
+                                ) ?: userExif
+                                result = applyExifModifications(result, exifToWrite, effectiveFormat)
+                            }
+                            result
                         } else {
                             compressedBytes
                         }
