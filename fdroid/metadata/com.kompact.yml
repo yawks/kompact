@@ -205,7 +205,16 @@ Builds:
       - yes
     output: app/build/outputs/apk/release/app-release-unsigned.apk
 
+  - versionName: 2.0.9
+    versionCode: 31
+    commit: HEAD
+    timeout: 7200
+    subdir: .
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 2.0.8
-CurrentVersionCode: 30
+CurrentVersion: 2.0.9
+CurrentVersionCode: 31

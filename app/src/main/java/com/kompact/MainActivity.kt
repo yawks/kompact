@@ -1,16 +1,13 @@
 package com.kompact
 
 import android.Manifest
-import android.content.ContentResolver
-import android.content.ContentUris
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.DocumentsContract
-import android.provider.MediaStore
 import com.kompact.util.RAW_MIME_TYPES
+import com.kompact.util.SourceDeleter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -30,59 +27,6 @@ private val SUPPORTED_MIME_TYPES = arrayOf(
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 )
-
-private fun toMediaStoreUri(resolver: ContentResolver, uri: Uri): Uri? {
-    return when (uri.authority) {
-        MediaStore.AUTHORITY -> uri
-        "com.android.providers.media.documents" -> {
-            val documentId = DocumentsContract.getDocumentId(uri)
-            val type = documentId.substringBefore(':', "")
-            val id = documentId.substringAfter(':', "").toLongOrNull() ?: return null
-            val collection = when (type) {
-                "images" -> MediaStore.Images.Media.getContentUri("external")
-                "video" -> MediaStore.Video.Media.getContentUri("external")
-                "audio" -> MediaStore.Audio.Media.getContentUri("external")
-                else -> return null
-            }
-            ContentUris.withAppendedId(collection, id)
-        }
-        "com.android.externalstorage.documents" -> {
-            // URI SAF del file manager stock (ExternalStorageProvider), es.
-            // content://com.android.externalstorage.documents/document/primary%3APictures%2Ffoto.jpg
-            // Il document ID ha formato "volume:path". Lo convertiamo in path
-            // assoluto e cerchiamo il corrispondente URI in MediaStore, così
-            // MediaStore.createDeleteRequest() può eliminarlo su Android 11+.
-            val documentId = runCatching { DocumentsContract.getDocumentId(uri) }.getOrNull() ?: return null
-            val splitIndex = documentId.indexOf(':')
-            if (splitIndex <= 0) return null
-            val volume = documentId.substring(0, splitIndex)
-            val relativePath = documentId.substring(splitIndex + 1)
-            val storagePath = if (volume.equals("primary", ignoreCase = true)) {
-                "/storage/emulated/0/$relativePath"
-            } else {
-                "/storage/$volume/$relativePath"
-            }
-            @Suppress("DEPRECATION")
-            val filesUri = MediaStore.Files.getContentUri("external")
-            @Suppress("DEPRECATION")
-            val cursor = resolver.query(
-                filesUri,
-                arrayOf(MediaStore.Files.FileColumns._ID),
-                "${MediaStore.Files.FileColumns.DATA} = ?",
-                arrayOf(storagePath),
-                null
-            )
-            cursor?.use { c ->
-                if (c.moveToFirst()) {
-                    val id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID))
-                    return ContentUris.withAppendedId(filesUri, id)
-                }
-            }
-            null
-        }
-        else -> null
-    }
-}
 
 class MainActivity : AppCompatActivity() {
 
@@ -130,19 +74,32 @@ class MainActivity : AppCompatActivity() {
                         viewModel.setDefaultDestinationFolder(uri.toString())
                     }
                 }
+                // Launcher unificato per tutti i dialog di sistema di eliminazione:
+                // - RecoverableSecurityException (Android 10)
+                // - MediaStore.createDeleteRequest (Android 11+)
+                // - MediaStore.createWriteRequest (Android 11+)
+                // - MediaStore.createTrashRequest (Android 12+)
                 val deleteRequestLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+                    val granted = result.resultCode == RESULT_OK
                     val current = viewModel.state.value
-                    if (current.pendingDeleteConsents.isNotEmpty()) {
-                        // Android 10 recoverable consent: retry the delete of the head item.
-                        viewModel.onConsentResult(result.resultCode == RESULT_OK)
-                    } else {
-                        // Android 11+ MediaStore delete request.
-                        val deletedOriginals = if (result.resultCode == RESULT_OK) {
-                            current.pendingDeleteUris.filter { toMediaStoreUri(contentResolver, it) != null }
-                        } else {
-                            emptyList()
+                    when (current.pendingSystemDialogType) {
+                        // Android 11+: createDeleteRequest (batch)
+                        com.kompact.model.SystemDialogType.DELETE_REQUEST -> {
+                            viewModel.onMediaStoreDeleteResult(granted)
                         }
-                        viewModel.onPendingDeleteResolved(deletedOriginals)
+                        // Android 11+: createWriteRequest / createTrashRequest
+                        com.kompact.model.SystemDialogType.WRITE_REQUEST,
+                        com.kompact.model.SystemDialogType.TRASH_REQUEST -> {
+                            viewModel.onWriteAccessResult(granted)
+                        }
+                        // Android 10: recoverable consent (uno alla volta)
+                        null -> {
+                            if (current.pendingDeleteConsents.isNotEmpty()) {
+                                viewModel.onConsentResult(granted)
+                            } else {
+                                viewModel.onPendingDeleteResolved(emptyList())
+                            }
+                        }
                     }
                 }
                 val storagePermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
@@ -154,34 +111,137 @@ class MainActivity : AppCompatActivity() {
                 }
                 val pendingDeleteUris = state.pendingDeleteUris
                 val pendingDeleteConsents = state.pendingDeleteConsents
-                LaunchedEffect(pendingDeleteUris, pendingDeleteConsents) {
-                    if (pendingDeleteUris.isEmpty() && pendingDeleteConsents.isEmpty()) return@LaunchedEffect
-                    if (pendingDeleteConsents.isNotEmpty()) {
-                        // Android 10: one recoverable consent dialog at a time.
-                        deleteRequestLauncher.launch(IntentSenderRequest.Builder(pendingDeleteConsents.first().intentSender).build())
+                val pendingWriteAccessUris = state.pendingWriteAccessUris
+                val pendingSystemDialogType = state.pendingSystemDialogType
+                LaunchedEffect(
+                    pendingDeleteUris,
+                    pendingDeleteConsents,
+                    pendingWriteAccessUris,
+                    pendingSystemDialogType,
+                ) {
+                    // Se un dialog di sistema è in corso, aspetta il risultato
+                    if (pendingSystemDialogType != null) return@LaunchedEffect
+                    if (pendingDeleteUris.isEmpty() && pendingDeleteConsents.isEmpty() && pendingWriteAccessUris.isEmpty()) {
                         return@LaunchedEffect
                     }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        val requestUris = pendingDeleteUris.mapNotNull { toMediaStoreUri(contentResolver, it) }.distinct()
-                        if (requestUris.isNotEmpty()) {
-                            val sender = runCatching {
-                                MediaStore.createDeleteRequest(contentResolver, requestUris).intentSender
-                            }.getOrNull()
-                            if (sender != null) {
-                                deleteRequestLauncher.launch(IntentSenderRequest.Builder(sender).build())
-                                return@LaunchedEffect
+
+                    // Android 10: gestisci i recoverable consent uno alla volta
+                    if (pendingDeleteConsents.isNotEmpty()) {
+                        deleteRequestLauncher.launch(
+                            IntentSenderRequest.Builder(pendingDeleteConsents.first().intentSender).build()
+                        )
+                        return@LaunchedEffect
+                    }
+
+                    // Se ci sono URI in attesa di createWriteRequest, lancialo
+                    if (pendingWriteAccessUris.isNotEmpty()) {
+                        val writeSender = SourceDeleter.createWriteAccessRequest(
+                            contentResolver, pendingWriteAccessUris
+                        )
+                        val trashSender = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            SourceDeleter.createTrashRequest(contentResolver, pendingWriteAccessUris)
+                        } else {
+                            null
+                        }
+                        when {
+                            writeSender != null -> {
+                                viewModel.setPendingSystemDialog(
+                                    pendingWriteAccessUris,
+                                    com.kompact.model.SystemDialogType.WRITE_REQUEST
+                                )
+                                deleteRequestLauncher.launch(
+                                    IntentSenderRequest.Builder(writeSender).build()
+                                )
+                            }
+                            trashSender != null -> {
+                                viewModel.setPendingSystemDialog(
+                                    pendingWriteAccessUris,
+                                    com.kompact.model.SystemDialogType.TRASH_REQUEST
+                                )
+                                deleteRequestLauncher.launch(
+                                    IntentSenderRequest.Builder(trashSender).build()
+                                )
+                            }
+                            else -> {
+                                // Non è possibile creare il dialog: finalizza con fallimento
+                                viewModel.onWriteAccessResult(false)
                             }
                         }
-                        viewModel.onPendingDeleteFailed()
+                        return@LaunchedEffect
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        // Android 11+: prova a eliminare ciò che si può con
+                        // SourceDeleter, poi usa i dialog di sistema per il resto.
+                        val plan = viewModel.prepareSystemDelete()
+
+                        // Se prepareSystemDelete ha già risolto tutto, esci
+                        if (viewModel.state.value.pendingDeleteUris.isEmpty()) return@LaunchedEffect
+
+                        if (plan.mediaStoreUris.isNotEmpty()) {
+                            // Strategia 1: createDeleteRequest (batch, dialog di sistema)
+                            val deleteSender = SourceDeleter.createDeleteRequest(
+                                contentResolver, plan.mediaStoreUris
+                            )
+                            if (deleteSender != null) {
+                                viewModel.setPendingMediaStoreDeleteUris(plan.mediaStoreUris)
+                                viewModel.setPendingSystemDialog(
+                                    plan.mediaStoreUris,
+                                    com.kompact.model.SystemDialogType.DELETE_REQUEST
+                                )
+                                deleteRequestLauncher.launch(
+                                    IntentSenderRequest.Builder(deleteSender).build()
+                                )
+                                return@LaunchedEffect
+                            }
+
+                            // Strategia 2: createWriteRequest (accesso in scrittura)
+                            val writeSender = SourceDeleter.createWriteAccessRequest(
+                                contentResolver, plan.mediaStoreUris
+                            )
+                            if (writeSender != null) {
+                                viewModel.setPendingWriteAccessUris(plan.mediaStoreUris)
+                                viewModel.setPendingSystemDialog(
+                                    plan.mediaStoreUris,
+                                    com.kompact.model.SystemDialogType.WRITE_REQUEST
+                                )
+                                deleteRequestLauncher.launch(
+                                    IntentSenderRequest.Builder(writeSender).build()
+                                )
+                                return@LaunchedEffect
+                            }
+
+                            // Strategia 3 (Android 12+): cestino invece di delete
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                val trashSender = SourceDeleter.createTrashRequest(
+                                    contentResolver, plan.mediaStoreUris
+                                )
+                                if (trashSender != null) {
+                                    viewModel.setPendingWriteAccessUris(plan.mediaStoreUris)
+                                    viewModel.setPendingSystemDialog(
+                                        plan.mediaStoreUris,
+                                        com.kompact.model.SystemDialogType.TRASH_REQUEST
+                                    )
+                                    deleteRequestLauncher.launch(
+                                        IntentSenderRequest.Builder(trashSender).build()
+                                    )
+                                    return@LaunchedEffect
+                                }
+                            }
+                        }
+
+                        // Nessuna strategia di sistema disponibile: ritenta il
+                        // delete diretto (potrebbe esserci un permesso concesso).
+                        viewModel.retryPendingDelete()
                     } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                        // Android 9 and below: legacy storage allows a direct delete once the runtime permission is granted.
+                        // Android 9 e sotto: legacy storage, serve WRITE_EXTERNAL_STORAGE
                         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                             viewModel.retryPendingDelete()
                         } else {
                             storagePermissionLauncher.launch(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE))
                         }
                     } else {
-                        // Android 10 leftovers without a recoverable consent: nothing else to try.
+                        // Android 10 leftovers senza recoverable consent
                         viewModel.onPendingDeleteFailed()
                     }
                 }

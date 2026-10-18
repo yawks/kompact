@@ -2,7 +2,6 @@ package com.kompact.ui
 import com.kompact.R
 
 import android.app.Application
-import android.app.RecoverableSecurityException
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
@@ -27,6 +26,7 @@ import com.kompact.model.PendingDeleteConsent
 import com.kompact.model.PreviewKind
 import com.kompact.model.SelectedFileDescriptor
 import com.kompact.model.SourceCategory
+import com.kompact.model.SystemDialogType
 import com.kompact.model.ThemeMode
 import com.kompact.model.withoutVisualEdits
 import com.kompact.util.DefaultDestinationResolver
@@ -106,13 +106,27 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun onPendingDeleteResolved(deletedUris: List<Uri>) {
-        // Resolution for MediaStore.createDeleteRequest (Android 11+).
+        // Generico: dopo un dialog di sistema, ritenta il delete su tutti
+        // i pendingDeleteUris con SourceDeleter e aggiorna lo stato.
+        // I file già eliminati dal sistema o da SourceDeleter vengono
+        // rimossi; gli altri vengono segnalati come falliti.
+        val context = getApplication<Application>()
         _state.update { current ->
+            val allDeleted = mutableSetOf<Uri>()
+            val stillFailed = mutableListOf<Uri>()
+            current.pendingDeleteUris.forEach { uri ->
+                when (SourceDeleter.deleteSource(context, uri)) {
+                    is SourceDeleter.DeleteResult.Deleted -> allDeleted += uri
+                    is SourceDeleter.DeleteResult.Failed -> stillFailed += uri
+                }
+            }
             finalizeDeleteFlow(current.copy(
                 pendingDeleteUris = emptyList(),
-                failedDeleteUris = current.failedDeleteUris + current.pendingDeleteUris.filter { it !in deletedUris },
-                selectedUris = current.selectedUris.filterNot { it in deletedUris },
-                selectedFiles = current.selectedFiles.filterNot { it.uri in deletedUris },
+                pendingMediaStoreDeleteUris = emptyList(),
+                pendingWriteAccessUris = emptyList(),
+                failedDeleteUris = current.failedDeleteUris + stillFailed,
+                selectedUris = current.selectedUris.filterNot { it in allDeleted },
+                selectedFiles = current.selectedFiles.filterNot { it.uri in allDeleted },
             ))
         }
     }
@@ -122,9 +136,10 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         val context = getApplication<Application>()
         _state.update { current ->
             val head = current.pendingDeleteConsents.firstOrNull() ?: return@update current
-            val deleted = granted && runCatching {
-                context.contentResolver.delete(head.source, null, null) > 0
-            }.getOrDefault(false)
+            val deleted = granted && when (SourceDeleter.deleteSource(context, head.source)) {
+                is SourceDeleter.DeleteResult.Deleted -> true
+                is SourceDeleter.DeleteResult.Failed -> false
+            }
             finalizeDeleteFlow(current.copy(
                 pendingDeleteConsents = current.pendingDeleteConsents.drop(1),
                 pendingDeleteUris = current.pendingDeleteUris - head.source,
@@ -136,20 +151,17 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun retryPendingDelete() {
-        // Retried after WRITE_EXTERNAL_STORAGE was granted (Android 9 and below).
+        // Retry dopo che l'utente ha concesso permessi o dopo un dialog di
+        // sistema (createWriteRequest / createDeleteRequest su Android 11+,
+        // WRITE_EXTERNAL_STORAGE su Android 9-).
         val context = getApplication<Application>()
         val deletedUris = mutableListOf<Uri>()
         val stillFailed = mutableListOf<Uri>()
         _state.value.pendingDeleteUris.forEach { uri ->
-            val deleted = runCatching {
-                val deletedWithDocumentFile = DocumentFile.fromSingleUri(context, uri)?.delete() == true
-                deletedWithDocumentFile || context.contentResolver.delete(uri, null, null) > 0
-            }.getOrDefault(false)
-            // File già inesistente = rimosso (non un fallimento)
-            val gone = deleted || runCatching {
-                DocumentFile.fromSingleUri(context, uri)?.exists() == false
-            }.getOrDefault(false)
-            if (gone) deletedUris += uri else stillFailed += uri
+            when (SourceDeleter.deleteSource(context, uri)) {
+                is SourceDeleter.DeleteResult.Deleted -> deletedUris += uri
+                is SourceDeleter.DeleteResult.Failed -> stillFailed += uri
+            }
         }
         _state.update { current ->
             finalizeDeleteFlow(current.copy(
@@ -165,10 +177,216 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         _state.update { current ->
             finalizeDeleteFlow(current.copy(
                 pendingDeleteUris = emptyList(),
+                pendingMediaStoreDeleteUris = emptyList(),
+                pendingWriteAccessUris = emptyList(),
                 failedDeleteUris = current.failedDeleteUris + current.pendingDeleteUris,
             ))
         }
     }
+
+    /**
+     * Imposta gli URI MediaStore in attesa del dialog createDeleteRequest
+     * (Android 11+). Chiamato dall'UI prima di lanciare l'IntentSender.
+     */
+    fun setPendingMediaStoreDeleteUris(uris: List<Uri>) {
+        _state.update { it.copy(pendingMediaStoreDeleteUris = uris) }
+    }
+
+    /**
+     * Imposta gli URI MediaStore in attesa del dialog createWriteRequest
+     * (Android 11+). Chiamato dall'UI prima di lanciare l'IntentSender.
+     */
+    fun setPendingWriteAccessUris(uris: List<Uri>) {
+        _state.update { it.copy(pendingWriteAccessUris = uris) }
+    }
+
+    /**
+     * Marca un dialog di sistema come "in corso" (lanciato, in attesa di
+     * risultato). L'UI usa pendingSystemDialogType per bloccare il
+     * LaunchedEffect ed evitare loop.
+     */
+    fun setPendingSystemDialog(uris: List<Uri>, type: SystemDialogType) {
+        _state.update { it.copy(
+            pendingSystemDialogUris = uris,
+            pendingSystemDialogType = type,
+        ) }
+    }
+
+    /**
+     * Resetta il dialog di sistema in corso (dopo il callback).
+     */
+    fun clearPendingSystemDialog() {
+        _state.update { it.copy(
+            pendingSystemDialogUris = emptyList(),
+            pendingSystemDialogType = null,
+        ) }
+    }
+
+    /**
+     * Risultato del dialog MediaStore.createDeleteRequest (Android 11+).
+     * Ritetta l'eliminazione sugli URI MediaStore richiesti.
+     * I file ancora non eliminati vengono messi in attesa di
+     * createWriteRequest (pendingWriteAccessUris) per un secondo tentativo
+     * con accesso in scrittura concesso dall'utente.
+     */
+    fun onMediaStoreDeleteResult(granted: Boolean) {
+        val context = getApplication<Application>()
+        _state.update { current ->
+            val targetUris = current.pendingMediaStoreDeleteUris.ifEmpty { current.pendingDeleteUris }
+            val deleted = mutableListOf<Uri>()
+            val stillFailed = mutableListOf<Uri>()
+            targetUris.forEach { uri ->
+                when (SourceDeleter.deleteSource(context, uri)) {
+                    is SourceDeleter.DeleteResult.Deleted -> deleted += uri
+                    is SourceDeleter.DeleteResult.Failed -> stillFailed += uri
+                }
+            }
+            val deletedSet = deleted.toSet()
+            val untouchedPending = current.pendingDeleteUris.filterNot { it in targetUris }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && stillFailed.isNotEmpty()) {
+                // Metti i falliti in attesa di createWriteRequest
+                current.copy(
+                    pendingDeleteUris = stillFailed + untouchedPending,
+                    pendingMediaStoreDeleteUris = emptyList(),
+                    pendingWriteAccessUris = stillFailed,
+                    pendingSystemDialogUris = emptyList(),
+                    pendingSystemDialogType = null,
+                    selectedUris = current.selectedUris.filterNot { it in deletedSet },
+                    selectedFiles = current.selectedFiles.filterNot { it.uri in deletedSet },
+                )
+            } else {
+                // Android < 11 o nessun fallimento: finalizza
+                finalizeDeleteFlow(current.copy(
+                    pendingDeleteUris = emptyList(),
+                    pendingMediaStoreDeleteUris = emptyList(),
+                    pendingSystemDialogUris = emptyList(),
+                    pendingSystemDialogType = null,
+                    failedDeleteUris = current.failedDeleteUris + stillFailed + untouchedPending,
+                    selectedUris = current.selectedUris.filterNot { it in deletedSet },
+                    selectedFiles = current.selectedFiles.filterNot { it.uri in deletedSet },
+                ))
+            }
+        }
+    }
+
+    /**
+     * Risultato del dialog MediaStore.createWriteRequest (Android 11+).
+     * Dopo che l'utente ha concesso accesso in scrittura, ritenta
+     * l'eliminazione dei file. Quelli ancora falliti vengono segnalati.
+     */
+    fun onWriteAccessResult(granted: Boolean) {
+        val context = getApplication<Application>()
+        _state.update { current ->
+            val targetUris = current.pendingWriteAccessUris.ifEmpty { current.pendingDeleteUris }
+            val deleted = mutableListOf<Uri>()
+            val stillFailed = mutableListOf<Uri>()
+            targetUris.forEach { uri ->
+                when (SourceDeleter.deleteSource(context, uri)) {
+                    is SourceDeleter.DeleteResult.Deleted -> deleted += uri
+                    is SourceDeleter.DeleteResult.Failed -> stillFailed += uri
+                }
+            }
+            val deletedSet = deleted.toSet()
+            val untouchedPending = current.pendingDeleteUris.filterNot { it in targetUris }
+            val allFailed = stillFailed + untouchedPending
+            finalizeDeleteFlow(current.copy(
+                pendingDeleteUris = emptyList(),
+                pendingWriteAccessUris = emptyList(),
+                pendingSystemDialogUris = emptyList(),
+                pendingSystemDialogType = null,
+                failedDeleteUris = current.failedDeleteUris + allFailed,
+                selectedUris = current.selectedUris.filterNot { it in deletedSet },
+                selectedFiles = current.selectedFiles.filterNot { it.uri in deletedSet },
+            ))
+        }
+    }
+
+    /**
+     * Prepara il flujo di eliminazione per Android 11+.
+     *
+     * 1. Prova a eliminare tutti i pendingDeleteUris con SourceDeleter
+     *    (copre URI SAF con DocumentsContract.deleteDocument).
+     * 2. Gli URI non-MediaStore non eliminabili vengono segnalati come
+     *    falliti definitivamente.
+     * 3. Gli URI MediaStore rimanenti restano in pendingDeleteUris e
+     *    vengono restituiti per il dialog di sistema createDeleteRequest.
+     *
+     * @return [SystemDeletePlan] con gli URI MediaStore da passare a
+     *   createDeleteRequest, o lista vuota se non ce ne sono.
+     */
+    fun prepareSystemDelete(): SystemDeletePlan {
+        val context = getApplication<Application>()
+        val current = _state.value
+        val deletedNow = mutableListOf<Uri>()
+        val remainingUris = mutableListOf<Uri>()
+
+        current.pendingDeleteUris.forEach { uri ->
+            when (SourceDeleter.deleteSource(context, uri)) {
+                is SourceDeleter.DeleteResult.Deleted -> deletedNow += uri
+                is SourceDeleter.DeleteResult.Failed -> remainingUris += uri
+            }
+        }
+
+        if (deletedNow.isNotEmpty()) {
+            val deletedSet = deletedNow.toSet()
+            _state.update { state ->
+                state.copy(
+                    pendingDeleteUris = state.pendingDeleteUris.filterNot { it in deletedSet },
+                    selectedUris = state.selectedUris.filterNot { it in deletedSet },
+                    selectedFiles = state.selectedFiles.filterNot { it.uri in deletedSet },
+                )
+            }
+        }
+
+        // Dividi i rimanenti in MediaStore e non-MediaStore
+        val mediaStoreUris = remainingUris.mapNotNull { uri ->
+            SourceDeleter.toMediaStoreUri(context, uri)
+        }.distinct()
+        val nonMediaStoreUris = remainingUris.filter { uri ->
+            SourceDeleter.toMediaStoreUri(context, uri) == null
+        }
+
+        // Aggiorna lo stato: i non-MediaStore falliti vanno in failedDeleteUris,
+        // i MediaStore restano in pendingDeleteUris per il dialog di sistema.
+        _state.update { state ->
+            val newPending = remainingUris.filter { uri ->
+                SourceDeleter.toMediaStoreUri(context, uri) != null
+            }
+            when {
+                // Nessun URI MediaStore: finalizza subito con i falliti
+                newPending.isEmpty() -> {
+                    finalizeDeleteFlow(state.copy(
+                        pendingDeleteUris = emptyList(),
+                        failedDeleteUris = state.failedDeleteUris + nonMediaStoreUris,
+                    ))
+                }
+                // Ci sono URI MediaStore: restano in pending per il dialog
+                else -> {
+                    state.copy(
+                        pendingDeleteUris = newPending,
+                        failedDeleteUris = if (nonMediaStoreUris.isNotEmpty())
+                            state.failedDeleteUris + nonMediaStoreUris
+                        else
+                            state.failedDeleteUris,
+                    )
+                }
+            }
+        }
+
+        return SystemDeletePlan(
+            mediaStoreUris = mediaStoreUris,
+            alreadyDeleted = deletedNow,
+        )
+    }
+
+    /**
+     * Piano d'azione per l'eliminazione tramite dialog di sistema.
+     */
+    data class SystemDeletePlan(
+        val mediaStoreUris: List<Uri>,
+        val alreadyDeleted: List<Uri>,
+    )
 
     private fun finalizeDeleteFlow(current: CompressionUiState): CompressionUiState {
         if (current.pendingDeleteUris.isNotEmpty() || current.pendingDeleteConsents.isNotEmpty()) {
@@ -176,6 +394,8 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
         }
         return current.copy(
             failedDeleteUris = emptyList(),
+            pendingSystemDialogUris = emptyList(),
+            pendingSystemDialogType = null,
             // Canale dedicato: l'errore di eliminazione viene mostrato nella
             // scheda dei risultati. errorMessage resta riservato agli errori di
             // processamento, che restano visibili nel banner in alto.
@@ -485,34 +705,31 @@ class CompressionViewModel(application: Application) : AndroidViewModel(applicat
                     .map { it.source }
                     .distinct()
                     .forEach { sourceUri ->
-                        val deletedWithDocumentFile = runCatching {
-                            DocumentFile.fromSingleUri(context, sourceUri)?.delete() == true
-                        }.getOrDefault(false)
-                        val deleted = if (deletedWithDocumentFile) true else {
-                            runCatching {
-                                context.contentResolver.delete(sourceUri, null, null) > 0
-                            }.getOrElse { error ->
-                                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q &&
-                                    error is RecoverableSecurityException
-                                ) {
-                                    // Android 10: ask user for consent, then retry the delete.
+                        // SourceDeleter applica in ordine: DocumentsContract,
+                        // DocumentFile, ContentResolver, file://, verifica
+                        // esistenza. Su Android 10 restituisce un
+                        // RecoverableSecurityException come consent.
+                        when (val result = SourceDeleter.deleteSource(context, sourceUri)) {
+                            is SourceDeleter.DeleteResult.Deleted -> {
+                                deletedSources += sourceUri
+                            }
+                            is SourceDeleter.DeleteResult.Failed -> {
+                                // Android 10: RecoverableSecurityException →
+                                // salva il consent per il dialog di sistema.
+                                result.recoverableSender?.let { sender ->
                                     deleteConsents += PendingDeleteConsent(
                                         source = sourceUri,
-                                        intentSender = error.userAction.actionIntent.intentSender,
+                                        intentSender = sender,
                                     )
                                 }
-                                false
+                                // Senza recoverable sender, il file va in
+                                // undeletableSources: l'UI proverà con
+                                // MediaStore.createWriteRequest (Android 11+)
+                                // o MediaStore.createDeleteRequest.
+                                if (result.recoverableSender == null) {
+                                    undeletableSources += sourceUri
+                                }
                             }
-                        }
-                        // Un file che non esiste più (già cancellato manualmente o da
-                        // un tentativo precedente) è considerato rimosso: non è un
-                        // fallimento, altrimenti esce un falso allarme all'utente.
-                        val gone = deleted || runCatching {
-                            DocumentFile.fromSingleUri(context, sourceUri)?.exists() == false
-                        }.getOrDefault(false)
-                        when {
-                            gone -> deletedSources += sourceUri
-                            else -> undeletableSources += sourceUri
                         }
                     }
             }

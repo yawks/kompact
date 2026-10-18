@@ -263,6 +263,18 @@ data class PendingDeleteConsent(
     val intentSender: IntentSender,
 )
 
+/**
+ * Tipo di dialog di sistema per l'eliminazione file in corso.
+ */
+enum class SystemDialogType {
+    /** MediaStore.createDeleteRequest (Android 11+) — batch delete. */
+    DELETE_REQUEST,
+    /** MediaStore.createWriteRequest (Android 11+) — accesso in scrittura. */
+    WRITE_REQUEST,
+    /** MediaStore.createTrashRequest (Android 12+) — sposta nel cestino. */
+    TRASH_REQUEST,
+}
+
 data class CompressionUiState(
     val selectedUris: List<Uri> = emptyList(),
     val selectedFiles: List<SelectedFileDescriptor> = emptyList(),
@@ -304,4 +316,12 @@ data class CompressionUiState(
     val pendingDeleteUris: List<Uri> = emptyList(),
     val pendingDeleteConsents: List<PendingDeleteConsent> = emptyList(),
     val failedDeleteUris: List<Uri> = emptyList(),
+    // URI MediaStore in attesa del dialog createDeleteRequest (Android 11+).
+    val pendingMediaStoreDeleteUris: List<Uri> = emptyList(),
+    // URI MediaStore in attesa del dialog createWriteRequest (Android 11+).
+    val pendingWriteAccessUris: List<Uri> = emptyList(),
+    // Dialog di sistema attualmente in corso (null = nessun dialog attivo).
+    // Traccia quali URI sono in attesa di risposta dal sistema.
+    val pendingSystemDialogUris: List<Uri> = emptyList(),
+    val pendingSystemDialogType: SystemDialogType? = null,
 )

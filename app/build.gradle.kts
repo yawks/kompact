@@ -18,8 +18,8 @@ android {
         applicationId = "com.kompact"
         minSdk = 24
         targetSdk = 37
-        versionCode = 30
-        versionName = "2.0.8"
+        versionCode = 31
+        versionName = "2.0.9"
         // NDK r28+: allineamento a 16 kB delle librerie native (warning Play Console)
         ndkVersion = "28.2.13676358"
 
