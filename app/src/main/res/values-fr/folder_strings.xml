@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="folder_title">Réduire un dossier de photos</string>
+    <string name="folder_back">Retour</string>
+    <string name="folder_description">Choisissez un dossier et une résolution maximale. Les images dépassant ce seuil sont réduites sur place en arrière-plan ; les autres restent intactes.</string>
+    <string name="folder_choose">Choisir le dossier</string>
+    <string name="folder_limit">Mégapixels maximum</string>
+    <string name="folder_limit_help">0,1–200 MP · 1 MP = 1 000 000 pixels</string>
+    <string name="folder_recursive">Inclure les sous-dossiers</string>
+    <string name="folder_preservation">JPEG, PNG et WebP : conservation du nom, du document existant et des blocs de métadonnées intégrés, dont les dates de prise de vue, le GPS, l’orientation et les données constructeur. Qualité JPEG : 85. La date de modification est restaurée ; le fichier existant est conservé pour garder sa date de création. Le stockage local doit permettre la restauration des dates, sinon l’image reste intacte. Les autres formats, animations, Motion Photos, images HDR auxiliaires et images à gamut étendu sont ignorés. Une copie privée protège l’écriture en cours. Après un arrêt, la photo courante est terminée ou restaurée. Ne pas effacer les données de l’application pendant une restauration.</string>
+    <string name="folder_start">Lancer le traitement en arrière-plan</string>
+    <string name="folder_stop">Arrêter</string>
+    <string name="folder_android_version">Le traitement de dossier nécessite Android 8 ou plus récent.</string>
+    <string name="folder_location_permission">L’accès aux métadonnées de localisation originales est nécessaire pour éviter qu’Android ne masque le GPS lors de la lecture des photos.</string>
+    <string name="folder_local_storage">Choisissez un dossier du téléphone ou de la carte SD dans le sélecteur de fichiers Android. Les fournisseurs cloud ne permettent pas de garantir les métadonnées originales et les dates des fichiers.</string>
+    <string name="folder_scanning">Analyse du dossier…</string>
+    <string name="folder_running">Traitement en arrière-plan</string>
+    <string name="folder_waiting">En attente de traitement</string>
+    <string name="folder_finished">Traitement terminé</string>
+    <string name="folder_failed">Traitement interrompu par une erreur</string>
+    <string name="folder_cancelled">Traitement arrêté</string>
+    <string name="folder_summary">%1$d / %2$d images traitées\n%3$d réduites · %4$d ignorées · %5$d erreurs\nEspace récupéré : %6$s</string>
+</resources>

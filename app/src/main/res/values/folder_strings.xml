@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="fork_app_name" translatable="false">Kompact (yawks)</string>
+    <string name="folder_title">Shrink a photo folder</string>
+    <string name="folder_back">Back</string>
+    <string name="folder_description">Choose a folder and a maximum resolution. Larger images are reduced in place in the background; smaller images are left unchanged.</string>
+    <string name="folder_choose">Choose folder</string>
+    <string name="folder_limit">Maximum megapixels</string>
+    <string name="folder_limit_help">0.1–200 MP · 1 MP = 1,000,000 pixels</string>
+    <string name="folder_recursive">Include subfolders</string>
+    <string name="folder_preservation">JPEG, PNG and WebP: original name, document identity and embedded metadata blocks are retained, including shooting dates, GPS, orientation and vendor tags. JPEG quality: 85. File modification time is restored; the existing file is kept to retain its creation time. Local storage must allow timestamp restoration, otherwise the image is left unchanged. Other formats, animated images, Motion Photos, HDR auxiliary images and wide-gamut images are skipped. A private recovery copy protects the current write. After stopping, the current photo is completed or restored. Do not clear app data during recovery.</string>
+    <string name="folder_start">Start background processing</string>
+    <string name="folder_stop">Stop</string>
+    <string name="folder_android_version">Folder processing requires Android 8 or newer.</string>
+    <string name="folder_location_permission">Access to original photo location metadata is required to avoid Android redacting GPS data when photos are read.</string>
+    <string name="folder_local_storage">Choose a folder on local phone storage or an SD card using the Android file picker. Cloud providers cannot guarantee original metadata and file dates.</string>
+    <string name="folder_scanning">Scanning folder…</string>
+    <string name="folder_running">Processing in background</string>
+    <string name="folder_waiting">Waiting to run</string>
+    <string name="folder_finished">Processing complete</string>
+    <string name="folder_failed">Processing interrupted by an error</string>
+    <string name="folder_cancelled">Processing stopped</string>
+    <string name="folder_summary">Processed: %1$d / %2$d\n%3$d reduced · %4$d skipped · %5$d errors\nSpace recovered: %6$s</string>
+</resources>

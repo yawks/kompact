@@ -300,6 +300,9 @@ class MainActivity : AppCompatActivity() {
                     onPickDefaultDestination = { defaultDestinationLauncher.launch(null) },
                     onClearDefaultDestination = { viewModel.clearDefaultDestinationFolder() },
                     onDeleteOriginalsChange = { viewModel.updateDeleteOriginals(it) },
+                    onOpenFolderShrinker = {
+                        startActivity(Intent(this, com.kompact.folder.FolderShrinkActivity::class.java))
+                    },
                 )
             }
         }

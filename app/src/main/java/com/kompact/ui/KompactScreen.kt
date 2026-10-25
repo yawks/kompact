@@ -199,6 +199,7 @@ fun KompactScreen(
     onPickDefaultDestination: () -> Unit,
     onClearDefaultDestination: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenFolderShrinker: () -> Unit = {},
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -216,6 +217,16 @@ fun KompactScreen(
                         scope.launch { drawerState.close() }
                     },
                     icon = { Icon(Icons.Filled.Home, contentDescription = null) },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.folder_title)) },
+                    selected = false,
+                    onClick = {
+                        onOpenFolderShrinker()
+                        scope.launch { drawerState.close() }
+                    },
+                    icon = { Icon(Icons.Filled.Folder, contentDescription = null) },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 NavigationDrawerItem(

@@ -1,6 +1,86 @@
 <p><img src="https://git.naxod.com/luca/kompact/raw/commit/def6ef3cf88d30306fd173079c53eb90c7f2aa37/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="200" alt="Kompact"></p>
 
-# Kompact - Image Editor
+# Kompact - Image Editor (yawks fork)
+
+This is [yawks/kompact](https://github.com/yawks/kompact), a fork of
+[Luca's Kompact](https://git.naxod.com/luca/kompact), retaining its history and
+AGPL-3.0-only license. It adds **background, in-place folder shrinking with a
+maximum megapixel limit**. The upstream application is credited below.
+
+## New: shrink an existing photo folder
+
+Open the navigation menu → **Shrink a photo folder** (French: **Réduire un dossier
+de photos**), select a local folder, enter a maximum resolution (default **5 MP**),
+optionally include subfolders, and start processing. Android 8+ is required for
+this mode. Grant access to original location metadata when requested so Android
+does not redact GPS while reading the originals. Notification permission makes
+the foreground progress/stop control visible on Android 13+.
+
+- Aspect ratio is retained. Photos at/below the limit are not re-encoded.
+- JPEG is encoded at quality 85; PNG is lossless; WebP uses lossless encoding on
+  Android 11+, quality 100 on Android 8–10. A result is used only if it is smaller.
+- **JPEG, static non-palette 8-bit PNG and static WebP** are supported. Complete
+  embedded EXIF/XMP/IPTC/ICC/comment/vendor metadata blocks are copied verbatim,
+  not reconstructed from a selected list of EXIF fields. EXIF orientation is
+  retained without rotating the stored pixel matrix. Original embedded
+  thumbnails and dimension fields inside metadata remain verbatim; the new
+  image header carries the actual resized dimensions.
+- HEIC/HEIF, AVIF, JXL, RAW, GIF and other unsupported containers are **skipped**.
+  Motion Photos, multi-picture/HDR auxiliary JPEGs, animated images,
+  palette-dependent PNGs and wide-gamut images are also left unchanged. The
+  existing editor's modern-format metadata injection is not a sufficient
+  guarantee for destructive batch processing, so this mode does not use it.
+- Files are updated **in place**, retaining their original filename, document
+  URI, inode, filesystem birth time (where supported) and existing gallery
+  identity. Last-modified time is restored and checked, including subsecond
+  precision. This does not preserve POSIX `ctime` (inode-change time), which is
+  not the creation date and necessarily changes on a write.
+- Only local Android External Storage document trees are accepted, including
+  SD cards where the provider supports this workflow. Before writing, the app
+  checks that the open file is seekable and that its exact modification time
+  can be restored. If the provider denies this, the photo is reported as an
+  error and is not overwritten. Cloud storage is not supported by this mode.
+- Processing runs through a unique foreground WorkManager job, with a persistent
+  SQLite queue, progress notification, and stop action. Leaving the screen or
+  turning it off does not cancel the work. Android can defer/restart work or
+  impose foreground-service time limits; unfinished queued entries survive a
+  process restart. A manually stopped job can be restarted from the screen;
+  already reduced images are then below the threshold and skipped.
+- A durable, checksummed copy of the **current** original is kept in private app
+  storage before any overwrite. The result is decoded and its metadata checked
+  before writing, then the written bytes and timestamp are verified. A failed
+  write is rolled back. After process death, the next run restores any pending
+  original before processing another image. Do not uninstall/clear application
+  data while a recovery is pending: this private backup is needed for recovery.
+  This is a recovery mechanism for an interrupted write, not a permanent undo
+  archive of successfully resized photos.
+- The compressed input is limited to 128 MiB and sampled decoded images to
+  32 MP to bound memory use. Oversized/unreadable photos are reported individually.
+  The UI shows totals, space saved and up to 100 skipped/error details; the
+  complete per-file results remain in the app's local job database.
+
+The fork uses application ID **`com.yawks.kompact`** and launcher name
+**Kompact (yawks)**, allowing installation alongside the upstream app.
+
+### Build and verification
+
+The current upstream build uses JDK 17+, Gradle 9.8.1, AGP 9.4 and Android SDK
+37 (the older requirements section below is upstream documentation).
+
+```bash
+./gradlew :app:assembleDebug :app:testDebugUnitTest
+# Connected Android 8+ device; tests only use generated files in app storage:
+./gradlew :app:connectedDebugAndroidTest
+```
+
+APK: `app/build/outputs/apk/debug/app-debug.apk`. Folder tests cover megapixel
+budgets, raw metadata copying, unsupported/malformed containers, real image
+decoding, exact timestamp/inode retention, concurrent-change rejection,
+interrupted-write recovery and background-worker execution. Device tests do not
+read or modify the user's photo collection. The upstream lint configuration
+does not fail the build on existing lint findings.
+
+---
 
 Kompact is an open-source Android app written in Kotlin with Jetpack Compose that edits and compresses images (JPEG, PNG, WebP, BMP, GIF, TIFF, ICO, HEIF, HEIC, AVIF, JXL) quickly and transparently. Official builds are produced and signed by the maintainer to keep a single line of trust that stays compliant with F-Droid and Google Play policies.
 

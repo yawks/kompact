@@ -15,11 +15,12 @@ android {
         .all { !it.isNullOrBlank() }
 
     defaultConfig {
-        applicationId = "com.kompact"
+        applicationId = "com.yawks.kompact"
         minSdk = 24
         targetSdk = 37
         versionCode = 31
         versionName = "2.0.9"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // NDK r28+: allineamento a 16 kB delle librerie native (warning Play Console)
         ndkVersion = "28.2.13676358"
 
@@ -144,6 +145,7 @@ dependencies {
 
     // --- Document / EXIF / DataStore ---
     implementation("androidx.documentfile:documentfile:1.1.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
     implementation("androidx.exifinterface:exifinterface:1.4.1")
     // datastore 1.2.1: ricompila libdatastore_shared_counter.so con GNU_RELRO
     // allineato a 16 kB (in 1.2.0 il RELRO non è un suffisso del suo LOAD e il
@@ -164,6 +166,7 @@ dependencies {
     testImplementation("androidx.compose.ui:ui-test-junit4")
     testImplementation("androidx.test:core:1.7.0")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.work:work-testing:2.10.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
